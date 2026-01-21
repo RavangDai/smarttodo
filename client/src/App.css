@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+:root {
+  --bg-color: #f8fafc;       /* Very light grey-blue */
+  --grid-line: #e2e8f0;      /* Subtle grid lines */
+  --accent: #2563eb;         /* Professional Blue */
+  --text-main: #0f172a;      /* Dark Slate */
+  --text-muted: #64748b;
+  --card-bg: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-color);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* --- SPLIT SCREEN LAYOUT --- */
+.split-screen {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Left Side: The Grid Visuals */
+.left-panel {
+  flex: 1;
+  background-color: var(--bg-color);
+  /* The "Graph Paper" Grid Pattern */
+  background-image: 
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  border-right: 1px solid var(--grid-line);
+}
+
+/* Right Side: The Form */
+.right-panel {
+  flex: 1;
+  background: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  box-shadow: -10px 0 20px rgba(0,0,0,0.02);
+}
+
+/* --- ORBIT ANIMATION (Flat Style) --- */
+.orbit-container {
+  position: relative;
+  width: 450px;
+  height: 450px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2; /* Ensure rings are above background but below floating cards if needed */
+}
+
+/* The Center Text - Clean & Sharp */
+.orbit-center-text {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  z-index: 10;
+  letter-spacing: -2px;
+  background: white;
+  padding: 10px 20px;
+  border: 2px solid var(--text-main);
+  box-shadow: 4px 4px 0px var(--text-muted);
+}
+
+/* The Rings */
+.orbit-ring {
+  position: absolute;
+  border: 1px dashed #cbd5e1;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.ring-1 { width: 280px; height: 280px; }
+.ring-2 { width: 480px; height: 480px; }
+
+/* The Moving Icons */
+.orbiting-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50px;
+  height: 50px;
+  margin-top: -25px;
+  margin-left: -25px;
+  background: white;
+  border: 1px solid var(--grid-line);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.4rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.orbit-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  animation: spin 30s linear infinite;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* --- NEW: FLOATING TASK CARDS --- */
+.floating-card {
+  position: absolute;
+  background: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--grid-line);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  z-index: 1; /* Floating behind the main focus */
+  animation: float 6s ease-in-out infinite;
+  min-width: 160px;
+}
+
+/* Position 1: Top Left (Completed Task) */
+.card-1 {
+  top: 20%;
+  left: 15%;
+  animation-delay: 0s;
+  border-left: 4px solid #10b981;
+}
+
+/* Position 2: Bottom Right (Pending Meeting) */
+.card-2 {
+  bottom: 25%;
+  right: 15%;
+  animation-delay: 2s;
+  border-left: 4px solid #f59e0b;
+}
+
+/* Position 3: Bottom Left (Urgent) */
+.card-3 {
+  bottom: 15%;
+  left: 20%;
+  animation-delay: 3.5s;
+  border-left: 4px solid #ef4444;
+}
+
+.card-text-done {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* --- FORM STYLING --- */
+.auth-container { width: 100%; max-width: 380px; }
+.auth-container h2 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text-main); letter-spacing: -0.5px; }
+.sub-text { color: var(--text-muted); margin-bottom: 2rem; line-height: 1.5; }
+.form-group { margin-bottom: 1.2rem; }
+.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input { width: 100%; padding: 12px; background: #f1f5f9; border: 2px solid transparent; border-radius: 6px; color: var(--text-main); font-size: 1rem; transition: 0.2s; box-sizing: border-box; }
+.form-group input:focus { outline: none; background: white; border-color: var(--accent); }
+.btn-primary { width: 100%; padding: 14px; background: var(--text-main); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+.btn-primary:hover { background: var(--accent); transform: translateY(-2px); }
+.switch-auth { margin-top: 20px; text-align: center; font-size: 0.9rem; color: var(--text-muted); }
+.switch-auth span { color: var(--accent); cursor: pointer; font-weight: 600; }
