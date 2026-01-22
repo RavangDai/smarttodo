@@ -1,0 +1,198 @@
+/* --- 1. GLOBAL RESET (Fixes the "Stuck on Left" bug) --- */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+#root {
+  max-width: 100% !important; /* Forces full width */
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+  width: 100vw;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f8fafc;
+}
+
+/* --- 2. LAYOUT & BACKGROUND --- */
+.dashboard-layout {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Horizontally Center */
+  padding-top: 80px;
+  position: relative; /* Needed for floating icons */
+  overflow: hidden;   /* Hides icons if they float off screen */
+
+  /* Blueprint Grid */
+  background-color: #f8fafc;
+  background-image: 
+    linear-gradient(#e2e8f0 1px, transparent 1px),
+    linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* --- 3. MAIN CARD (Glassmorphism) --- */
+.task-container {
+  background: rgba(255, 255, 255, 0.95); /* Slight transparency */
+  backdrop-filter: blur(10px);           /* Blur behind the card */
+  width: 100%;
+  max-width: 500px;                      /* Perfect width for tasks */
+  padding: 2.5rem;
+  border-radius: 24px;
+  border: 1px solid white;               /* White highlight border */
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  z-index: 10; /* Keeps it above the floating icons */
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --- 4. DECORATIVE ELEMENTS (Floating Icons) --- */
+.dashboard-bg-icon {
+  position: absolute;
+  opacity: 0.15; /* Subtle fade */
+  z-index: 1;    /* Behind the card */
+  animation: float 6s ease-in-out infinite;
+}
+
+.icon-1 { top: 10%; left: 10%; font-size: 4rem; color: #2563eb; animation-delay: 0s; }
+.icon-2 { bottom: 15%; right: 10%; font-size: 5rem; color: #10b981; animation-delay: 2s; }
+.icon-3 { top: 20%; right: 20%; font-size: 3rem; color: #f59e0b; animation-delay: 4s; }
+.icon-4 { bottom: 20%; left: 15%; font-size: 3.5rem; color: #ef4444; animation-delay: 1s; }
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* --- 5. INTERACTIVE ELEMENTS --- */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.add-task-wrapper {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.task-input {
+  flex: 1;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 1rem;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.task-input:focus {
+  border-color: #2563eb;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.btn-add {
+  background: #2563eb;
+  color: white;
+  border: none;
+  width: 60px;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+  transition: all 0.2s;
+}
+
+.btn-add:hover { background: #1d4ed8; transform: translateY(-2px); }
+.btn-add:active { transform: scale(0.95); }
+
+/* Task List Styling */
+.task-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+
+.task-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px;
+  background: white;
+  border: 1px solid #f1f5f9;
+  border-radius: 18px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.task-card:hover {
+  transform: scale(1.02);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.task-content { display: flex; align-items: center; gap: 16px; flex: 1; }
+
+.custom-checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px; /* Softer square */
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.2s;
+}
+
+.task-completed .custom-checkbox { background: #10b981; border-color: #10b981; }
+.task-completed .task-text { text-decoration: line-through; color: #94a3b8; opacity: 0.7; }
+.task-text { font-size: 1.05rem; color: #334155; font-weight: 500; }
+
+.btn-delete {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  cursor: pointer;
+  padding: 8px;
+  transition: color 0.2s;
+}
+.btn-delete:hover { color: #ef4444; }
+
+.btn-logout {
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    font-weight: 600;
+    color: #64748b;
+    display: flex; 
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.btn-logout:hover { background: #fff1f2; color: #ef4444; border-color: #fecaca; }

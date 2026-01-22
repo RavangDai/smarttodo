@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
 
 :root {
   --bg-color: #f8fafc;       /* Very light grey-blue */
   --grid-line: #e2e8f0;      /* Subtle grid lines */
   --accent: #2563eb;         /* Professional Blue */
   --text-main: #0f172a;      /* Dark Slate */
-  --text-muted: #64748b;
+  --text-muted: #64748b;     /* Muted Grey */
   --card-bg: #ffffff;
 }
 
@@ -53,7 +53,7 @@ body {
   box-shadow: -10px 0 20px rgba(0,0,0,0.02);
 }
 
-/* --- ORBIT ANIMATION (Flat Style) --- */
+/* --- ORBIT ANIMATION (Center Visual) --- */
 .orbit-container {
   position: relative;
   width: 450px;
@@ -61,7 +61,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2; /* Ensure rings are above background but below floating cards if needed */
+  z-index: 2;
 }
 
 /* The Center Text - Clean & Sharp */
@@ -117,7 +117,7 @@ body {
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* --- NEW: FLOATING TASK CARDS --- */
+/* --- FLOATING TASK CARDS --- */
 .floating-card {
   position: absolute;
   background: white;
@@ -131,39 +131,17 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-main);
-  z-index: 1; /* Floating behind the main focus */
+  z-index: 1;
   animation: float 6s ease-in-out infinite;
   min-width: 160px;
 }
 
-/* Position 1: Top Left (Completed Task) */
-.card-1 {
-  top: 20%;
-  left: 15%;
-  animation-delay: 0s;
-  border-left: 4px solid #10b981;
-}
+/* Specific Positions & Colors */
+.card-1 { top: 20%; left: 15%; animation-delay: 0s; border-left: 4px solid #10b981; }
+.card-2 { bottom: 25%; right: 15%; animation-delay: 2s; border-left: 4px solid #f59e0b; }
+.card-3 { bottom: 15%; left: 20%; animation-delay: 3.5s; border-left: 4px solid #ef4444; }
 
-/* Position 2: Bottom Right (Pending Meeting) */
-.card-2 {
-  bottom: 25%;
-  right: 15%;
-  animation-delay: 2s;
-  border-left: 4px solid #f59e0b;
-}
-
-/* Position 3: Bottom Left (Urgent) */
-.card-3 {
-  bottom: 15%;
-  left: 20%;
-  animation-delay: 3.5s;
-  border-left: 4px solid #ef4444;
-}
-
-.card-text-done {
-  text-decoration: line-through;
-  color: var(--text-muted);
-}
+.card-text-done { text-decoration: line-through; color: var(--text-muted); }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
@@ -172,13 +150,37 @@ body {
 
 /* --- FORM STYLING --- */
 .auth-container { width: 100%; max-width: 380px; }
-.auth-container h2 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text-main); letter-spacing: -0.5px; }
-.sub-text { color: var(--text-muted); margin-bottom: 2rem; line-height: 1.5; }
+
+.auth-header { margin-bottom: 2rem; text-align: left; }
+.auth-header h2 { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -1px; }
+.sub-text { color: var(--text-muted); line-height: 1.5; font-size: 0.95rem; }
+
+/* Social Buttons */
+.social-login { display: flex; gap: 15px; margin-bottom: 25px; }
+.social-btn { flex: 1; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 12px; background: white; border: 1px solid var(--grid-line); border-radius: 8px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+.social-btn:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+
+/* Divider */
+.divider { display: flex; align-items: center; text-align: center; margin-bottom: 25px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
+.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--grid-line); }
+.divider span { padding: 0 10px; }
+
+/* Input Fields with Icons */
 .form-group { margin-bottom: 1.2rem; }
-.form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; }
-.form-group input { width: 100%; padding: 12px; background: #f1f5f9; border: 2px solid transparent; border-radius: 6px; color: var(--text-main); font-size: 1rem; transition: 0.2s; box-sizing: border-box; }
-.form-group input:focus { outline: none; background: white; border-color: var(--accent); }
-.btn-primary { width: 100%; padding: 14px; background: var(--text-main); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+.form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.input-group { position: relative; }
+.input-icon { position: absolute; top: 50%; left: 15px; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; z-index: 2; transition: 0.2s; }
+.input-group:focus-within .input-icon { color: var(--accent); }
+
+.form-group input { width: 100%; padding: 12px 12px 12px 45px; /* Space for icon */ background: #f1f5f9; border: 2px solid transparent; border-radius: 8px; color: var(--text-main); font-size: 1rem; font-weight: 500; transition: 0.2s; box-sizing: border-box; }
+.form-group input:focus { outline: none; background: white; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+/* Main Button */
+.btn-primary { width: 100%; padding: 14px; background: var(--text-main); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
 .btn-primary:hover { background: var(--accent); transform: translateY(-2px); }
+
+/* Toggle Text */
 .switch-auth { margin-top: 20px; text-align: center; font-size: 0.9rem; color: var(--text-muted); }
-.switch-auth span { color: var(--accent); cursor: pointer; font-weight: 600; }
+.switch-auth span { color: var(--accent); cursor: pointer; font-weight: 600; margin-left: 5px; }
+.switch-auth span:hover { text-decoration: underline; }

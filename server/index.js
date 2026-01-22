@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-require('dotenv').config(); // This loads variables from .env
+require('dotenv').config(); 
 
 const TaskModel = require('./models/Task');
 const UserModel = require('./models/User');
@@ -12,18 +12,17 @@ const UserModel = require('./models/User');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// SECURITY FIX: Use environment variable, fallback only for local dev
-const SECRET_KEY = process.env.JWT_SECRET || "fallback-secret-key-for-dev-only"; 
+const SECRET_KEY = process.env.JWT_SECRET || "fallback-secret-key-for-dev-only";
 
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB using the hidden URI
+// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected!"))
   .catch((err) => console.error("❌ MongoDB Error:", err));
 
-// --- MIDDLEWARE (The Bouncer) ---
+// --- MIDDLEWARE ---
 const verifyToken = (req, res, next) => {
   const token = req.headers['authorization'];
   if (!token) return res.status(401).json({ error: "Access Denied" });
@@ -37,10 +36,16 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// --- AUTH ROUTES ---
-app.post('/register', async (req, res) => {
+// --- AUTH ROUTES (UPDATED PATHS) ---
+// Note: Added '/api/users' to match frontend
+
+app.post('/api/users/register', async (req, res) => {
   try {
     const { email, password } = req.body;
+    // Check if user exists first
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser) return res.status(400).json({ error: "User already exists" });
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new UserModel({ email, password: hashedPassword });
     await newUser.save();
@@ -48,7 +53,7 @@ app.post('/register', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/api/users/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await UserModel.findOne({ email });
@@ -62,43 +67,43 @@ app.post('/login', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// --- TASK ROUTES ---
-app.get('/tasks', verifyToken, async (req, res) => {
+// --- TASK ROUTES (UPDATED PATHS) ---
+// Note: Added '/api' prefix to match frontend
+
+app.get('/api/tasks', verifyToken, async (req, res) => {
   try {
-    const tasks = await TaskModel.find({ userId: req.user.id });
+    const tasks = await TaskModel.find({ user: req.user.id });
     res.json(tasks);
   } catch (err) { res.json({ error: err.message }); }
 });
 
-app.post('/tasks', verifyToken, async (req, res) => {
+app.post('/api/tasks', verifyToken, async (req, res) => {
   try {
-    const newTask = new TaskModel({ 
+    const newTask = new TaskModel({
       title: req.body.title,
-      userId: req.user.id 
+      user: req.user.id
     });
     const savedTask = await newTask.save();
     res.json(savedTask);
   } catch (err) { res.json({ error: err.message }); }
 });
 
-app.put('/tasks/:id', verifyToken, async (req, res) => {
+app.put('/api/tasks/:id', verifyToken, async (req, res) => {
   try {
-    // 1. Find the task to ensure ownership
-    const t = await TaskModel.findOne({ _id: req.params.id, userId: req.user.id });
+    const t = await TaskModel.findOne({ _id: req.params.id, user: req.user.id });
     if (!t) return res.status(404).json({ error: "Task not found" });
-    
-    // 2. Toggle status
-    t.isCompleted = !t.isCompleted;
+
+    t.isCompleted = !t.isCompleted; // Toggle logic
     await t.save();
-    res.json(t);
+    res.json(t); // Return the full object so frontend updates correctly
   } catch (err) { res.json({ error: err.message }); }
 });
 
-app.delete('/tasks/:id', verifyToken, async (req, res) => {
+app.delete('/api/tasks/:id', verifyToken, async (req, res) => {
   try {
-    const result = await TaskModel.findOneAndDelete({ 
-      _id: req.params.id, 
-      userId: req.user.id 
+    const result = await TaskModel.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user.id
     });
     res.json(result);
   } catch (err) { res.json({ error: err.message }); }
