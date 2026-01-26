@@ -1,198 +1,390 @@
-/* --- 1. GLOBAL RESET (Fixes the "Stuck on Left" bug) --- */
+/* --- CALM BRUTALISM / ZEN MINIMALISM --- */
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Palette: Light Mode (Warm White) */
+  --bg-color: #FDFCFA;
+  --surface-color: #F5F5F3;
+  --primary-color: #7A9D7C;
+  /* Muted Sage */
+  --accent-color: #E88873;
+  /* Soft Coral */
+  --text-primary: #1F1F1F;
+  /* Near Black */
+  --text-secondary: #757575;
+  --border-color: #E0DED9;
+
+  /* Typography */
+  --font-main: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 8px;
+  --space-s: 16px;
+  --space-m: 24px;
+  --space-l: 40px;
+  --space-xl: 64px;
+  --space-xxl: 120px;
 }
 
-#root {
-  max-width: 100% !important; /* Forces full width */
-  margin: 0 !important;
-  padding: 0 !important;
-  text-align: left !important;
-  width: 100vw;
+body.dark-mode {
+  /* Palette: Dark Mode (Blue-Black) */
+  --bg-color: #0F1419;
+  --surface-color: #1A1F24;
+  --primary-color: #9CB89A;
+  /* Pale Sage */
+  --accent-color: #F4A58A;
+  /* Warm Coral */
+  --text-primary: #F0F0EA;
+  /* Warm White */
+  --text-secondary: #8B98A5;
+  --border-color: #2A2F35;
 }
 
 body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  line-height: 1.6;
   margin: 0;
   padding: 0;
-  background-color: #f8fafc;
+  transition: background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-x: hidden;
 }
 
-/* --- 2. LAYOUT & BACKGROUND --- */
-.dashboard-layout {
-  min-height: 100vh;
+/* --- Paper Texture Overlay --- */
+.paper-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  display: flex;
-  justify-content: center; /* Horizontally Center */
-  padding-top: 80px;
-  position: relative; /* Needed for floating icons */
-  overflow: hidden;   /* Hides icons if they float off screen */
-
-  /* Blueprint Grid */
-  background-color: #f8fafc;
-  background-image: 
-    linear-gradient(#e2e8f0 1px, transparent 1px),
-    linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
-  background-size: 40px 40px;
+  height: 100%;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* --- 3. MAIN CARD (Glassmorphism) --- */
-.task-container {
-  background: rgba(255, 255, 255, 0.95); /* Slight transparency */
-  backdrop-filter: blur(10px);           /* Blur behind the card */
-  width: 100%;
-  max-width: 500px;                      /* Perfect width for tasks */
-  padding: 2.5rem;
-  border-radius: 24px;
-  border: 1px solid white;               /* White highlight border */
-  box-shadow: 
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  z-index: 10; /* Keeps it above the floating icons */
-  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+/* --- Layout --- */
+.dashboard-container {
+  max-width: 900px;
+  /* Intentionally narrower for focus */
+  margin: 0 auto;
+  padding: 0 var(--space-m);
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* --- 4. DECORATIVE ELEMENTS (Floating Icons) --- */
-.dashboard-bg-icon {
-  position: absolute;
-  opacity: 0.15; /* Subtle fade */
-  z-index: 1;    /* Behind the card */
-  animation: float 6s ease-in-out infinite;
-}
-
-.icon-1 { top: 10%; left: 10%; font-size: 4rem; color: #2563eb; animation-delay: 0s; }
-.icon-2 { bottom: 15%; right: 10%; font-size: 5rem; color: #10b981; animation-delay: 2s; }
-.icon-3 { top: 20%; right: 20%; font-size: 3rem; color: #f59e0b; animation-delay: 4s; }
-.icon-4 { bottom: 20%; left: 15%; font-size: 3.5rem; color: #ef4444; animation-delay: 1s; }
-
-@keyframes float {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(5deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
-}
-
-/* --- 5. INTERACTIVE ELEMENTS --- */
-.dashboard-header {
+/* --- Header --- */
+.app-header {
+  height: 80px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-xxl);
 }
 
-.dashboard-header h2 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 0;
-  letter-spacing: -1px;
+.brand-logo {
+  font-weight: 500;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
 }
 
-.add-task-wrapper {
+.header-controls {
   display: flex;
-  gap: 12px;
-  margin-bottom: 2rem;
-  position: relative;
+  align-items: center;
+  gap: var(--space-m);
 }
 
-.task-input {
+.btn-icon {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: grid;
+  place-items: center;
+}
+
+.btn-icon:hover {
+  background: var(--surface-color);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--surface-color);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 500;
+  font-size: 14px;
+  border: 1px solid var(--border-color);
+}
+
+/* --- Hero --- */
+.hero-section {
+  margin-bottom: var(--space-xl);
+  /* Use a min-height to prevent layout shift during rotation if needed, 
+     but keeping it natural for now. */
+}
+
+.hero-title {
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: var(--space-m);
+  max-width: 800px;
+}
+
+.highlight {
+  color: var(--accent-color);
+}
+
+.hero-subtitle {
+  font-size: 20px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  max-width: 600px;
+  height: 32px;
+  /* Fixed height for rotation */
+  display: flex;
+  align-items: center;
+}
+
+/* --- Tabs --- */
+.tabs-nav {
+  display: flex;
+  gap: 32px;
+  margin-bottom: var(--space-l);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding-bottom: 12px;
+  font-size: 16px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s ease;
+  font-family: var(--font-main);
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  /* Overlap border */
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--accent-color);
+}
+
+/* --- Input Area --- */
+.input-card {
+  background: var(--bg-color);
+  /* Matches bg, but relies on shadow/border if focused */
+  /* Or use surface color? User said "White card / Elevated dark" */
+  /* Let's stick to BG color but add a subtle border/shadow as requested */
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  /* Subtle border instead of shadow for calm feel */
+  border-radius: 12px;
+  padding: 16px;
+  /* Adjusted padding */
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  margin-bottom: var(--space-xl);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input-card:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.main-input {
   flex: 1;
-  padding: 16px 20px;
-  border-radius: 16px;
-  border: 2px solid #e2e8f0;
-  background: #f8fafc;
-  font-size: 1rem;
-  transition: all 0.2s;
+  border: none;
+  background: none;
+  font-size: 18px;
+  color: var(--text-primary);
+  outline: none;
+  font-family: var(--font-main);
+}
+
+.main-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.meta-select {
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
   outline: none;
 }
 
-.task-input:focus {
-  border-color: #2563eb;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+.meta-select:hover {
+  color: var(--text-primary);
 }
 
-.btn-add {
-  background: #2563eb;
-  color: white;
+.date-trigger {
   border: none;
-  width: 60px;
-  border-radius: 16px;
+  background: none;
+  color: var(--text-secondary);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
-  transition: all 0.2s;
-}
-
-.btn-add:hover { background: #1d4ed8; transform: translateY(-2px); }
-.btn-add:active { transform: scale(0.95); }
-
-/* Task List Styling */
-.task-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
-
-.task-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px;
-  background: white;
-  border: 1px solid #f1f5f9;
-  border-radius: 18px;
-  transition: all 0.2s;
-  cursor: pointer;
-}
-
-.task-card:hover {
-  transform: scale(1.02);
-  border-color: #cbd5e1;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-}
-
-.task-content { display: flex; align-items: center; gap: 16px; flex: 1; }
-
-.custom-checkbox {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px; /* Softer square */
-  border: 2px solid #cbd5e1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  transition: all 0.2s;
-}
-
-.task-completed .custom-checkbox { background: #10b981; border-color: #10b981; }
-.task-completed .task-text { text-decoration: line-through; color: #94a3b8; opacity: 0.7; }
-.task-text { font-size: 1.05rem; color: #334155; font-weight: 500; }
-
-.btn-delete {
-  background: transparent;
-  border: none;
-  color: #cbd5e1;
-  cursor: pointer;
-  padding: 8px;
+  font-size: 16px;
   transition: color 0.2s;
 }
-.btn-delete:hover { color: #ef4444; }
 
-.btn-logout {
-    padding: 8px 16px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    cursor: pointer;
-    font-weight: 600;
-    color: #64748b;
-    display: flex; 
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
+.date-trigger:hover {
+  color: var(--text-primary);
 }
-.btn-logout:hover { background: #fff1f2; color: #ef4444; border-color: #fecaca; }
+
+.btn-primary {
+  background-color: var(--accent-color);
+  color: #fff;
+  /* Always white text on accent */
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* --- Task List --- */
+.task-list-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  /* Flush list? Or small gap? User said "single column, stacked". Let's do NO gap, border separators. */
+}
+
+.task-item-row {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-color);
+  transition: opacity 0.3s ease;
+}
+
+.task-item-row.completed {
+  opacity: 0.4;
+}
+
+.check-circle {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--text-secondary);
+  border-radius: 50%;
+  margin-right: var(--space-m);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  transition: all 0.2s ease;
+}
+
+.check-circle:hover {
+  border-color: var(--primary-color);
+  background: rgba(122, 157, 124, 0.1);
+}
+
+.task-item-row.completed .check-circle {
+  background: var(--text-secondary);
+  border-color: var(--text-secondary);
+  color: var(--bg-color);
+  /* Check icon color */
+}
+
+.task-content {
+  flex: 1;
+}
+
+.task-text {
+  font-size: 16px;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.task-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  align-items: center;
+}
+
+.meta-priority {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.priority-high {
+  color: var(--accent-color);
+}
+
+.delete-action {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: opacity 0.2s;
+  padding: 8px;
+}
+
+.task-item-row:hover .delete-action {
+  opacity: 1;
+}
+
+.delete-action:hover {
+  color: #ef4444;
+}
+
+/* --- Empty state --- */
+.empty-state {
+  text-align: center;
+  padding: 120px 0;
+  color: var(--text-secondary);
+}
+
+.empty-icon {
+  font-size: 64px;
+  opacity: 0.2;
+  margin-bottom: 24px;
+}

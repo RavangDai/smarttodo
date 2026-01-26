@@ -2,16 +2,25 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   FaCheckDouble, FaListUl, FaBell, FaClock, FaTrash, FaSignOutAlt, FaPlus,
-  FaEnvelope, FaLock, FaGoogle, FaGithub, FaCheck
+  FaEnvelope, FaLock, FaGoogle, FaGithub, FaCheck, FaMoon, FaSun, FaCalendarAlt
 } from 'react-icons/fa';
+import confetti from 'canvas-confetti';
 
 import './App.css';       // <--- 1. Loads your Login Styles
 import './Dashboard.css'; // <--- 2. LOADS YOUR NEW DASHBOARD STYLES
 
 function App() {
+
+  const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed'
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [tasks, setTasks] = useState([]);
+
+  // New States
   const [newTask, setNewTask] = useState("");
+  const [newPriority, setNewPriority] = useState("medium");
+  const [newDueDate, setNewDueDate] = useState("");
+  const [darkMode, setDarkMode] = useState(false);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -24,6 +33,15 @@ function App() {
       localStorage.removeItem('token');
     }
   }, [token]);
+
+  // Dark Mode Effect
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
 
   const getHeaders = () => ({ headers: { 'Authorization': token } });
 
@@ -56,10 +74,16 @@ function App() {
   // Task Actions
   const addTask = () => {
     if (!newTask) return;
-    axios.post('http://localhost:5000/api/tasks', { title: newTask }, getHeaders())
+    axios.post('http://localhost:5000/api/tasks', {
+      title: newTask,
+      priority: newPriority,
+      dueDate: newDueDate
+    }, getHeaders())
       .then(res => {
         setTasks([...tasks, res.data]);
         setNewTask("");
+        setNewPriority("medium");
+        setNewDueDate("");
       });
   };
 
@@ -72,6 +96,14 @@ function App() {
     axios.put(`http://localhost:5000/api/tasks/${id}`, {}, getHeaders())
       .then(res => {
         setTasks(tasks.map(t => t._id === id ? { ...t, isCompleted: res.data.isCompleted } : t));
+        // Trigger Confetti if completed!
+        if (res.data.isCompleted) {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        }
       });
   };
 
@@ -172,67 +204,173 @@ function App() {
       </div>
     );
   }
+  // --- Subtitle Rotation ---
+  const [subtitleIndex, setSubtitleIndex] = useState(0);
+  const subtitles = [
+    "AI suggests when to tackle each task",
+    "Understands 'tomorrow at 3pm' like a human",
+    "Focus mode eliminates decision fatigue"
+  ];
 
-  // --- 4. DASHBOARD VIEW ---
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSubtitleIndex(iframe => (iframe + 1) % subtitles.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // --- CALCULATIONS ---
+  const completedCount = tasks.filter(t => t.isCompleted).length;
+  const totalCount = tasks.length;
+  const progress = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+
+  const filteredTasks = tasks.filter(task => {
+    if (filter === 'active') return !task.isCompleted;
+    if (filter === 'completed') return task.isCompleted;
+    return true;
+  });
+
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
   return (
-    <div className="dashboard-layout">
+    <>
+      {/* Paper Texture Overlay */}
+      <div className="paper-overlay"></div>
 
-      {/* 🌟 ATMOSPHERE: Floating Background Icons 🌟 */}
-      <div className="dashboard-bg-icon icon-1"><FaCheckDouble /></div>
-      <div className="dashboard-bg-icon icon-2"><FaListUl /></div>
-      <div className="dashboard-bg-icon icon-3"><FaClock /></div>
-      <div className="dashboard-bg-icon icon-4"><FaBell /></div>
+      <div className="dashboard-container">
 
-      {/* Main Card */}
-      <div className="task-container">
+        {/* --- HEADER --- */}
+        <header className="app-header">
+          <div className="brand-logo">Smart Todo.</div>
 
-        {/* Header */}
-        <div className="dashboard-header">
-          <h2>My Tasks</h2>
-          <button onClick={() => setToken(null)} className="btn-logout">
-            Logout <FaSignOutAlt />
+          <div className="header-controls">
+            <button className="btn-icon" onClick={() => setDarkMode(!darkMode)} title="Toggle Dark Mode">
+              {darkMode ? <FaSun size={18} /> : <FaMoon size={18} />}
+            </button>
+            <div className="user-avatar">B</div>
+            <button onClick={() => setToken(null)} className="btn-icon" title="Log Out">
+              <FaSignOutAlt size={18} />
+            </button>
+          </div>
+        </header>
+
+        {/* --- HERO --- */}
+        <section className="hero-section">
+          <div className="hero-title">
+            Your Daily Tasks <br />
+            Organized <span className="highlight">Effortlessly</span>
+          </div>
+          <div className="hero-subtitle">
+            {subtitles[subtitleIndex]}
+          </div>
+        </section>
+
+        {/* --- TABS --- */}
+        <nav className="tabs-nav">
+          <button
+            className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            All Tasks
           </button>
-        </div>
+          <button
+            className={`tab-btn ${filter === 'active' ? 'active' : ''}`}
+            onClick={() => setFilter('active')}
+          >
+            Active
+          </button>
+          <button
+            className={`tab-btn ${filter === 'completed' ? 'active' : ''}`}
+            onClick={() => setFilter('completed')}
+          >
+            Completed
+          </button>
+        </nav>
 
-        {/* Input Area */}
-        <div className="add-task-wrapper">
+        {/* --- INPUT CARD --- */}
+        <div className="input-card">
           <input
-            className="task-input"
+            className="main-input"
             value={newTask}
             onChange={e => setNewTask(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addTask()}
-            placeholder="What's next?"
+            placeholder="What needs to be done today?"
           />
-          <button onClick={addTask} className="btn-add">
-            <FaPlus />
-          </button>
+          <div className="input-actions">
+            {/* Priority Select (Minimal) */}
+            <select
+              className="meta-select"
+              value={newPriority}
+              onChange={e => setNewPriority(e.target.value)}
+            >
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="low">Low</option>
+            </select>
+
+            {/* Date Trigger (Minimal) */}
+            <button
+              className="date-trigger"
+              title="Set Date"
+              onClick={() => document.getElementById('hidden-date').showPicker()}
+            >
+              📅
+            </button>
+            <input
+              id="hidden-date"
+              type="date"
+              value={newDueDate}
+              onChange={e => setNewDueDate(e.target.value)}
+              style={{ width: 0, height: 0, opacity: 0, overflow: 'hidden', position: 'absolute' }}
+            />
+
+            <button onClick={addTask} className="btn-primary">
+              + New Task
+            </button>
+          </div>
         </div>
 
-        {/* Task List */}
-        <ul className="task-list">
-          {tasks.length === 0 && (
-            <p style={{ textAlign: 'center', color: '#94a3b8', marginTop: '20px' }}>
-              No tasks yet. Add one above!
-            </p>
-          )}
+        {/* --- TASK LIST STACK --- */}
+        <div className="task-list-stack">
+          {filteredTasks.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">✓</div>
+              <p>Your canvas is clear. What will you accomplish today?</p>
+            </div>
+          ) : (
+            filteredTasks.map(task => (
+              <div key={task._id} className={`task-item-row ${task.isCompleted ? 'completed' : ''}`}>
+                <button
+                  className="check-circle"
+                  onClick={() => toggleTask(task._id)}
+                >
+                  {task.isCompleted && <FaCheck size={10} />}
+                </button>
 
-          {tasks.map(task => (
-            <li key={task._id} className={`task-card ${task.isCompleted ? 'task-completed' : ''}`}>
-              <div className="task-content" onClick={() => toggleTask(task._id)}>
-                <div className="custom-checkbox">
-                  {task.isCompleted && <FaCheck size={14} />}
+                <div className="task-content">
+                  <span className="task-text">{task.title}</span>
+                  <div className="task-meta">
+                    {task.priority !== 'medium' && (
+                      <span className={`meta-priority priority-${task.priority}`}>
+                        {task.priority} Priority
+                      </span>
+                    )}
+                    {task.dueDate && (
+                      <span>• Due {new Date(task.dueDate).toLocaleDateString()}</span>
+                    )}
+                  </div>
                 </div>
-                <span className="task-text">{task.title}</span>
+
+                <button className="delete-action" onClick={() => deleteTask(task._id)}>
+                  <FaTrash size={14} />
+                </button>
               </div>
-              <button className="btn-delete" onClick={() => deleteTask(task._id)}>
-                <FaTrash />
-              </button>
-            </li>
-          ))}
-        </ul>
+            ))
+          )}
+        </div>
 
       </div>
-    </div>
+    </>
   );
 }
 
