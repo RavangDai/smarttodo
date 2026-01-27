@@ -25,6 +25,21 @@ function App() {
   const [password, setPassword] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
 
+  // Subtitle Rotation State
+  const [subtitleIndex, setSubtitleIndex] = useState(0);
+  const subtitles = [
+    "AI suggests when to tackle each task",
+    "Understands 'tomorrow at 3pm' like a human",
+    "Focus mode eliminates decision fatigue"
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSubtitleIndex(i => (i + 1) % subtitles.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Sync Token with LocalStorage
   useEffect(() => {
     if (token) {
@@ -34,14 +49,21 @@ function App() {
     }
   }, [token]);
 
-  // Dark Mode Effect
+  // Theme Management (Isolation)
   useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark-mode');
+    if (token) {
+      document.body.classList.add('theme-brutalist');
+      // Handle dark mode check
+      if (darkMode) document.body.classList.add('dark-mode');
+      else document.body.classList.remove('dark-mode');
     } else {
+      document.body.classList.remove('theme-brutalist');
       document.body.classList.remove('dark-mode');
+      // Reset styles for login page
+      document.body.style.backgroundColor = '';
+      document.body.style.color = '';
     }
-  }, [darkMode]);
+  }, [token, darkMode]);
 
   const getHeaders = () => ({ headers: { 'Authorization': token } });
 
@@ -126,6 +148,7 @@ function App() {
           </div>
           <div className="orbit-container">
             <h1 className="orbit-center-text">Smart<br />Todo.</h1>
+            <p className="orbit-subtitle">{subtitles[subtitleIndex]}</p>
             <div className="orbit-ring ring-1"></div>
             <div className="orbit-ring ring-2"></div>
             <div className="orbit-wrapper">
@@ -204,21 +227,6 @@ function App() {
       </div>
     );
   }
-  // --- Subtitle Rotation ---
-  const [subtitleIndex, setSubtitleIndex] = useState(0);
-  const subtitles = [
-    "AI suggests when to tackle each task",
-    "Understands 'tomorrow at 3pm' like a human",
-    "Focus mode eliminates decision fatigue"
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSubtitleIndex(iframe => (iframe + 1) % subtitles.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
   // --- CALCULATIONS ---
   const completedCount = tasks.filter(t => t.isCompleted).length;
   const totalCount = tasks.length;

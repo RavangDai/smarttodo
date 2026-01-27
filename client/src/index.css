@@ -1,45 +1,141 @@
-/* --- GLOBAL RESET --- */
+/* --- GLOBAL RESET & VARIABLES --- */
+/* Import Fonts: Inter (Body) & Playfair Display (Headings) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap');
+
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  
-  /* Color Scheme Variables */
-  --primary: #4f46e5;
-  --bg-color: #f8fafc;
+  /* --- PALETTE: Warm Minimal (Notion-Inspired) --- */
+
+  /* Backgrounds */
+  --bg-color: #FDFCFA;
+  /* Warm Cream / Off-White */
+  --bg-secondary: #F5F5F3;
+  /* Light Beige / Surface */
+  --bg-card: #FFFFFF;
+  /* Pure White Card */
+
+  /* Typography */
+  --text-main: #2F2F2F;
+  /* Soft Charcoal (Not pure black) */
+  --text-muted: #757575;
+  /* Warm Grey */
+  --text-light: #9E9E9E;
+  /* Light Grey */
+
+  /* Accents */
+  --primary: #7A9D7C;
+  /* Sage Green (Calm, nature-inspired) */
+  --primary-hover: #658466;
+  --accent: #E88873;
+  /* Muted Coral/Terra Cotta */
+
+  /* Borders & Dividers */
+  --border-soft: #E0DED9;
+  /* Warm Grey Border */
+  --border-focus: #A0A0A0;
+  /* Slightly darker for focus */
+
+  /* Spacing & Radius */
+  --radius-s: 4px;
+  --radius-m: 8px;
+  --radius-l: 12px;
+
+  /* Shadows - Minimal/None */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+
+  /* Fonts */
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
 }
 
 /* 1. FORCE FULL WIDTH & HEIGHT */
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden; /* Prevents horizontal scrollbar */
+  overflow-x: hidden;
 }
 
-/* 2. REMOVE DEFAULT CENTERING */
+/* 2. BACKGROUND & BASE STYLES */
 body {
-  display: block; /* Vite defaults this to 'flex' sometimes, which breaks layouts */
-  place-items: unset;
-  min-width: 320px;
-  min-height: 100vh;
   background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Headings use Serif */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--text-main);
+  margin-top: 0;
 }
 
 /* 3. RESET BOX MODEL */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-/* 4. BUTTON RESET */
+/* 4. UTILITIES */
+.card-minimal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-m);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-minimal:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-focus);
+}
+
+/* 5. BUTTON STYLES (Minimal) */
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
   cursor: pointer;
-  transition: border-color 0.25s;
+  font-family: var(--font-sans);
+  border: none;
+  background: none;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--text-main);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: var(--radius-s);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.btn-primary:hover {
+  background-color: #000;
+  /* Darker black */
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--bg-secondary);
+  color: var(--text-main);
+  padding: 10px 18px;
+  border-radius: var(--radius-s);
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.btn-secondary:hover {
+  background-color: #EBEBE9;
 }

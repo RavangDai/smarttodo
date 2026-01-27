@@ -1,186 +1,401 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
-
-:root {
-  --bg-color: #f8fafc;       /* Very light grey-blue */
-  --grid-line: #e2e8f0;      /* Subtle grid lines */
-  --accent: #2563eb;         /* Professional Blue */
-  --text-main: #0f172a;      /* Dark Slate */
-  --text-muted: #64748b;     /* Muted Grey */
-  --card-bg: #ffffff;
-}
-
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: var(--bg-color);
-  color: var(--text-main);
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* --- SPLIT SCREEN LAYOUT --- */
+/* --- SPLIT SCREEN LAYOUT (Minimal) --- */
 .split-screen {
   display: flex;
   height: 100vh;
   width: 100vw;
+  background-color: var(--bg-color);
 }
 
-/* Left Side: The Grid Visuals */
+/* Left Side: Visuals - Clean & Artistic */
 .left-panel {
   flex: 1;
-  background-color: var(--bg-color);
-  /* The "Graph Paper" Grid Pattern */
-  background-image: 
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-color: var(--bg-secondary);
+  /* Soft Beige */
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
+  border-right: 1px solid var(--border-soft);
   overflow: hidden;
-  border-right: 1px solid var(--grid-line);
+  /* Ensure floating elements don't spill */
 }
 
-/* Right Side: The Form */
+/* Right Side: The Form - Minimal & Spaced */
 .right-panel {
   flex: 1;
-  background: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 2rem;
-  box-shadow: -10px 0 20px rgba(0,0,0,0.02);
+  padding: 4rem;
+  background-color: var(--bg-color);
 }
 
-/* --- ORBIT ANIMATION (Center Visual) --- */
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* --- CENTER VISUAL (Restored & Minimal) --- */
 .orbit-container {
   position: relative;
-  width: 450px;
-  height: 450px;
+  width: 500px;
+  height: 500px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 2;
 }
 
-/* The Center Text - Clean & Sharp */
+/* Center Text - Serif */
 .orbit-center-text {
+  font-family: var(--font-serif);
   font-size: 3.5rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-main);
   z-index: 10;
-  letter-spacing: -2px;
-  background: white;
-  padding: 10px 20px;
-  border: 2px solid var(--text-main);
-  box-shadow: 4px 4px 0px var(--text-muted);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  line-height: 1;
 }
 
-/* The Rings */
+/* New: Rotating Subtitle */
+.orbit-subtitle {
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 320px;
+  height: 3.2rem;
+  /* Fixed height to prevent layout shift */
+  display: grid;
+  place-items: top center;
+  animation: fadeIn 0.5s ease-in-out;
+  margin-top: 1rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Restored Orbit Rings - Minimal style */
 .orbit-ring {
   position: absolute;
-  border: 1px dashed #cbd5e1;
+  border: 1px solid var(--border-soft);
   border-radius: 50%;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-.ring-1 { width: 280px; height: 280px; }
-.ring-2 { width: 480px; height: 480px; }
-
-/* The Moving Icons */
-.orbiting-icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 50px;
-  height: 50px;
-  margin-top: -25px;
-  margin-left: -25px;
-  background: white;
-  border: 1px solid var(--grid-line);
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.4rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  display: block;
+  /* Show them! */
+  z-index: 0;
 }
 
+.ring-1 {
+  width: 320px;
+  height: 320px;
+  border-style: dashed;
+  opacity: 0.5;
+}
+
+.ring-2 {
+  width: 550px;
+  height: 550px;
+  border-color: var(--border-soft);
+  opacity: 0.3;
+}
+
+/* Restored Orbit Wrapper & Icons */
 .orbit-wrapper {
   position: absolute;
   width: 100%;
   height: 100%;
-  animation: spin 30s linear infinite;
+  animation: spin 60s linear infinite;
+  /* Slower spin for calm vibe */
+  display: block;
 }
 
-@keyframes spin { 100% { transform: rotate(360deg); } }
+.orbiting-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+  margin-left: -24px;
 
-/* --- FLOATING TASK CARDS --- */
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: 50%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Floating Cards - Minimal & Animated again */
 .floating-card {
   position: absolute;
-  background: white;
+  background: var(--bg-card);
   padding: 12px 20px;
-  border-radius: 8px;
-  border: 1px solid var(--grid-line);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-md);
+
   display: flex;
   align-items: center;
   gap: 12px;
+
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-main);
   z-index: 1;
   animation: float 6s ease-in-out infinite;
   min-width: 160px;
 }
 
-/* Specific Positions & Colors */
-.card-1 { top: 20%; left: 15%; animation-delay: 0s; border-left: 4px solid #10b981; }
-.card-2 { bottom: 25%; right: 15%; animation-delay: 2s; border-left: 4px solid #f59e0b; }
-.card-3 { bottom: 15%; left: 20%; animation-delay: 3.5s; border-left: 4px solid #ef4444; }
+.card-1 {
+  top: 15%;
+  left: 10%;
+  animation-delay: 0s;
+}
 
-.card-text-done { text-decoration: line-through; color: var(--text-muted); }
+.card-2 {
+  bottom: 20%;
+  right: 10%;
+  animation-delay: 2s;
+}
+
+.card-3 {
+  bottom: 10%;
+  left: 15%;
+  animation-delay: 3.5s;
+}
+
+.card-text-done {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 /* --- FORM STYLING --- */
-.auth-container { width: 100%; max-width: 380px; }
+.auth-header {
+  margin-bottom: 3rem;
+  text-align: left;
+}
 
-.auth-header { margin-bottom: 2rem; text-align: left; }
-.auth-header h2 { font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -1px; }
-.sub-text { color: var(--text-muted); line-height: 1.5; font-size: 0.95rem; }
+.auth-header h2 {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.sub-text {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  font-family: var(--font-sans);
+}
 
 /* Social Buttons */
-.social-login { display: flex; gap: 15px; margin-bottom: 25px; }
-.social-btn { flex: 1; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 12px; background: white; border: 1px solid var(--grid-line); border-radius: 8px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
-.social-btn:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+.social-login {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.social-btn {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-s);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.social-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--border-focus);
+}
 
 /* Divider */
-.divider { display: flex; align-items: center; text-align: center; margin-bottom: 25px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
-.divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--grid-line); }
-.divider span { padding: 0 10px; }
+.divider {
+  display: flex;
+  align-items: center;
+  margin-bottom: 32px;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
-/* Input Fields with Icons */
-.form-group { margin-bottom: 1.2rem; }
-.form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; }
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-soft);
+}
 
-.input-group { position: relative; }
-.input-icon { position: absolute; top: 50%; left: 15px; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; z-index: 2; transition: 0.2s; }
-.input-group:focus-within .input-icon { color: var(--accent); }
+.divider span {
+  padding: 0 16px;
+}
 
-.form-group input { width: 100%; padding: 12px 12px 12px 45px; /* Space for icon */ background: #f1f5f9; border: 2px solid transparent; border-radius: 8px; color: var(--text-main); font-size: 1rem; font-weight: 500; transition: 0.2s; box-sizing: border-box; }
-.form-group input:focus { outline: none; background: white; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+/* Inputs */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+.input-group {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 1rem;
+  z-index: 2;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-s);
+  color: var(--text-main);
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  transition: all 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--text-main);
+  background: var(--bg-card);
+}
 
 /* Main Button */
-.btn-primary { width: 100%; padding: 14px; background: var(--text-main); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; margin-top: 10px; }
-.btn-primary:hover { background: var(--accent); transform: translateY(-2px); }
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--text-main);
+  color: white;
+  border: none;
+  border-radius: var(--radius-s);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 1rem;
+}
 
-/* Toggle Text */
-.switch-auth { margin-top: 20px; text-align: center; font-size: 0.9rem; color: var(--text-muted); }
-.switch-auth span { color: var(--accent); cursor: pointer; font-weight: 600; margin-left: 5px; }
-.switch-auth span:hover { text-decoration: underline; }
+.btn-primary:hover {
+  background: #000;
+  transform: translateY(-1px);
+}
+
+/* Toggle Link */
+.switch-auth {
+  margin-top: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.switch-auth span {
+  color: var(--text-main);
+  cursor: pointer;
+  font-weight: 600;
+  margin-left: 5px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.switch-auth span:hover {
+  color: #000;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .split-screen {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .left-panel {
+    min-height: 400px;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .right-panel {
+    width: 100%;
+    padding: 2rem;
+  }
+
+  .orbit-container {
+    width: 100%;
+    height: 350px;
+  }
+
+  .card-1 {
+    top: 10%;
+    left: 10%;
+  }
+
+  .card-2 {
+    bottom: 10%;
+    right: 10%;
+  }
+}

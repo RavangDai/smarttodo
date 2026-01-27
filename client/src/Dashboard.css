@@ -1,390 +1,383 @@
-/* --- CALM BRUTALISM / ZEN MINIMALISM --- */
+/* --- WARM MINIMAL DASHBOARD --- */
 
-:root {
-  /* Palette: Light Mode (Warm White) */
-  --bg-color: #FDFCFA;
-  --surface-color: #F5F5F3;
-  --primary-color: #7A9D7C;
-  /* Muted Sage */
-  --accent-color: #E88873;
-  /* Soft Coral */
-  --text-primary: #1F1F1F;
-  /* Near Black */
-  --text-secondary: #757575;
-  --border-color: #E0DED9;
-
-  /* Typography */
-  --font-main: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-  /* Spacing */
-  --space-xs: 8px;
-  --space-s: 16px;
-  --space-m: 24px;
-  --space-l: 40px;
-  --space-xl: 64px;
-  --space-xxl: 120px;
+/* Scoped variables specific to Dashboard */
+body.theme-brutalist {
+  /* Ensure background overrides any previous gradient settings */
+  background: var(--bg-color);
+  /* Cream */
+  color: var(--text-main);
+  min-height: 100vh;
 }
 
-body.dark-mode {
-  /* Palette: Dark Mode (Blue-Black) */
-  --bg-color: #0F1419;
-  --surface-color: #1A1F24;
-  --primary-color: #9CB89A;
-  /* Pale Sage */
-  --accent-color: #F4A58A;
-  /* Warm Coral */
-  --text-primary: #F0F0EA;
-  /* Warm White */
-  --text-secondary: #8B98A5;
-  --border-color: #2A2F35;
+/* 1. Reset Overlay */
+body.theme-brutalist .paper-overlay {
+  display: none;
 }
 
-body {
-  background-color: var(--bg-color);
-  color: var(--text-primary);
-  font-family: var(--font-main);
-  line-height: 1.6;
-  margin: 0;
-  padding: 0;
-  transition: background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-    color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow-x: hidden;
-}
-
-/* --- Paper Texture Overlay --- */
-.paper-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.03;
-  pointer-events: none;
-  z-index: 9999;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
-
-/* --- Layout --- */
-.dashboard-container {
+/* 2. Layout - Centered & Spacious */
+body.theme-brutalist .dashboard-container {
   max-width: 900px;
-  /* Intentionally narrower for focus */
   margin: 0 auto;
-  padding: 0 var(--space-m);
+  padding: 40px;
+  padding-bottom: 100px;
 }
 
 /* --- Header --- */
-.app-header {
-  height: 80px;
+body.theme-brutalist .app-header {
+  height: auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-xxl);
+  margin-bottom: 60px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border-soft);
 }
 
-.brand-logo {
-  font-weight: 500;
-  font-size: 20px;
+body.theme-brutalist .brand-logo {
+  font-family: var(--font-serif);
+  /* Serif for Logo */
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--text-main);
   letter-spacing: -0.02em;
-  color: var(--text-primary);
 }
 
-.header-controls {
+body.theme-brutalist .header-controls {
   display: flex;
   align-items: center;
-  gap: var(--space-m);
+  gap: 20px;
 }
 
-.btn-icon {
-  background: none;
+body.theme-brutalist .btn-icon {
+  background: transparent;
   border: none;
-  color: var(--text-primary);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 8px;
-  border-radius: 50%;
-  transition: all 0.3s ease;
-  display: grid;
-  place-items: center;
+  border-radius: var(--radius-s);
+  transition: all 0.2s ease;
 }
 
-.btn-icon:hover {
-  background: var(--surface-color);
+body.theme-brutalist .btn-icon:hover {
+  background: var(--bg-secondary);
+  color: var(--text-main);
 }
 
-.user-avatar {
+body.theme-brutalist .user-avatar {
+  background: var(--bg-secondary);
+  color: var(--text-main);
   width: 32px;
   height: 32px;
-  background: var(--surface-color);
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
-  border: 1px solid var(--border-color);
 }
 
 /* --- Hero --- */
-.hero-section {
-  margin-bottom: var(--space-xl);
-  /* Use a min-height to prevent layout shift during rotation if needed, 
-     but keeping it natural for now. */
+body.theme-brutalist .hero-section {
+  text-align: left;
+  /* Notion style often left-aligned, but center works too. Let's do Left for "Doc" feel */
+  margin-bottom: 40px;
 }
 
-.hero-title {
-  font-size: 56px;
-  font-weight: 600;
-  line-height: 1.1;
+body.theme-brutalist .hero-title {
+  font-family: var(--font-serif);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-main);
+  margin-bottom: 16px;
   letter-spacing: -0.03em;
-  margin-bottom: var(--space-m);
-  max-width: 800px;
 }
 
-.highlight {
-  color: var(--accent-color);
+body.theme-brutalist .highlight {
+  position: relative;
+  display: inline-block;
+  color: var(--primary);
+  /* Sage Green */
+  font-style: italic;
 }
 
-.hero-subtitle {
-  font-size: 20px;
-  color: var(--text-secondary);
-  font-weight: 400;
+/* Underline effect for highlight */
+body.theme-brutalist .highlight::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background-color: rgba(122, 157, 124, 0.2);
+  /* Soft Sage Wash */
+  z-index: -1;
+}
+
+body.theme-brutalist .hero-subtitle {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  color: var(--text-muted);
   max-width: 600px;
-  height: 32px;
-  /* Fixed height for rotation */
-  display: flex;
-  align-items: center;
+  line-height: 1.6;
 }
 
-/* --- Tabs --- */
-.tabs-nav {
+/* --- Navigation / Tabs --- */
+body.theme-brutalist .tabs-nav {
   display: flex;
+  justify-content: flex-start;
   gap: 32px;
-  margin-bottom: var(--space-l);
-  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 40px;
+  border-bottom: 1px solid var(--border-soft);
   padding-bottom: 0;
 }
 
-.tab-btn {
-  background: none;
+body.theme-brutalist .tab-btn {
+  background: transparent;
   border: none;
   padding-bottom: 12px;
   font-size: 16px;
-  color: var(--text-secondary);
+  color: var(--text-muted);
+  font-weight: 500;
   cursor: pointer;
   position: relative;
-  transition: color 0.3s ease;
-  font-family: var(--font-main);
+  transition: color 0.2s;
+  font-family: var(--font-sans);
 }
 
-.tab-btn:hover {
-  color: var(--text-primary);
+body.theme-brutalist .tab-btn:hover {
+  color: var(--text-main);
 }
 
-.tab-btn.active {
-  color: var(--text-primary);
-  font-weight: 500;
+body.theme-brutalist .tab-btn.active {
+  color: var(--text-main);
+  font-weight: 600;
 }
 
-.tab-btn.active::after {
+/* Active Indicator - Simple Line */
+body.theme-brutalist .tab-btn.active::after {
   content: '';
   position: absolute;
   bottom: -1px;
-  /* Overlap border */
   left: 0;
   width: 100%;
   height: 2px;
-  background-color: var(--accent-color);
+  background-color: var(--text-main);
 }
 
 /* --- Input Area --- */
-.input-card {
-  background: var(--bg-color);
-  /* Matches bg, but relies on shadow/border if focused */
-  /* Or use surface color? User said "White card / Elevated dark" */
-  /* Let's stick to BG color but add a subtle border/shadow as requested */
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  /* Subtle border instead of shadow for calm feel */
-  border-radius: 12px;
+body.theme-brutalist .input-card {
+  background: var(--bg-card);
+  /* White */
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-m);
   padding: 16px;
-  /* Adjusted padding */
   display: flex;
   align-items: center;
-  gap: var(--space-s);
-  margin-bottom: var(--space-xl);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  gap: 16px;
+  margin-bottom: 48px;
+  box-shadow: var(--shadow-sm);
+  /* Minimal shadow */
+  transition: all 0.2s ease;
 }
 
-.input-card:focus-within {
-  border-color: var(--accent-color);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+body.theme-brutalist .input-card:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-md);
 }
 
-.main-input {
+body.theme-brutalist .main-input {
   flex: 1;
   border: none;
-  background: none;
+  background: transparent;
   font-size: 18px;
-  color: var(--text-primary);
+  color: var(--text-main);
   outline: none;
-  font-family: var(--font-main);
+  font-weight: 400;
+  font-family: var(--font-sans);
 }
 
-.main-input::placeholder {
-  color: var(--text-secondary);
-  opacity: 0.6;
+body.theme-brutalist .main-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
-.input-actions {
+body.theme-brutalist .input-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-s);
+  gap: 12px;
 }
 
-.meta-select {
+/* Select & Date Trigger - Minimal Pills */
+body.theme-brutalist .meta-select,
+body.theme-brutalist .date-trigger {
+  background: var(--bg-secondary);
   border: none;
-  background: none;
-  color: var(--text-secondary);
-  font-family: var(--font-mono);
-  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: var(--radius-s);
+  font-size: 14px;
+  color: var(--text-muted);
   cursor: pointer;
-  outline: none;
-}
-
-.meta-select:hover {
-  color: var(--text-primary);
-}
-
-.date-trigger {
-  border: none;
-  background: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 16px;
-  transition: color 0.2s;
-}
-
-.date-trigger:hover {
-  color: var(--text-primary);
-}
-
-.btn-primary {
-  background-color: var(--accent-color);
-  color: #fff;
-  /* Always white text on accent */
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
+  transition: all 0.2s;
+  font-family: var(--font-sans);
   font-weight: 500;
-  cursor: pointer;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
 }
 
-.btn-primary:active {
-  transform: scale(0.98);
+body.theme-brutalist .meta-select:hover,
+body.theme-brutalist .date-trigger:hover {
+  background: #EBEBE9;
+  color: var(--text-main);
+}
+
+/* Add Button - Minimal */
+body.theme-brutalist .btn-primary {
+  background: var(--text-main);
+  color: white;
+  padding: 10px 20px;
+  border-radius: var(--radius-s);
+  font-weight: 500;
+  border: none;
+  margin: 0;
+}
+
+body.theme-brutalist .btn-primary:hover {
+  background: #000;
+  transform: translateY(-1px);
 }
 
 /* --- Task List --- */
-.task-list-stack {
+body.theme-brutalist .task-list-stack {
   display: flex;
   flex-direction: column;
   gap: 0;
-  /* Flush list? Or small gap? User said "single column, stacked". Let's do NO gap, border separators. */
+  /* Connected rows */
 }
 
-.task-item-row {
+body.theme-brutalist .task-item-row {
+  /* No background, just lines */
+  background: transparent;
+  border-bottom: 1px solid var(--border-soft);
+  padding: 16px 8px;
   display: flex;
   align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border-color);
-  transition: opacity 0.3s ease;
+  transition: background 0.2s ease;
 }
 
-.task-item-row.completed {
-  opacity: 0.4;
+/* Hover effect: Subtle highlight like selecting a row in Notion */
+body.theme-brutalist .task-item-row:hover {
+  background: var(--bg-secondary);
 }
 
-.check-circle {
+body.theme-brutalist .task-item-row.completed {
+  opacity: 0.5;
+}
+
+/* Check Box - Square or Rounded Square */
+body.theme-brutalist .check-circle {
   width: 20px;
   height: 20px;
-  border: 1px solid var(--text-secondary);
-  border-radius: 50%;
-  margin-right: var(--space-m);
+  border: 1px solid var(--text-muted);
+  border-radius: 4px;
+  /* Slightly rounded square */
+  margin-right: 16px;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: none;
-  transition: all 0.2s ease;
+  background: transparent;
+  color: transparent;
+  transition: all 0.2s;
 }
 
-.check-circle:hover {
-  border-color: var(--primary-color);
-  background: rgba(122, 157, 124, 0.1);
+body.theme-brutalist .check-circle:hover {
+  border-color: var(--text-main);
+  background: rgba(0, 0, 0, 0.05);
 }
 
-.task-item-row.completed .check-circle {
-  background: var(--text-secondary);
-  border-color: var(--text-secondary);
-  color: var(--bg-color);
-  /* Check icon color */
+body.theme-brutalist .task-item-row.completed .check-circle {
+  background: var(--text-muted);
+  border-color: var(--text-muted);
+  color: white;
 }
 
-.task-content {
-  flex: 1;
-}
-
-.task-text {
+/* Text */
+body.theme-brutalist .task-text {
   font-size: 16px;
-  color: var(--text-primary);
-  display: block;
-  margin-bottom: 4px;
+  color: var(--text-main);
+  font-weight: 400;
+  font-family: var(--font-sans);
 }
 
-.task-meta {
-  display: flex;
-  gap: 12px;
-  font-size: 12px;
-  font-family: var(--font-mono);
-  color: var(--text-secondary);
-  align-items: center;
+body.theme-brutalist .task-item-row.completed .task-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
 }
 
-.meta-priority {
+/* Meta */
+body.theme-brutalist .task-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Tags for Priority */
+body.theme-brutalist .meta-priority {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-right: 8px;
 }
 
-.priority-high {
-  color: var(--accent-color);
-}
-
-.delete-action {
-  opacity: 0;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: opacity 0.2s;
-  padding: 8px;
-}
-
-.task-item-row:hover .delete-action {
-  opacity: 1;
-}
-
-.delete-action:hover {
+body.theme-brutalist .priority-high {
+  background: #fee2e2;
   color: #ef4444;
 }
 
-/* --- Empty state --- */
-.empty-state {
-  text-align: center;
-  padding: 120px 0;
-  color: var(--text-secondary);
+body.theme-brutalist .priority-medium {
+  background: #fff7ed;
+  color: #f97316;
 }
 
-.empty-icon {
-  font-size: 64px;
-  opacity: 0.2;
-  margin-bottom: 24px;
+body.theme-brutalist .priority-low {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+/* Delete */
+body.theme-brutalist .delete-action {
+  background: transparent;
+  padding: 8px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+body.theme-brutalist .task-item-row:hover .delete-action {
+  opacity: 1;
+}
+
+body.theme-brutalist .delete-action:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+}
+
+/* Empty State */
+body.theme-brutalist .empty-state {
+  text-align: center;
+  padding: 80px 0;
+  color: var(--text-muted);
+}
+
+body.theme-brutalist .empty-icon {
+  font-family: var(--font-serif);
+  font-size: 48px;
+  opacity: 0.3;
+  margin-bottom: 16px;
+  color: var(--text-main);
+  font-style: italic;
 }
