@@ -10,6 +10,8 @@ import './App.css';       // <--- 1. Loads your Login Styles
 import './Dashboard.css'; // <--- 2. LOADS YOUR NEW DASHBOARD STYLES
 import ProgressRing from './components/ProgressRing';
 import TaskAccordion from './components/TaskAccordion';
+import Timeline from './components/Timeline';
+import Sidebar from './components/Sidebar';
 
 function App() {
 
@@ -21,6 +23,7 @@ function App() {
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState("medium");
   const [newDueDate, setNewDueDate] = useState("");
+  const [newTime, setNewTime] = useState("");
   const [darkMode, setDarkMode] = useState(false);
 
   const [email, setEmail] = useState("");
@@ -67,7 +70,7 @@ function App() {
     }
   }, [token, darkMode]);
 
-  const getHeaders = () => ({ headers: { 'Authorization': token } });
+  const getHeaders = () => ({ headers: { 'x-auth-token': token } });
 
   // Fetch Tasks
   useEffect(() => {
@@ -98,22 +101,34 @@ function App() {
   // Task Actions
   const addTask = () => {
     if (!newTask) return;
+
+    let taskDate = newDueDate;
+    if (newDueDate && newTime) {
+      taskDate = `${newDueDate}T${newTime}`;
+    }
+
     axios.post('http://localhost:5000/api/tasks', {
       title: newTask,
       priority: newPriority,
-      dueDate: newDueDate
+      dueDate: taskDate
     }, getHeaders())
       .then(res => {
         setTasks([...tasks, res.data]);
         setNewTask("");
         setNewPriority("medium");
         setNewDueDate("");
+        setNewTime("");
+      })
+      .catch(err => {
+        console.error("Error adding task:", err);
+        alert("Failed to add task. Please check if you are logged in.");
       });
   };
 
   const deleteTask = (id) => {
     axios.delete(`http://localhost:5000/api/tasks/${id}`, getHeaders())
-      .then(() => setTasks(tasks.filter(t => t._id !== id)));
+      .then(() => setTasks(tasks.filter(t => t._id !== id)))
+      .catch(err => console.error("Error deleting task:", err));
   };
 
   const toggleTask = (id) => {
@@ -128,7 +143,8 @@ function App() {
             origin: { y: 0.6 }
           });
         }
-      });
+      })
+      .catch(err => console.error("Error toggling task:", err));
   };
 
   // --- 3. LOGIN VIEW (Uses App.css 'split-screen') ---
@@ -247,122 +263,134 @@ function App() {
       {/* Paper Texture Overlay */}
       <div className="paper-overlay"></div>
 
-      <div className="dashboard-container">
+      <div className="app-shell">
+        <Sidebar onLogout={() => setToken(null)} />
 
-        {/* --- HEADER --- */}
-        <header className="app-header">
-          <div className="brand-logo">Smart Todo.</div>
+        <div className="dashboard-container">
+          {/* --- HEADER --- */}
+          <header className="app-header">
+            <div className="brand-logo">Smart Todo.</div>
 
-          <div className="header-controls">
-            <button className="btn-icon" onClick={() => setDarkMode(!darkMode)} title="Toggle Dark Mode">
-              {darkMode ? <FaSun size={18} /> : <FaMoon size={18} />}
-            </button>
-            <div className="user-avatar">B</div>
-            <button onClick={() => setToken(null)} className="btn-icon" title="Log Out">
-              <FaSignOutAlt size={18} />
-            </button>
-          </div>
-        </header>
-
-        {/* --- HERO --- */}
-        <section className="hero-section">
-          <div className="hero-title">
-            Your Daily Tasks <br />
-            Organized <span className="highlight">Effortlessly</span>
-          </div>
-          <div className="hero-subtitle">
-            {subtitles[subtitleIndex]}
-          </div>
-
-          {/* Progress Ring */}
-          <ProgressRing completed={completedCount} total={totalCount} />
-        </section>
-
-        {/* --- TABS --- */}
-        <nav className="tabs-nav">
-          <button
-            className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => setFilter('all')}
-          >
-            All Tasks
-          </button>
-          <button
-            className={`tab-btn ${filter === 'active' ? 'active' : ''}`}
-            onClick={() => setFilter('active')}
-          >
-            Active
-          </button>
-          <button
-            className={`tab-btn ${filter === 'completed' ? 'active' : ''}`}
-            onClick={() => setFilter('completed')}
-          >
-            Completed
-          </button>
-        </nav>
-
-        {/* --- INPUT CARD --- */}
-        <div className="input-card">
-          <input
-            className="main-input"
-            value={newTask}
-            onChange={e => setNewTask(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addTask()}
-            placeholder="What needs to be done today?"
-          />
-          <div className="input-actions">
-            {/* Priority Select (Minimal) */}
-            <select
-              className="meta-select"
-              value={newPriority}
-              onChange={e => setNewPriority(e.target.value)}
-            >
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="low">Low</option>
-            </select>
-
-            {/* Date Trigger (Minimal) */}
-            <button
-              className="date-trigger"
-              title="Set Date"
-              onClick={() => document.getElementById('hidden-date').showPicker()}
-            >
-              📅
-            </button>
-            <input
-              id="hidden-date"
-              type="date"
-              value={newDueDate}
-              onChange={e => setNewDueDate(e.target.value)}
-              style={{ width: 0, height: 0, opacity: 0, overflow: 'hidden', position: 'absolute' }}
-            />
-
-            <button onClick={addTask} className="btn-primary">
-              + New Task
-            </button>
-          </div>
-        </div>
-
-        {/* --- TASK LIST STACK --- */}
-        <div className="task-list-stack">
-          {filteredTasks.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">✓</div>
-              <p>Your canvas is clear. What will you accomplish today?</p>
+            <div className="header-controls">
+              <button className="btn-icon" onClick={() => setDarkMode(!darkMode)} title="Toggle Dark Mode">
+                {darkMode ? <FaSun size={18} /> : <FaMoon size={18} />}
+              </button>
+              <div className="user-avatar">B</div>
             </div>
-          ) : (
-            filteredTasks.map(task => (
-              <TaskAccordion
-                key={task._id}
-                task={task}
-                onUpdate={(updatedTask) => setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t))}
-                onDelete={deleteTask}
-                headers={getHeaders().headers}
-              />
-            ))
-          )}
-        </div>
+          </header>
 
+          {/* --- HERO --- */}
+          <section className="hero-section">
+            <div className="hero-title">
+              Your Daily Tasks <br />
+              Organized <span className="highlight">Effortlessly</span>
+            </div>
+            <div className="hero-subtitle">
+              {subtitles[subtitleIndex]}
+            </div>
+
+            {/* Progress Ring */}
+            <ProgressRing completed={completedCount} total={totalCount} />
+
+            {/* Timeline Visual */}
+            <Timeline tasks={tasks} />
+          </section>
+
+          {/* --- TABS --- */}
+          <nav className="tabs-nav">
+            <button
+              className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
+              onClick={() => setFilter('all')}
+            >
+              All Tasks
+            </button>
+            <button
+              className={`tab-btn ${filter === 'active' ? 'active' : ''}`}
+              onClick={() => setFilter('active')}
+            >
+              Active
+            </button>
+            <button
+              className={`tab-btn ${filter === 'completed' ? 'active' : ''}`}
+              onClick={() => setFilter('completed')}
+            >
+              Completed
+            </button>
+          </nav>
+
+          {/* --- INPUT CARD --- */}
+          <div className="input-card">
+            <input
+              className="main-input"
+              value={newTask}
+              onChange={e => setNewTask(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addTask()}
+              placeholder="What needs to be done today?"
+            />
+            <div className="input-actions">
+              {/* Priority Select (Minimal) */}
+              <select
+                className="meta-select"
+                value={newPriority}
+                onChange={e => setNewPriority(e.target.value)}
+              >
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="low">Low</option>
+              </select>
+
+              {/* Date Trigger (Minimal) */}
+              <button
+                className="date-trigger"
+                title="Set Date"
+                onClick={() => document.getElementById('hidden-date').showPicker()}
+              >
+                {newDueDate ? new Date(newDueDate).toLocaleDateString() : '📅'}
+              </button>
+              <input
+                id="hidden-date"
+                type="date"
+                value={newDueDate}
+                onChange={e => setNewDueDate(e.target.value)}
+                style={{ width: 0, height: 0, opacity: 0, overflow: 'hidden', position: 'absolute' }}
+              />
+
+              {/* Time Trigger (Minimal) */}
+              <input
+                type="time"
+                className="meta-select"
+                value={newTime}
+                onChange={e => setNewTime(e.target.value)}
+                title="Set Time"
+                style={{ width: 'auto' }}
+              />
+
+              <button onClick={addTask} className="btn-primary">
+                + New Task
+              </button>
+            </div>
+          </div>
+
+          {/* --- TASK LIST STACK --- */}
+          <div className="task-list-stack">
+            {filteredTasks.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">✓</div>
+                <p>Your canvas is clear. What will you accomplish today?</p>
+              </div>
+            ) : (
+              filteredTasks.map(task => (
+                <TaskAccordion
+                  key={task._id}
+                  task={task}
+                  onUpdate={(updatedTask) => setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t))}
+                  onDelete={deleteTask}
+                  headers={getHeaders().headers}
+                />
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </>
   );

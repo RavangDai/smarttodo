@@ -19,13 +19,17 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
     }, [localNotes]);
 
     const saveChanges = (updates) => {
-        axios.put(`http://localhost:5000/api/tasks/${task._id}`, updates, headers)
+        axios.put(`http://localhost:5000/api/tasks/${task._id}`, updates, { headers })
             .then(res => onUpdate(res.data))
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error("Error saving task:", err);
+                alert("Failed to update task. Please check connection.");
+            });
     };
 
     const toggleTaskCompletion = (e) => {
         e.stopPropagation();
+        e.nativeEvent.stopImmediatePropagation();
         saveChanges({ isCompleted: !task.isCompleted });
     };
 
@@ -54,7 +58,14 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
                         {isExpanded ? <FaChevronDown size={10} /> : <FaChevronRight size={10} />}
                     </button>
 
-                    <button className={`check-circle ${task.isCompleted ? 'checked' : ''}`} onClick={toggleTaskCompletion}>
+                    <button
+                        className={`check-circle ${task.isCompleted ? 'checked' : ''}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTaskCompletion(e);
+                        }}
+                        style={{ zIndex: 10, position: 'relative' }}
+                    >
                         {task.isCompleted && <FaCheck size={10} />}
                     </button>
 
