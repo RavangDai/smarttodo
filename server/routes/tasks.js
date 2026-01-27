@@ -65,7 +65,17 @@ router.put('/:id', auth, async (req, res) => {
     if (!task) return res.status(404).json({ msg: 'Task not found' });
     if (task.user.toString() !== req.user.id) return res.status(401).json({ msg: 'Not authorized' });
 
-    task.isCompleted = !task.isCompleted;
+    // Destructure all possible fields
+    const { title, isCompleted, priority, dueDate, notes, subtasks } = req.body;
+
+    // Update fields if they exist in request
+    if (title) task.title = title;
+    if (isCompleted !== undefined) task.isCompleted = isCompleted;
+    if (priority) task.priority = priority;
+    if (dueDate) task.dueDate = dueDate;
+    if (notes !== undefined) task.notes = notes;
+    if (subtasks) task.subtasks = subtasks;
+
     task.lastInteraction = Date.now();
     await task.save();
     res.json(task);

@@ -19,6 +19,15 @@ const TaskSchema = new mongoose.Schema({
   dueDate: {
     type: Date
   },
+  // New Fields for Accordion
+  notes: {
+    type: String,
+    default: ""
+  },
+  subtasks: [{
+    title: { type: String },
+    isCompleted: { type: Boolean, default: false }
+  }],
   // -----------------------------------------------------------
   isCompleted: {
     type: Boolean,

@@ -8,6 +8,8 @@ import confetti from 'canvas-confetti';
 
 import './App.css';       // <--- 1. Loads your Login Styles
 import './Dashboard.css'; // <--- 2. LOADS YOUR NEW DASHBOARD STYLES
+import ProgressRing from './components/ProgressRing';
+import TaskAccordion from './components/TaskAccordion';
 
 function App() {
 
@@ -271,6 +273,9 @@ function App() {
           <div className="hero-subtitle">
             {subtitles[subtitleIndex]}
           </div>
+
+          {/* Progress Ring */}
+          <ProgressRing completed={completedCount} total={totalCount} />
         </section>
 
         {/* --- TABS --- */}
@@ -347,32 +352,13 @@ function App() {
             </div>
           ) : (
             filteredTasks.map(task => (
-              <div key={task._id} className={`task-item-row ${task.isCompleted ? 'completed' : ''}`}>
-                <button
-                  className="check-circle"
-                  onClick={() => toggleTask(task._id)}
-                >
-                  {task.isCompleted && <FaCheck size={10} />}
-                </button>
-
-                <div className="task-content">
-                  <span className="task-text">{task.title}</span>
-                  <div className="task-meta">
-                    {task.priority !== 'medium' && (
-                      <span className={`meta-priority priority-${task.priority}`}>
-                        {task.priority} Priority
-                      </span>
-                    )}
-                    {task.dueDate && (
-                      <span>• Due {new Date(task.dueDate).toLocaleDateString()}</span>
-                    )}
-                  </div>
-                </div>
-
-                <button className="delete-action" onClick={() => deleteTask(task._id)}>
-                  <FaTrash size={14} />
-                </button>
-              </div>
+              <TaskAccordion
+                key={task._id}
+                task={task}
+                onUpdate={(updatedTask) => setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t))}
+                onDelete={deleteTask}
+                headers={getHeaders().headers}
+              />
             ))
           )}
         </div>
