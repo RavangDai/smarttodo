@@ -1,12 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaChevronDown, FaChevronRight, FaCheck, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaChevronDown, FaChevronRight, FaCheck, FaTrash, FaPlus, FaClock, FaMagic } from 'react-icons/fa';
 
 const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [localNotes, setLocalNotes] = useState(task.notes || "");
     const [localSubtasks, setLocalSubtasks] = useState(task.subtasks || []);
     const [newSubtask, setNewSubtask] = useState("");
+
+    // AI Breakdown States
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [streamingSubtasks, setStreamingSubtasks] = useState([]);
+
+    // Sync subtasks when task prop changes
+    useEffect(() => {
+        setLocalSubtasks(task.subtasks || []);
+    }, [task.subtasks]);
 
     // Debounce saving notes
     useEffect(() => {
@@ -49,48 +58,227 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
         saveChanges({ subtasks: updatedSubtasks });
     };
 
+    // AI Task Breakdown with Streaming
+    const handleAIBreakdown = async (e) => {
+        e.stopPropagation();
+
+        if (isGenerating) return;
+
+        setIsGenerating(true);
+        setStreamingSubtasks([]);
+        setIsExpanded(true);
+
+        try {
+            const token = localStorage.getItem('token');
+            const eventSource = new EventSource(
+                `http://localhost:5000/api/ai/breakdown/${task._id}?token=${token}`
+            );
+
+            // Since EventSource doesn't support custom headers, we'll use fetch with streaming
+            const response = await fetch(`http://localhost:5000/api/ai/breakdown/${task._id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                }
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+
+                // Parse SSE data
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+
+                            if (data.done) {
+                                // Fetch updated task
+                                const updatedTask = await axios.get(
+                                    `http://localhost:5000/api/tasks`,
+                                    { headers }
+                                );
+                                const refreshedTask = updatedTask.data.find(t => t._id === task._id);
+                                if (refreshedTask) {
+                                    onUpdate(refreshedTask);
+                                }
+                                setIsGenerating(false);
+                                setStreamingSubtasks([]);
+                            } else if (data.error) {
+                                console.error('AI Error:', data.error);
+                                alert(`AI Error: ${data.error}`);
+                                setIsGenerating(false);
+                            } else if (data.title) {
+                                // Add new subtask with animation
+                                setStreamingSubtasks(prev => [...prev, data]);
+                            }
+                        } catch (parseErr) {
+                            console.log('Parse error, continuing...', parseErr);
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('AI Breakdown Error:', err);
+            alert('Failed to connect to AI service. Check your server.');
+            setIsGenerating(false);
+        }
+    };
+
+    // Priority colors
+    const priorityStyles = {
+        high: { borderColor: 'var(--priority-high)', indicatorBg: 'var(--priority-high)' },
+        medium: { borderColor: 'var(--priority-medium)', indicatorBg: 'var(--priority-medium)' },
+        low: { borderColor: 'var(--priority-low)', indicatorBg: 'var(--priority-low)' }
+    };
+
+    const style = priorityStyles[task.priority] || priorityStyles.medium;
+
+    // Format due date
+    const formatDueDate = (dueDate) => {
+        if (!dueDate) return null;
+        const date = new Date(dueDate);
+        const today = new Date();
+        const isToday = date.toLocaleDateString() === today.toLocaleDateString();
+
+        if (isToday) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    };
+
+    const completedSubtasks = localSubtasks.filter(st => st.isCompleted).length;
+    const totalSubtasks = localSubtasks.length;
+
     return (
-        <div className={`accordion-card ${isExpanded ? 'expanded' : ''}`}>
+        <div
+            className={`accordion-card ${isExpanded ? 'expanded' : ''}`}
+            style={{
+                borderLeftWidth: '3px',
+                borderLeftColor: style.indicatorBg
+            }}
+        >
             {/* Header Row */}
             <div className="accordion-header" onClick={() => setIsExpanded(!isExpanded)}>
                 <div className="accordion-left">
-                    <button className="expand-icon">
+                    <button className="expand-icon" aria-label="Expand task">
                         {isExpanded ? <FaChevronDown size={10} /> : <FaChevronRight size={10} />}
                     </button>
 
                     <button
                         className={`check-circle ${task.isCompleted ? 'checked' : ''}`}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            toggleTaskCompletion(e);
-                        }}
+                        onClick={toggleTaskCompletion}
+                        aria-label={task.isCompleted ? "Mark as incomplete" : "Mark as complete"}
                         style={{ zIndex: 10, position: 'relative' }}
                     >
                         {task.isCompleted && <FaCheck size={10} />}
                     </button>
 
-                    <span className={`task-title ${task.isCompleted ? 'completed' : ''}`}>
-                        {task.title}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span className={`task-title ${task.isCompleted ? 'completed' : ''}`}>
+                            {task.title}
+                        </span>
+                        {(task.dueDate || totalSubtasks > 0) && (
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                fontSize: '12px',
+                                color: 'var(--text-light)'
+                            }}>
+                                {task.dueDate && (
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <FaClock size={10} />
+                                        {formatDueDate(task.dueDate)}
+                                    </span>
+                                )}
+                                {totalSubtasks > 0 && (
+                                    <span style={{
+                                        padding: '2px 6px',
+                                        background: completedSubtasks === totalSubtasks ? 'var(--priority-low-bg)' : 'var(--bg-secondary)',
+                                        borderRadius: '4px',
+                                        fontWeight: 500,
+                                        color: completedSubtasks === totalSubtasks ? 'var(--success)' : 'var(--text-muted)'
+                                    }}>
+                                        {completedSubtasks}/{totalSubtasks}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="accordion-right">
-                    {task.priority !== 'medium' && (
-                        <span className={`meta-priority priority-${task.priority}`}>{task.priority}</span>
+                    {/* AI Breakdown Button */}
+                    {!task.isCompleted && localSubtasks.length === 0 && (
+                        <button
+                            className={`ai-breakdown-btn ${isGenerating ? 'generating' : ''}`}
+                            onClick={handleAIBreakdown}
+                            disabled={isGenerating}
+                            title="Break down with AI"
+                        >
+                            <FaMagic size={12} />
+                            <span>{isGenerating ? 'Generating...' : 'AI Breakdown'}</span>
+                        </button>
                     )}
-                    <button className="delete-action" onClick={(e) => { e.stopPropagation(); onDelete(task._id); }}>
+
+                    {task.priority !== 'medium' && (
+                        <span className={`meta-priority priority-${task.priority}`}>
+                            {task.priority}
+                        </span>
+                    )}
+                    <button
+                        className="delete-action"
+                        onClick={(e) => { e.stopPropagation(); onDelete(task._id); }}
+                        aria-label="Delete task"
+                    >
                         <FaTrash size={12} />
                     </button>
                 </div>
             </div>
 
             {/* Expanded Content */}
-            <div className="accordion-content" style={{ maxHeight: isExpanded ? '500px' : '0' }}>
+            <div className="accordion-content" style={{ maxHeight: isExpanded ? '600px' : '0' }}>
                 <div className="accordion-inner">
-
-                    {/* Subtasks */}
+                    {/* Subtasks Section */}
                     <div className="subtasks-section">
-                        <div className="section-label">Subtasks</div>
+                        <div className="section-label">
+                            Subtasks
+                            {totalSubtasks > 0 && (
+                                <span style={{
+                                    marginLeft: '8px',
+                                    color: completedSubtasks === totalSubtasks ? 'var(--success)' : 'var(--text-light)',
+                                    fontWeight: 600
+                                }}>
+                                    ({completedSubtasks}/{totalSubtasks})
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Streaming Subtasks (AI Generated - animated) */}
+                        {streamingSubtasks.map((st, i) => (
+                            <div
+                                key={`streaming-${i}`}
+                                className="subtask-row ai-generated"
+                                style={{ animationDelay: `${i * 0.1}s` }}
+                            >
+                                <div className="ai-indicator" title="AI Generated">🤖</div>
+                                <span className="subtask-text">{st.title}</span>
+                                <span className="time-estimate">{st.estimatedTime}</span>
+                            </div>
+                        ))}
+
+                        {/* Existing Subtasks */}
                         {localSubtasks.map((st, i) => (
                             <div key={i} className="subtask-row">
                                 <input
@@ -98,22 +286,39 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
                                     checked={st.isCompleted}
                                     onChange={() => toggleSubtask(i)}
                                     className="subtask-checkbox"
+                                    aria-label={`Toggle subtask: ${st.title}`}
                                 />
                                 <span className={st.isCompleted ? 'completed' : ''}>{st.title}</span>
                             </div>
                         ))}
-                        <div className="add-subtask-row">
-                            <FaPlus size={10} className="plus-icon" />
-                            <input
-                                placeholder="Add a subtask..."
-                                value={newSubtask}
-                                onChange={e => setNewSubtask(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && addSubtask()}
-                            />
-                        </div>
+
+                        {/* AI Generating Indicator */}
+                        {isGenerating && (
+                            <div className="ai-generating-indicator">
+                                <div className="typing-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <span>AI is thinking...</span>
+                            </div>
+                        )}
+
+                        {/* Add Subtask Row */}
+                        {!isGenerating && (
+                            <div className="add-subtask-row">
+                                <FaPlus size={10} className="plus-icon" />
+                                <input
+                                    placeholder="Add a subtask..."
+                                    value={newSubtask}
+                                    onChange={e => setNewSubtask(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && addSubtask()}
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    {/* Notes */}
+                    {/* Notes Section */}
                     <div className="notes-section">
                         <div className="section-label">Notes</div>
                         <textarea
@@ -123,7 +328,6 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
                             onChange={e => setLocalNotes(e.target.value)}
                         />
                     </div>
-
                 </div>
             </div>
         </div>

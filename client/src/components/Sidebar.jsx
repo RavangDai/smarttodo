@@ -16,23 +16,37 @@ const Sidebar = ({ onLogout }) => {
             className={`sidebar ${isHovered ? 'expanded' : 'collapsed'}`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            role="navigation"
+            aria-label="Main navigation"
         >
             <div className="sidebar-logo">
-                <div className="logo-icon">S</div>
-                <span className="logo-text">Smart Todo.</span>
+                <img src="/logo.png" alt="SmartTodo Logo" className="sidebar-logo-img" />
             </div>
 
             <nav className="sidebar-nav">
                 {navItems.map((item, index) => (
-                    <div key={index} className={`nav-item ${item.active ? 'active' : ''}`}>
-                        <div className="nav-icon">{item.icon}</div>
+                    <div
+                        key={index}
+                        className={`nav-item ${item.active ? 'active' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-current={item.active ? 'page' : undefined}
+                        style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                        <div className="nav-icon" aria-hidden="true">{item.icon}</div>
                         <span className="nav-label">{item.label}</span>
                     </div>
                 ))}
             </nav>
 
-            <div className="sidebar-footer" onClick={onLogout}>
-                <div className="nav-icon"><FaSignOutAlt /></div>
+            <div
+                className="sidebar-footer"
+                onClick={onLogout}
+                role="button"
+                tabIndex={0}
+                aria-label="Logout"
+            >
+                <div className="nav-icon" aria-hidden="true"><FaSignOutAlt /></div>
                 <span className="nav-label">Logout</span>
             </div>
         </aside>

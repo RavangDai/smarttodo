@@ -75,7 +75,7 @@ function App() {
   // Fetch Tasks
   useEffect(() => {
     if (token) {
-      axios.get('http://localhost:5000/api/tasks', getHeaders())
+      axios.get('/api/tasks', getHeaders())
         .then(res => setTasks(res.data))
         .catch(err => console.error(err));
     }
@@ -86,7 +86,7 @@ function App() {
     if (e) e.preventDefault();
     const endpoint = isRegistering ? '/register' : '/login';
     try {
-      const res = await axios.post(`http://localhost:5000/api/users${endpoint}`, { email, password });
+      const res = await axios.post(`/api/users${endpoint}`, { email, password });
       if (isRegistering) {
         alert("Account created! Now login.");
         setIsRegistering(false);
@@ -107,7 +107,7 @@ function App() {
       taskDate = `${newDueDate}T${newTime}`;
     }
 
-    axios.post('http://localhost:5000/api/tasks', {
+    axios.post('/api/tasks', {
       title: newTask,
       priority: newPriority,
       dueDate: taskDate
@@ -126,13 +126,13 @@ function App() {
   };
 
   const deleteTask = (id) => {
-    axios.delete(`http://localhost:5000/api/tasks/${id}`, getHeaders())
+    axios.delete(`/api/tasks/${id}`, getHeaders())
       .then(() => setTasks(tasks.filter(t => t._id !== id)))
       .catch(err => console.error("Error deleting task:", err));
   };
 
   const toggleTask = (id) => {
-    axios.put(`http://localhost:5000/api/tasks/${id}`, {}, getHeaders())
+    axios.put(`/api/tasks/${id}`, {}, getHeaders())
       .then(res => {
         setTasks(tasks.map(t => t._id === id ? { ...t, isCompleted: res.data.isCompleted } : t));
         // Trigger Confetti if completed!
@@ -165,7 +165,7 @@ function App() {
             <span>Fix Server Bug</span>
           </div>
           <div className="orbit-container">
-            <h1 className="orbit-center-text">Smart<br />Todo.</h1>
+            <img src="/logo.png" alt="SmartTodo Logo" className="orbit-logo-img" />
             <p className="orbit-subtitle">{subtitles[subtitleIndex]}</p>
             <div className="orbit-ring ring-1"></div>
             <div className="orbit-ring ring-2"></div>
@@ -269,7 +269,9 @@ function App() {
         <div className="dashboard-container">
           {/* --- HEADER --- */}
           <header className="app-header">
-            <div className="brand-logo">Smart Todo.</div>
+            <div className="brand-logo">
+              <img src="/logo.png" alt="SmartTodo" className="header-logo-img" />
+            </div>
 
             <div className="header-controls">
               <button className="btn-icon" onClick={() => setDarkMode(!darkMode)} title="Toggle Dark Mode">

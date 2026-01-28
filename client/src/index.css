@@ -1,51 +1,109 @@
 /* --- GLOBAL RESET & VARIABLES --- */
 /* Import Fonts: Inter (Body) & Playfair Display (Headings) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap');
 
 :root {
-  /* --- PALETTE: Warm Minimal (Notion-Inspired) --- */
+  /* --- PALETTE: Modern Warm Minimal --- */
 
   /* Backgrounds */
   --bg-color: #FDFCFA;
-  /* Warm Cream / Off-White */
   --bg-secondary: #F5F5F3;
-  /* Light Beige / Surface */
   --bg-card: #FFFFFF;
-  /* Pure White Card */
+  --bg-elevated: #FFFFFF;
 
   /* Typography */
-  --text-main: #2F2F2F;
-  /* Soft Charcoal (Not pure black) */
-  --text-muted: #757575;
-  /* Warm Grey */
-  --text-light: #9E9E9E;
-  /* Light Grey */
+  --text-main: #1A1A1A;
+  --text-muted: #6B7280;
+  --text-light: #9CA3AF;
 
-  /* Accents */
+  /* Primary Accent - Sage Green */
   --primary: #7A9D7C;
-  /* Sage Green (Calm, nature-inspired) */
   --primary-hover: #658466;
-  --accent: #E88873;
-  /* Muted Coral/Terra Cotta */
+  --primary-light: rgba(122, 157, 124, 0.15);
+  --primary-glow: rgba(122, 157, 124, 0.4);
+
+  /* Semantic Colors */
+  --accent-coral: #E88873;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+
+  /* Priority Colors */
+  --priority-high: #EF4444;
+  --priority-high-bg: rgba(239, 68, 68, 0.1);
+  --priority-medium: #F59E0B;
+  --priority-medium-bg: rgba(245, 158, 11, 0.1);
+  --priority-low: #10B981;
+  --priority-low-bg: rgba(16, 185, 129, 0.1);
 
   /* Borders & Dividers */
-  --border-soft: #E0DED9;
-  /* Warm Grey Border */
-  --border-focus: #A0A0A0;
-  /* Slightly darker for focus */
+  --border-soft: #E5E5E5;
+  --border-focus: #B0B0B0;
+  --border-hover: #D0D0D0;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-bg-strong: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #7A9D7C 0%, #5D8B5E 100%);
+  --gradient-warm: linear-gradient(135deg, #E88873 0%, #D9705F 100%);
+  --gradient-subtle: linear-gradient(180deg, rgba(122, 157, 124, 0.05) 0%, transparent 100%);
 
   /* Spacing & Radius */
-  --radius-s: 4px;
-  --radius-m: 8px;
-  --radius-l: 12px;
+  --radius-xs: 4px;
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 14px;
+  --radius-xl: 20px;
 
-  /* Shadows - Minimal/None */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+  --shadow-glow: 0 0 20px var(--primary-glow);
 
   /* Fonts */
-  --font-serif: 'Playfair Display', serif;
-  --font-sans: 'Inter', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.4s ease;
+  --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Dark Mode Variables */
+body.dark-mode {
+  --bg-color: #0F0F0F;
+  --bg-secondary: #1A1A1A;
+  --bg-card: #1F1F1F;
+  --bg-elevated: #262626;
+
+  --text-main: #F5F5F5;
+  --text-muted: #9CA3AF;
+  --text-light: #6B7280;
+
+  --primary: #8FB591;
+  --primary-hover: #A3C5A5;
+  --primary-light: rgba(143, 181, 145, 0.15);
+  --primary-glow: rgba(143, 181, 145, 0.3);
+
+  --border-soft: #2D2D2D;
+  --border-focus: #404040;
+  --border-hover: #3D3D3D;
+
+  --glass-bg: rgba(31, 31, 31, 0.85);
+  --glass-bg-strong: rgba(31, 31, 31, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  --gradient-subtle: linear-gradient(180deg, rgba(143, 181, 145, 0.08) 0%, transparent 100%);
 }
 
 /* 1. FORCE FULL WIDTH & HEIGHT */
@@ -66,6 +124,8 @@ body {
   font-family: var(--font-sans);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-slow), color var(--transition-slow);
 }
 
 /* Headings use Serif */
@@ -79,6 +139,7 @@ h6 {
   font-weight: 600;
   color: var(--text-main);
   margin-top: 0;
+  letter-spacing: -0.02em;
 }
 
 /* 3. RESET BOX MODEL */
@@ -95,36 +156,68 @@ h6 {
   border-radius: var(--radius-m);
   padding: 24px;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: box-shadow var(--transition-base), border-color var(--transition-base), transform var(--transition-base);
 }
 
 .card-minimal:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--border-focus);
+  border-color: var(--border-hover);
 }
 
-/* 5. BUTTON STYLES (Minimal) */
+/* Glass Card */
+.card-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-m);
+  box-shadow: var(--glass-shadow);
+}
+
+/* 5. BUTTON STYLES */
 button {
   cursor: pointer;
   font-family: var(--font-sans);
   border: none;
   background: none;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 .btn-primary {
-  background-color: var(--text-main);
+  background: var(--gradient-primary);
   color: #fff;
-  padding: 10px 18px;
+  padding: 12px 20px;
   border-radius: var(--radius-s);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .btn-primary:hover {
-  background-color: #000;
-  /* Darker black */
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-xs);
 }
 
 .btn-secondary {
@@ -133,9 +226,42 @@ button {
   padding: 10px 18px;
   border-radius: var(--radius-s);
   font-weight: 500;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-soft);
 }
 
 .btn-secondary:hover {
-  background-color: #EBEBE9;
+  background-color: var(--border-soft);
+  border-color: var(--border-hover);
+}
+
+/* 6. SCROLLBAR STYLING */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-soft);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 7. FOCUS STATES */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* 8. SELECTION */
+::selection {
+  background: var(--primary-light);
+  color: var(--text-main);
 }

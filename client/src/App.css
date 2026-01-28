@@ -1,26 +1,26 @@
-/* --- SPLIT SCREEN LAYOUT (Minimal) --- */
+/* --- SPLIT SCREEN LAYOUT (Modern) --- */
 .split-screen {
   display: flex;
   height: 100vh;
   width: 100vw;
   background-color: var(--bg-color);
+  overflow: hidden;
 }
 
-/* Left Side: Visuals - Clean & Artistic */
+/* Left Side: Visuals */
 .left-panel {
   flex: 1;
-  background-color: var(--bg-secondary);
-  /* Soft Beige */
+  background: var(--bg-secondary);
+  background-image: var(--gradient-subtle);
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   border-right: 1px solid var(--border-soft);
   overflow: hidden;
-  /* Ensure floating elements don't spill */
 }
 
-/* Right Side: The Form - Minimal & Spaced */
+/* Right Side: The Form */
 .right-panel {
   flex: 1;
   display: flex;
@@ -32,10 +32,23 @@
 
 .auth-container {
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
+  animation: authFadeIn 0.6s ease-out;
 }
 
-/* --- CENTER VISUAL (Restored & Minimal) --- */
+@keyframes authFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- CENTER VISUAL --- */
 .orbit-container {
   position: relative;
   width: 500px;
@@ -47,38 +60,52 @@
   z-index: 2;
 }
 
-/* Center Text - Serif */
+/* Center Logo Image */
+.orbit-logo-img {
+  width: 140px;
+  height: auto;
+  z-index: 10;
+  filter: drop-shadow(0 0 20px rgba(37, 99, 235, 0.2));
+  transition: transform 0.3s ease;
+  margin-bottom: 1rem;
+}
+
+.orbit-container:hover .orbit-logo-img {
+  transform: scale(1.05);
+}
+
+/* Center Text (Old, kept for fallback or specific use if needed) */
 .orbit-center-text {
   font-family: var(--font-serif);
-  font-size: 3.5rem;
+  font-size: 3.8rem;
   font-weight: 700;
   color: var(--text-main);
   z-index: 10;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   margin-bottom: 0.5rem;
   text-align: center;
   line-height: 1;
 }
 
-/* New: Rotating Subtitle */
+/* Rotating Subtitle */
 .orbit-subtitle {
   font-family: var(--font-sans);
   font-size: 1.1rem;
   color: var(--text-muted);
   text-align: center;
-  max-width: 320px;
+  max-width: 340px;
   height: 3.2rem;
-  /* Fixed height to prevent layout shift */
   display: grid;
   place-items: top center;
-  animation: fadeIn 0.5s ease-in-out;
+  animation: fadeInUp 0.5s ease-out;
   margin-top: 1rem;
+  line-height: 1.5;
 }
 
-@keyframes fadeIn {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(5px);
+    transform: translateY(8px);
   }
 
   to {
@@ -87,7 +114,7 @@
   }
 }
 
-/* Restored Orbit Rings - Minimal style */
+/* Orbit Rings */
 .orbit-ring {
   position: absolute;
   border: 1px solid var(--border-soft);
@@ -96,7 +123,6 @@
   left: 50%;
   transform: translate(-50%, -50%);
   display: block;
-  /* Show them! */
   z-index: 0;
 }
 
@@ -104,23 +130,52 @@
   width: 320px;
   height: 320px;
   border-style: dashed;
-  opacity: 0.5;
+  opacity: 0.4;
+  animation: ringPulse1 8s ease-in-out infinite;
 }
 
 .ring-2 {
-  width: 550px;
-  height: 550px;
+  width: 520px;
+  height: 520px;
   border-color: var(--border-soft);
-  opacity: 0.3;
+  opacity: 0.25;
+  animation: ringPulse2 10s ease-in-out infinite;
 }
 
-/* Restored Orbit Wrapper & Icons */
+@keyframes ringPulse1 {
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.02);
+    opacity: 0.5;
+  }
+}
+
+@keyframes ringPulse2 {
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.25;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.01);
+    opacity: 0.3;
+  }
+}
+
+/* Orbit Wrapper & Icons */
 .orbit-wrapper {
   position: absolute;
   width: 100%;
   height: 100%;
-  animation: spin 60s linear infinite;
-  /* Slower spin for calm vibe */
+  animation: spin 50s linear infinite;
   display: block;
 }
 
@@ -128,21 +183,27 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 48px;
-  height: 48px;
-  margin-top: -24px;
-  margin-left: -24px;
-
-  background: var(--bg-card);
+  width: 52px;
+  height: 52px;
+  margin-top: -26px;
+  margin-left: -26px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-soft);
   border-radius: 50%;
-
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 1.2rem;
-  color: var(--text-muted);
-  box-shadow: var(--shadow-sm);
+  color: var(--primary);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.orbiting-icon:hover {
+  transform: scale(1.15);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
 }
 
 @keyframes spin {
@@ -151,43 +212,49 @@
   }
 }
 
-/* Floating Cards - Minimal & Animated again */
+/* Floating Cards */
 .floating-card {
   position: absolute;
-  background: var(--bg-card);
-  padding: 12px 20px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 14px 22px;
   border-radius: var(--radius-m);
   border: 1px solid var(--border-soft);
-  box-shadow: var(--shadow-md);
-
+  box-shadow: var(--shadow-lg);
   display: flex;
   align-items: center;
   gap: 12px;
-
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-main);
   z-index: 1;
-  animation: float 6s ease-in-out infinite;
-  min-width: 160px;
+  animation: float 7s ease-in-out infinite;
+  min-width: 170px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.floating-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--shadow-xl);
 }
 
 .card-1 {
-  top: 15%;
-  left: 10%;
+  top: 12%;
+  left: 8%;
   animation-delay: 0s;
 }
 
 .card-2 {
-  bottom: 20%;
-  right: 10%;
-  animation-delay: 2s;
+  bottom: 18%;
+  right: 8%;
+  animation-delay: 2.5s;
 }
 
 .card-3 {
   bottom: 10%;
-  left: 15%;
-  animation-delay: 3.5s;
+  left: 12%;
+  animation-delay: 4s;
 }
 
 .card-text-done {
@@ -203,13 +270,13 @@
   }
 
   50% {
-    transform: translateY(-15px);
+    transform: translateY(-12px);
   }
 }
 
 /* --- FORM STYLING --- */
 .auth-header {
-  margin-bottom: 3rem;
+  margin-bottom: 2.5rem;
   text-align: left;
 }
 
@@ -219,19 +286,21 @@
   font-weight: 700;
   color: var(--text-main);
   margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
 }
 
 .sub-text {
   color: var(--text-muted);
   font-size: 1.05rem;
   font-family: var(--font-sans);
+  line-height: 1.5;
 }
 
 /* Social Buttons */
 .social-login {
   display: flex;
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: 14px;
+  margin-bottom: 28px;
 }
 
 .social-btn {
@@ -239,33 +308,40 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 10px;
+  padding: 13px 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-soft);
-  border-radius: var(--radius-s);
+  border-radius: var(--radius-m);
   font-family: var(--font-sans);
   font-weight: 500;
   color: var(--text-main);
   font-size: 0.95rem;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
+  cursor: pointer;
 }
 
 .social-btn:hover {
   background: var(--bg-secondary);
-  border-color: var(--border-focus);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.social-btn:active {
+  transform: translateY(0);
 }
 
 /* Divider */
 .divider {
   display: flex;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   color: var(--text-light);
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 .divider::before,
@@ -276,7 +352,7 @@
 }
 
 .divider span {
-  padding: 0 16px;
+  padding: 0 18px;
 }
 
 /* Inputs */
@@ -288,7 +364,7 @@
   display: block;
   font-size: 0.85rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
   color: var(--text-main);
 }
 
@@ -299,81 +375,138 @@
 .input-icon {
   position: absolute;
   top: 50%;
-  left: 12px;
+  left: 14px;
   transform: translateY(-50%);
-  color: var(--text-muted);
+  color: var(--text-light);
   font-size: 1rem;
   z-index: 2;
+  transition: color var(--transition-base);
+}
+
+.input-group:focus-within .input-icon {
+  color: var(--primary);
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px 12px 12px 40px;
+  padding: 14px 14px 14px 44px;
   background: var(--bg-card);
   border: 1px solid var(--border-soft);
-  border-radius: var(--radius-s);
+  border-radius: var(--radius-m);
   color: var(--text-main);
   font-size: 1rem;
   font-family: var(--font-sans);
-  transition: all 0.2s;
+  transition: all var(--transition-base);
+}
+
+.form-group input:hover {
+  border-color: var(--border-hover);
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--text-main);
+  border-color: var(--primary);
   background: var(--bg-card);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.form-group input::placeholder {
+  color: var(--text-light);
 }
 
 /* Main Button */
-.btn-primary {
+.auth-container .btn-primary {
   width: 100%;
-  padding: 14px;
-  background: var(--text-main);
+  padding: 15px;
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  border-radius: var(--radius-s);
+  border-radius: var(--radius-m);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 1rem;
+  transition: all var(--transition-base);
+  margin-top: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
 }
 
-.btn-primary:hover {
-  background: #000;
-  transform: translateY(-1px);
+.auth-container .btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.auth-container .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md), var(--shadow-glow);
+}
+
+.auth-container .btn-primary:hover::before {
+  left: 100%;
+}
+
+.auth-container .btn-primary:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-xs);
 }
 
 /* Toggle Link */
 .switch-auth {
-  margin-top: 24px;
+  margin-top: 28px;
   text-align: center;
   color: var(--text-muted);
   font-size: 0.95rem;
 }
 
 .switch-auth span {
-  color: var(--text-main);
+  color: var(--primary);
   cursor: pointer;
   font-weight: 600;
-  margin-left: 5px;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  margin-left: 6px;
+  text-decoration: none;
+  transition: color var(--transition-base);
+  position: relative;
+}
+
+.switch-auth span::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transition: transform var(--transition-base);
+  transform-origin: right;
 }
 
 .switch-auth span:hover {
-  color: #000;
+  color: var(--primary-hover);
+}
+
+.switch-auth span:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 /* Responsive */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .split-screen {
     flex-direction: column;
     height: auto;
+    min-height: 100vh;
   }
 
   .left-panel {
-    min-height: 400px;
+    min-height: 50vh;
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--border-soft);
@@ -381,21 +514,75 @@
 
   .right-panel {
     width: 100%;
-    padding: 2rem;
+    padding: 3rem 2rem;
   }
 
   .orbit-container {
     width: 100%;
-    height: 350px;
+    height: 380px;
+  }
+
+  .orbit-center-text {
+    font-size: 3rem;
+  }
+
+  .ring-2 {
+    display: none;
+  }
+
+  .floating-card {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    min-width: 140px;
   }
 
   .card-1 {
-    top: 10%;
-    left: 10%;
+    top: 8%;
+    left: 5%;
   }
 
   .card-2 {
-    bottom: 10%;
-    right: 10%;
+    bottom: 8%;
+    right: 5%;
+  }
+
+  .card-3 {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .left-panel {
+    min-height: 40vh;
+  }
+
+  .orbit-center-text {
+    font-size: 2.5rem;
+  }
+
+  .orbit-subtitle {
+    font-size: 0.95rem;
+    max-width: 280px;
+  }
+
+  .ring-1 {
+    width: 250px;
+    height: 250px;
+  }
+
+  .auth-header h2 {
+    font-size: 2rem;
+  }
+
+  .floating-card {
+    display: none;
+  }
+
+  .orbiting-icon {
+    width: 44px;
+    height: 44px;
+    margin-top: -22px;
+    margin-left: -22px;
+    font-size: 1rem;
   }
 }

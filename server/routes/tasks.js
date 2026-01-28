@@ -9,7 +9,7 @@ router.get('/', auth, async (req, res) => {
     const tasks = await Task.find({ user: req.user.id }).sort({ createdAt: -1 });
     res.json(tasks);
   } catch (err) {
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server Error' });
   }
 });
 
@@ -40,7 +40,7 @@ router.post('/', auth, async (req, res) => {
     res.json(task);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server Error' });
   }
 });
 
@@ -54,7 +54,7 @@ router.delete('/:id', auth, async (req, res) => {
     await task.deleteOne();
     res.json({ msg: 'Task removed' });
   } catch (err) {
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server Error' });
   }
 });
 
@@ -80,7 +80,7 @@ router.put('/:id', auth, async (req, res) => {
     await task.save();
     res.json(task);
   } catch (err) {
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server Error' });
   }
 });
 
