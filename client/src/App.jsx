@@ -153,34 +153,46 @@ function App() {
       <div className="split-screen">
         <div className="left-panel">
           <div className="floating-card card-1">
-            <FaCheckDouble color="#10b981" />
+            <FaCheckDouble color="var(--success)" />
             <span className="card-text-done">Design System</span>
           </div>
           <div className="floating-card card-2">
-            <FaClock color="#f59e0b" />
+            <FaClock color="var(--warning)" />
             <span>Client Meeting 2pm</span>
           </div>
           <div className="floating-card card-3">
-            <FaBell color="#ef4444" />
+            <FaBell color="var(--danger)" />
             <span>Fix Server Bug</span>
           </div>
           <div className="orbit-container">
-            <img src="/logo.png" alt="SmartTodo Logo" className="orbit-logo-img" />
+            <div className="logo-box">
+              <h1 className="logo-box-text">Smart<br />Todo.</h1>
+            </div>
             <p className="orbit-subtitle">{subtitles[subtitleIndex]}</p>
+
             <div className="orbit-ring ring-1"></div>
             <div className="orbit-ring ring-2"></div>
+
             <div className="orbit-wrapper">
-              <div className="orbiting-icon" style={{ transform: 'rotate(0deg) translate(140px) rotate(0deg)' }}>
-                <FaCheckDouble color="#2563eb" />
+              <div className="orbit-item item-1">
+                <div className="orbiting-icon">
+                  <FaCheckDouble />
+                </div>
               </div>
-              <div className="orbiting-icon" style={{ transform: 'rotate(90deg) translate(140px) rotate(-90deg)' }}>
-                <FaListUl color="#2563eb" />
+              <div className="orbit-item item-2">
+                <div className="orbiting-icon">
+                  <FaListUl />
+                </div>
               </div>
-              <div className="orbiting-icon" style={{ transform: 'rotate(180deg) translate(140px) rotate(-180deg)' }}>
-                <FaBell color="#2563eb" />
+              <div className="orbit-item item-3">
+                <div className="orbiting-icon">
+                  <FaBell />
+                </div>
               </div>
-              <div className="orbiting-icon" style={{ transform: 'rotate(270deg) translate(140px) rotate(-270deg)' }}>
-                <FaClock color="#2563eb" />
+              <div className="orbit-item item-4">
+                <div className="orbiting-icon">
+                  <FaClock />
+                </div>
               </div>
             </div>
           </div>
@@ -283,16 +295,20 @@ function App() {
 
           {/* --- HERO --- */}
           <section className="hero-section">
-            <div className="hero-title">
-              Your Daily Tasks <br />
-              Organized <span className="highlight">Effortlessly</span>
-            </div>
-            <div className="hero-subtitle">
-              {subtitles[subtitleIndex]}
-            </div>
+            <div className="hero-main-layout">
+              <div className="hero-text-content">
+                <div className="hero-title">
+                  Your Daily Tasks <br />
+                  Organized <span className="highlight">Effortlessly</span>
+                </div>
+                <div className="hero-subtitle">
+                  {subtitles[subtitleIndex]}
+                </div>
+              </div>
 
-            {/* Progress Ring */}
-            <ProgressRing completed={completedCount} total={totalCount} />
+              {/* Progress Ring */}
+              <ProgressRing completed={completedCount} total={totalCount} />
+            </div>
 
             {/* Timeline Visual */}
             <Timeline tasks={tasks} />
@@ -325,50 +341,71 @@ function App() {
             <input
               className="main-input"
               value={newTask}
-              onChange={e => setNewTask(e.target.value)}
+              onChange={e => {
+                const val = e.target.value;
+                setNewTask(val);
+              }}
               onKeyDown={(e) => e.key === 'Enter' && addTask()}
               placeholder="What needs to be done today?"
             />
             <div className="input-actions">
-              {/* Priority Select (Minimal) */}
-              <select
-                className="meta-select"
-                value={newPriority}
-                onChange={e => setNewPriority(e.target.value)}
-              >
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="low">Low</option>
-              </select>
+              <div className="meta-controls">
+                {/* Date Selection */}
+                <div className="input-field-group">
+                  <FaCalendarAlt className="field-icon" />
+                  <div className="date-shortcuts">
+                    <button
+                      type="button"
+                      className={`shortcut-btn ${newDueDate === new Date().toISOString().split('T')[0] ? 'active' : ''}`}
+                      onClick={() => setNewDueDate(new Date().toISOString().split('T')[0])}
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      className={`shortcut-btn ${newDueDate === new Date(Date.now() + 86400000).toISOString().split('T')[0] ? 'active' : ''}`}
+                      onClick={() => setNewDueDate(new Date(Date.now() + 86400000).toISOString().split('T')[0])}
+                    >
+                      Tomorrow
+                    </button>
+                  </div>
+                  <input
+                    type="date"
+                    className="date-input"
+                    value={newDueDate}
+                    onChange={e => setNewDueDate(e.target.value)}
+                    title="Pick a custom date"
+                  />
+                </div>
 
-              {/* Date Trigger (Minimal) */}
-              <button
-                className="date-trigger"
-                title="Set Date"
-                onClick={() => document.getElementById('hidden-date').showPicker()}
-              >
-                {newDueDate ? new Date(newDueDate).toLocaleDateString() : '📅'}
-              </button>
-              <input
-                id="hidden-date"
-                type="date"
-                value={newDueDate}
-                onChange={e => setNewDueDate(e.target.value)}
-                style={{ width: 0, height: 0, opacity: 0, overflow: 'hidden', position: 'absolute' }}
-              />
+                {/* Time Selection */}
+                <div className="input-field-group">
+                  <FaClock className="field-icon" />
+                  <input
+                    type="time"
+                    className="time-input"
+                    value={newTime}
+                    onChange={e => setNewTime(e.target.value)}
+                    title="Set Time"
+                  />
+                </div>
 
-              {/* Time Trigger (Minimal) */}
-              <input
-                type="time"
-                className="meta-select"
-                value={newTime}
-                onChange={e => setNewTime(e.target.value)}
-                title="Set Time"
-                style={{ width: 'auto' }}
-              />
+                {/* Priority Selection */}
+                <div className="input-field-group">
+                  <select
+                    className="priority-select"
+                    value={newPriority}
+                    onChange={e => setNewPriority(e.target.value)}
+                  >
+                    <option value="low">Low Priority</option>
+                    <option value="medium">Medium Priority</option>
+                    <option value="high">High Priority</option>
+                  </select>
+                </div>
+              </div>
 
-              <button onClick={addTask} className="btn-primary">
-                + New Task
+              <button onClick={addTask} className="btn-add-task">
+                <FaPlus /> Add Task
               </button>
             </div>
           </div>

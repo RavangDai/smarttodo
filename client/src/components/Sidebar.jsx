@@ -21,6 +21,7 @@ const Sidebar = ({ onLogout }) => {
         >
             <div className="sidebar-logo">
                 <img src="/logo.png" alt="SmartTodo Logo" className="sidebar-logo-img" />
+                <span className="sidebar-logo-text">Smart<br />Todo.</span>
             </div>
 
             <nav className="sidebar-nav">

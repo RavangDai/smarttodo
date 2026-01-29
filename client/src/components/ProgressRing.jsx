@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 
 const ProgressRing = ({ completed, total }) => {
-    const radius = 65;
-    const stroke = 7;
+    const radius = 55;
+    const stroke = 6;
     const normalizedRadius = radius - stroke * 2;
     const circumference = normalizedRadius * 2 * Math.PI;
 
@@ -52,7 +52,7 @@ const ProgressRing = ({ completed, total }) => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            margin: '2.5rem 0',
+            margin: '0',
             opacity: isVisible ? 1 : 0,
             transition: 'opacity 0.5s ease-out'
         }}>
@@ -126,7 +126,7 @@ const ProgressRing = ({ completed, total }) => {
                     zIndex: 3
                 }}>
                     <div style={{
-                        fontSize: '1.5rem',
+                        fontSize: '1.25rem',
                         fontWeight: '700',
                         letterSpacing: '-0.02em',
                         lineHeight: '1'
@@ -134,12 +134,12 @@ const ProgressRing = ({ completed, total }) => {
                         {completed}/{total}
                     </div>
                     <div style={{
-                        fontSize: '0.7rem',
+                        fontSize: '0.65rem',
                         color: 'var(--text-light)',
                         fontWeight: '600',
                         textTransform: 'uppercase',
                         letterSpacing: '0.1em',
-                        marginTop: '4px'
+                        marginTop: '3px'
                     }}>
                         TASKS
                     </div>
@@ -148,10 +148,10 @@ const ProgressRing = ({ completed, total }) => {
 
             {/* Message */}
             <div style={{
-                marginTop: '1.25rem',
+                marginTop: '0.75rem',
                 fontFamily: 'var(--font-serif)',
                 fontStyle: 'italic',
-                fontSize: '1.1rem',
+                fontSize: '0.95rem',
                 fontWeight: '500',
                 color: color,
                 transition: 'color 0.4s ease',
