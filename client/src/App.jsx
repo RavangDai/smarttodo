@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   FaCheckDouble, FaListUl, FaBell, FaClock, FaTrash, FaSignOutAlt, FaPlus,
-  FaEnvelope, FaLock, FaGoogle, FaGithub, FaCheck, FaMoon, FaSun, FaCalendarAlt
+  FaEnvelope, FaLock, FaGoogle, FaGithub, FaCheck, FaMoon, FaSun, FaCalendarAlt,
+  FaList, FaTh
 } from 'react-icons/fa';
 import confetti from 'canvas-confetti';
 
@@ -12,6 +13,8 @@ import ProgressRing from './components/ProgressRing';
 import TaskAccordion from './components/TaskAccordion';
 import Timeline from './components/Timeline';
 import Sidebar from './components/Sidebar';
+import DynamicGreeting from './components/DynamicGreeting';
+import SmartTaskInput from './components/SmartTaskInput';
 
 function App() {
 
@@ -25,6 +28,8 @@ function App() {
   const [newDueDate, setNewDueDate] = useState("");
   const [newTime, setNewTime] = useState("");
   const [darkMode, setDarkMode] = useState(false);
+  const [activeView, setActiveView] = useState('Tasks');
+  const [viewMode, setViewMode] = useState('focus'); // 'focus' or 'compact'
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -118,6 +123,31 @@ function App() {
         setNewPriority("medium");
         setNewDueDate("");
         setNewTime("");
+      })
+      .catch(err => {
+        console.error("Error adding task:", err);
+        alert("Failed to add task. Please check if you are logged in.");
+      });
+  };
+
+  // Smart Task Add Handler (for SmartTaskInput component)
+  const handleSmartAddTask = (taskData) => {
+    if (!taskData.title) return;
+
+    let taskDate = null;
+    if (taskData.dueDate && taskData.dueTime) {
+      taskDate = `${taskData.dueDate}T${taskData.dueTime}`;
+    } else if (taskData.dueDate) {
+      taskDate = taskData.dueDate;
+    }
+
+    axios.post('/api/tasks', {
+      title: taskData.title,
+      priority: taskData.priority || 'medium',
+      dueDate: taskDate
+    }, getHeaders())
+      .then(res => {
+        setTasks([...tasks, res.data]);
       })
       .catch(err => {
         console.error("Error adding task:", err);
@@ -268,6 +298,13 @@ function App() {
     return true;
   });
 
+  // Helper for local date in YYYY-MM-DD
+  const getLocalDateString = (date) => {
+    const d = new Date(date);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split('T')[0];
+  };
+
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
@@ -276,7 +313,11 @@ function App() {
       <div className="paper-overlay"></div>
 
       <div className="app-shell">
-        <Sidebar onLogout={() => setToken(null)} />
+        <Sidebar
+          onLogout={() => setToken(null)}
+          currentView={activeView}
+          onNavigate={setActiveView}
+        />
 
         <div className="dashboard-container">
           {/* --- HEADER --- */}
@@ -286,6 +327,7 @@ function App() {
             </div>
 
             <div className="header-controls">
+              <div className="view-title-pill">{activeView}</div>
               <button className="btn-icon" onClick={() => setDarkMode(!darkMode)} title="Toggle Dark Mode">
                 {darkMode ? <FaSun size={18} /> : <FaMoon size={18} />}
               </button>
@@ -293,142 +335,183 @@ function App() {
             </div>
           </header>
 
-          {/* --- HERO --- */}
-          <section className="hero-section">
-            <div className="hero-main-layout">
-              <div className="hero-text-content">
-                <div className="hero-title">
-                  Your Daily Tasks <br />
-                  Organized <span className="highlight">Effortlessly</span>
-                </div>
-                <div className="hero-subtitle">
-                  {subtitles[subtitleIndex]}
-                </div>
-              </div>
-
-              {/* Progress Ring */}
-              <ProgressRing completed={completedCount} total={totalCount} />
-            </div>
-
-            {/* Timeline Visual */}
-            <Timeline tasks={tasks} />
-          </section>
-
-          {/* --- TABS --- */}
-          <nav className="tabs-nav">
-            <button
-              className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
-            >
-              All Tasks
-            </button>
-            <button
-              className={`tab-btn ${filter === 'active' ? 'active' : ''}`}
-              onClick={() => setFilter('active')}
-            >
-              Active
-            </button>
-            <button
-              className={`tab-btn ${filter === 'completed' ? 'active' : ''}`}
-              onClick={() => setFilter('completed')}
-            >
-              Completed
-            </button>
-          </nav>
-
-          {/* --- INPUT CARD --- */}
-          <div className="input-card">
-            <input
-              className="main-input"
-              value={newTask}
-              onChange={e => {
-                const val = e.target.value;
-                setNewTask(val);
-              }}
-              onKeyDown={(e) => e.key === 'Enter' && addTask()}
-              placeholder="What needs to be done today?"
-            />
-            <div className="input-actions">
-              <div className="meta-controls">
-                {/* Date Selection */}
-                <div className="input-field-group">
-                  <FaCalendarAlt className="field-icon" />
-                  <div className="date-shortcuts">
-                    <button
-                      type="button"
-                      className={`shortcut-btn ${newDueDate === new Date().toISOString().split('T')[0] ? 'active' : ''}`}
-                      onClick={() => setNewDueDate(new Date().toISOString().split('T')[0])}
-                    >
-                      Today
-                    </button>
-                    <button
-                      type="button"
-                      className={`shortcut-btn ${newDueDate === new Date(Date.now() + 86400000).toISOString().split('T')[0] ? 'active' : ''}`}
-                      onClick={() => setNewDueDate(new Date(Date.now() + 86400000).toISOString().split('T')[0])}
-                    >
-                      Tomorrow
-                    </button>
-                  </div>
-                  <input
-                    type="date"
-                    className="date-input"
-                    value={newDueDate}
-                    onChange={e => setNewDueDate(e.target.value)}
-                    title="Pick a custom date"
+          {activeView === 'Tasks' && (
+            <>
+              {/* --- HERO --- */}
+              <section className="hero-section">
+                <div className="hero-main-layout">
+                  {/* Dynamic Greeting */}
+                  <DynamicGreeting
+                    userName="User"
+                    highPriorityCount={tasks.filter(t => t.priority === 'high' && !t.isCompleted).length}
+                    completionRate={progress}
+                    totalTasks={totalCount}
                   />
+
+                  {/* Progress Ring */}
+                  <ProgressRing completed={completedCount} total={totalCount} />
                 </div>
 
-                {/* Time Selection */}
-                <div className="input-field-group">
-                  <FaClock className="field-icon" />
-                  <input
-                    type="time"
-                    className="time-input"
-                    value={newTime}
-                    onChange={e => setNewTime(e.target.value)}
-                    title="Set Time"
-                  />
-                </div>
+                {/* Timeline Visual */}
+                <Timeline tasks={tasks} />
+              </section>
 
-                {/* Priority Selection */}
-                <div className="input-field-group">
-                  <select
-                    className="priority-select"
-                    value={newPriority}
-                    onChange={e => setNewPriority(e.target.value)}
+              {/* --- TABS --- */}
+              <nav className="tabs-nav">
+                <button
+                  className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
+                  onClick={() => setFilter('all')}
+                >
+                  All Tasks
+                </button>
+                <button
+                  className={`tab-btn ${filter === 'active' ? 'active' : ''}`}
+                  onClick={() => setFilter('active')}
+                >
+                  Active
+                </button>
+                <button
+                  className={`tab-btn ${filter === 'completed' ? 'active' : ''}`}
+                  onClick={() => setFilter('completed')}
+                >
+                  Completed
+                </button>
+
+                {/* View Mode Toggle */}
+                <div className="view-mode-toggle">
+                  <button
+                    className={`view-mode-btn ${viewMode === 'focus' ? 'active' : ''}`}
+                    onClick={() => setViewMode('focus')}
+                    title="Focus View - Detailed cards"
                   >
-                    <option value="low">Low Priority</option>
-                    <option value="medium">Medium Priority</option>
-                    <option value="high">High Priority</option>
-                  </select>
+                    <FaTh size={12} />
+                  </button>
+                  <button
+                    className={`view-mode-btn ${viewMode === 'compact' ? 'active' : ''}`}
+                    onClick={() => setViewMode('compact')}
+                    title="Compact View - Dense list"
+                  >
+                    <FaList size={12} />
+                  </button>
+                </div>
+              </nav>
+
+              {/* --- SMART INPUT --- */}
+              <SmartTaskInput
+                onAddTask={handleSmartAddTask}
+                getLocalDateString={getLocalDateString}
+              />
+
+              {/* --- TASK LIST STACK --- */}
+              <div className={`task-list-stack ${viewMode}`}>
+                {filteredTasks.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">✓</div>
+                    <p>Your canvas is clear. What will you accomplish today?</p>
+                  </div>
+                ) : (
+                  filteredTasks.map(task => (
+                    <TaskAccordion
+                      key={task._id}
+                      task={task}
+                      viewMode={viewMode}
+                      onUpdate={(updatedTask) => setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t))}
+                      onDelete={deleteTask}
+                      headers={getHeaders().headers}
+                    />
+                  ))
+                )}
+              </div>
+            </>
+          )}
+
+          {activeView === 'Stats' && (
+            <div className="view-content fade-in">
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <h3>Completion Rate</h3>
+                  <div className="stat-value">{progress}%</div>
+                  <p>Overall task efficiency</p>
+                </div>
+                <div className="stat-card">
+                  <h3>Total Completed</h3>
+                  <div className="stat-value">{completedCount}</div>
+                  <p>Tasks finished to date</p>
+                </div>
+                <div className="stat-card">
+                  <h3>Focus Hours</h3>
+                  <div className="stat-value">{(completedCount * 0.5).toFixed(1)}</div>
+                  <p>Estimated deep work time</p>
+                </div>
+              </div>
+              <div className="chart-placeholder">
+                <div className="chart-bars">
+                  {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
+                    <div key={i} className="chart-bar" style={{ height: `${h}%` }}>
+                      <span className="bar-label">Day {i + 1}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="chart-caption">Weekly Productivity Trend</p>
+              </div>
+            </div>
+          )}
+
+          {activeView === 'Goals' && (
+            <div className="view-content fade-in">
+              <div className="goals-header">
+                <h2>Active Objectives</h2>
+                <button className="btn-pill" onClick={() => alert("Goal creation coming soon!")}>+ New Goal</button>
+              </div>
+              <div className="goals-list">
+                {[
+                  { title: "Master React Hooks", progress: 75, color: "var(--primary)" },
+                  { title: "Improve Daily Focus", progress: 40, color: "var(--warning)" },
+                  { title: "Health & Fitness", progress: 20, color: "var(--success)" }
+                ].map((goal, i) => (
+                  <div key={i} className="goal-item glass-card">
+                    <div className="goal-info">
+                      <span className="goal-title">{goal.title}</span>
+                      <span className="goal-percent">{goal.progress}%</span>
+                    </div>
+                    <div className="goal-progress-track">
+                      <div className="goal-progress-bar" style={{ width: `${goal.progress}%`, background: goal.color }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeView === 'Settings' && (
+            <div className="view-content fade-in">
+              <div className="settings-section glass-card">
+                <h3>App Preferences</h3>
+                <div className="setting-row">
+                  <span>Appearance</span>
+                  <button className="btn-toggle" onClick={() => setDarkMode(!darkMode)}>
+                    {darkMode ? "Switch to Light" : "Switch to Dark"}
+                  </button>
+                </div>
+                <div className="setting-row">
+                  <span>Notifications</span>
+                  <span className="status-label success">Enabled</span>
                 </div>
               </div>
 
-              <button onClick={addTask} className="btn-add-task">
-                <FaPlus /> Add Task
-              </button>
-            </div>
-          </div>
-
-          {/* --- TASK LIST STACK --- */}
-          <div className="task-list-stack">
-            {filteredTasks.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">✓</div>
-                <p>Your canvas is clear. What will you accomplish today?</p>
+              <div className="settings-section glass-card">
+                <h3>Account</h3>
+                <div className="profile-preview">
+                  <div className="user-avatar-large">B</div>
+                  <div className="profile-info">
+                    <strong>Bibek User</strong>
+                    <span>bibek@example.com</span>
+                  </div>
+                </div>
+                <button className="btn-outline-danger" style={{ marginTop: '20px' }} onClick={() => setToken(null)}>Logout from device</button>
               </div>
-            ) : (
-              filteredTasks.map(task => (
-                <TaskAccordion
-                  key={task._id}
-                  task={task}
-                  onUpdate={(updatedTask) => setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t))}
-                  onDelete={deleteTask}
-                  headers={getHeaders().headers}
-                />
-              ))
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </>

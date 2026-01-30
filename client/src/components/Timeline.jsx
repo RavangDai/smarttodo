@@ -12,8 +12,24 @@ const Timeline = ({ tasks }) => {
 
     if (todaysTasks.length === 0) return null;
 
-    const startHour = 8;
-    const endHour = 20;
+    // Calculate dynamic start and end hours
+    const currentHour = today.getHours();
+    const taskHours = todaysTasks.map(t => new Date(t.dueDate).getHours());
+
+    // Default range or based on tasks/now
+    let startHour = Math.min(8, currentHour, ...taskHours);
+    let endHour = Math.max(20, currentHour + 1, ...taskHours.map(h => h + 1));
+
+    // Add padding
+    startHour = Math.max(0, startHour - 1);
+    endHour = Math.min(24, endHour + 1);
+
+    // Ensure a minimum range for visual balance
+    if (endHour - startHour < 6) {
+        if (endHour <= 18) endHour = startHour + 6;
+        else startHour = endHour - 6;
+    }
+
     const totalHours = endHour - startHour;
 
     const getPosition = (dateString) => {
@@ -40,6 +56,15 @@ const Timeline = ({ tasks }) => {
         ? Math.max(...completedTasks.map(t => getPosition(t.dueDate)))
         : 0;
 
+    // Generate hour markers dynamically (every 2-3 hours depending on range)
+    const step = totalHours > 12 ? 3 : 2;
+    const markers = [];
+    for (let h = Math.ceil(startHour / step) * step; h <= endHour; h += step) {
+        if (h >= startHour && h <= endHour) {
+            markers.push(h);
+        }
+    }
+
     return (
         <div className="timeline-container">
             <div className="timeline-header">
@@ -64,7 +89,7 @@ const Timeline = ({ tasks }) => {
                 />
 
                 {/* Current Time Indicator */}
-                {currentTimePosition > 0 && currentTimePosition < 100 && (
+                {currentTimePosition >= 0 && currentTimePosition <= 100 && (
                     <div
                         style={{
                             position: 'absolute',
@@ -97,7 +122,7 @@ const Timeline = ({ tasks }) => {
                 )}
 
                 {/* Hour Markers */}
-                {[9, 12, 15, 18].map(h => (
+                {markers.map(h => (
                     <div
                         key={h}
                         className="time-marker"
@@ -105,7 +130,7 @@ const Timeline = ({ tasks }) => {
                     >
                         <div className="marker-dot" />
                         <span className="marker-label">
-                            {h > 12 ? h - 12 + 'pm' : (h === 12 ? '12pm' : h + 'am')}
+                            {String(h).padStart(2, '0')}:00
                         </span>
                     </div>
                 ))}
@@ -114,12 +139,15 @@ const Timeline = ({ tasks }) => {
                 {todaysTasks.map((task, index) => (
                     <div
                         key={task._id}
-                        className={`task-dot ${task.isCompleted ? 'completed' : ''}`}
+                        className={`task-dot priority-${task.priority || 'medium'} ${task.isCompleted ? 'completed' : ''}`}
                         style={{
                             left: `${getPosition(task.dueDate)}%`,
                             animationDelay: `${index * 0.1}s`
                         }}
-                        title={`${task.title} (${new Date(task.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`}
+                        title={`${task.title} (${(() => {
+                            const d = new Date(task.dueDate);
+                            return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                        })()}) - ${(task.priority || 'medium').toUpperCase()} priority`}
                     />
                 ))}
             </div>

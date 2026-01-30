@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaChevronDown, FaChevronRight, FaCheck, FaTrash, FaPlus, FaClock, FaMagic } from 'react-icons/fa';
+import { FaChevronDown, FaChevronRight, FaCheck, FaTrash, FaPlus, FaClock, FaMagic, FaBell, FaInfoCircle, FaFlag } from 'react-icons/fa';
 
-const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
+const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [localNotes, setLocalNotes] = useState(task.notes || "");
     const [localSubtasks, setLocalSubtasks] = useState(task.subtasks || []);
@@ -152,7 +152,7 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
         const isToday = date.toLocaleDateString() === today.toLocaleDateString();
 
         if (isToday) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
         }
         return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
     };
@@ -160,41 +160,91 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
     const completedSubtasks = localSubtasks.filter(st => st.isCompleted).length;
     const totalSubtasks = localSubtasks.length;
 
+    const isOverdue = !task.isCompleted && task.dueDate && new Date(task.dueDate) < new Date();
+
+    const getStatusIcon = () => {
+        if (isOverdue) return <FaBell className="danger" />;
+        if (task.priority === 'high') return <FaBell className="danger" />;
+        if (task.priority === 'medium') return <FaFlag className="warning" />;
+        if (task.priority === 'low') return <FaInfoCircle className="success" />;
+        return <FaBell />;
+    };
+
+    // COMPACT VIEW
+    if (viewMode === 'compact') {
+        return (
+            <div
+                className={`accordion-card compact ${task.isCompleted ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} priority-${task.priority}`}
+                onClick={() => setIsExpanded(!isExpanded)}
+            >
+                <div className="compact-row">
+                    <button
+                        className={`check-circle compact ${task.isCompleted ? 'checked' : ''}`}
+                        onClick={toggleTaskCompletion}
+                        aria-label={task.isCompleted ? "Mark as incomplete" : "Mark as complete"}
+                    >
+                        {task.isCompleted && <FaCheck size={8} />}
+                    </button>
+
+                    <span className={`task-title compact ${task.isCompleted ? 'completed' : ''}`}>
+                        {task.title}
+                    </span>
+
+                    {task.dueDate && (
+                        <span className="compact-due">
+                            <FaClock size={10} />
+                            {formatDueDate(task.dueDate)}
+                        </span>
+                    )}
+
+                    {totalSubtasks > 0 && (
+                        <span className="compact-subtasks">
+                            {completedSubtasks}/{totalSubtasks}
+                        </span>
+                    )}
+
+                    <span className={`compact-priority priority-${task.priority}`}>
+                        {task.priority.charAt(0).toUpperCase()}
+                    </span>
+
+                    <button
+                        className="delete-action compact"
+                        onClick={(e) => { e.stopPropagation(); onDelete(task._id); }}
+                        aria-label="Delete task"
+                    >
+                        <FaTrash size={10} />
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // FOCUS VIEW (Original)
     return (
         <div
-            className={`accordion-card ${isExpanded ? 'expanded' : ''}`}
-            style={{
-                borderLeftWidth: '3px',
-                borderLeftColor: style.indicatorBg
-            }}
+            className={`accordion-card ${isExpanded ? 'expanded' : ''} ${isOverdue ? 'overdue' : ''} priority-${task.priority}`}
         >
             {/* Header Row */}
             <div className="accordion-header" onClick={() => setIsExpanded(!isExpanded)}>
                 <div className="accordion-left">
-                    <button className="expand-icon" aria-label="Expand task">
-                        {isExpanded ? <FaChevronDown size={10} /> : <FaChevronRight size={10} />}
-                    </button>
-
-                    <button
-                        className={`check-circle ${task.isCompleted ? 'checked' : ''}`}
-                        onClick={toggleTaskCompletion}
-                        aria-label={task.isCompleted ? "Mark as incomplete" : "Mark as complete"}
-                        style={{ zIndex: 10, position: 'relative' }}
-                    >
-                        {task.isCompleted && <FaCheck size={10} />}
-                    </button>
-
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                        <span className={`task-title ${task.isCompleted ? 'completed' : ''}`}>
-                            {task.title}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div className={`task-status-icon ${isOverdue || task.priority === 'high' ? 'danger' : task.priority === 'medium' ? 'warning' : 'success'}`}>
+                                {getStatusIcon()}
+                            </div>
+                            <span className={`task-title ${task.isCompleted ? 'completed' : ''}`}>
+                                {task.title}
+                            </span>
+                            {isOverdue && <span className="meta-overdue">OVERDUE</span>}
+                        </div>
                         {(task.dueDate || totalSubtasks > 0) && (
                             <div style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '10px',
-                                fontSize: '12px',
-                                color: 'var(--text-light)'
+                                gap: '12px',
+                                fontSize: '11px',
+                                color: 'var(--text-light)',
+                                marginLeft: '32px'
                             }}>
                                 {task.dueDate && (
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -207,7 +257,7 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
                                         padding: '2px 6px',
                                         background: completedSubtasks === totalSubtasks ? 'var(--priority-low-bg)' : 'var(--bg-secondary)',
                                         borderRadius: '4px',
-                                        fontWeight: 500,
+                                        fontWeight: 600,
                                         color: completedSubtasks === totalSubtasks ? 'var(--success)' : 'var(--text-muted)'
                                     }}>
                                         {completedSubtasks}/{totalSubtasks}
@@ -219,6 +269,15 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
                 </div>
 
                 <div className="accordion-right">
+                    {/* Completion Toggle moved to right for cleaner left side */}
+                    <button
+                        className={`check-circle ${task.isCompleted ? 'checked' : ''}`}
+                        onClick={toggleTaskCompletion}
+                        aria-label={task.isCompleted ? "Mark as incomplete" : "Mark as complete"}
+                    >
+                        {task.isCompleted && <FaCheck size={10} />}
+                    </button>
+
                     {/* AI Breakdown Button */}
                     {!task.isCompleted && localSubtasks.length === 0 && (
                         <button
@@ -232,11 +291,19 @@ const TaskAccordion = ({ task, onUpdate, onDelete, headers }) => {
                         </button>
                     )}
 
-                    {task.priority !== 'medium' && (
-                        <span className={`meta-priority priority-${task.priority}`}>
-                            {task.priority}
-                        </span>
-                    )}
+                    {/* Priority Badge */}
+                    <span className={`meta-priority priority-${task.priority}`}>
+                        {task.priority.toUpperCase()}
+                    </span>
+
+                    <button
+                        className="expand-icon"
+                        onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                        aria-label="Expand task"
+                    >
+                        {isExpanded ? <FaChevronDown size={12} /> : <FaChevronRight size={12} />}
+                    </button>
+
                     <button
                         className="delete-action"
                         onClick={(e) => { e.stopPropagation(); onDelete(task._id); }}

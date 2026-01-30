@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { FaListUl, FaChartBar, FaBullseye, FaCog, FaSignOutAlt } from 'react-icons/fa';
 
-const Sidebar = ({ onLogout }) => {
+const Sidebar = ({ onLogout, currentView, onNavigate }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     const navItems = [
-        { icon: <FaListUl />, label: 'Tasks', active: true },
-        { icon: <FaChartBar />, label: 'Stats' },
-        { icon: <FaBullseye />, label: 'Goals' },
-        { icon: <FaCog />, label: 'Settings' },
+        { icon: <FaListUl />, label: 'Tasks', id: 'Tasks' },
+        { icon: <FaChartBar />, label: 'Stats', id: 'Stats' },
+        { icon: <FaBullseye />, label: 'Goals', id: 'Goals' },
+        { icon: <FaCog />, label: 'Settings', id: 'Settings' },
     ];
 
     return (
@@ -28,10 +28,11 @@ const Sidebar = ({ onLogout }) => {
                 {navItems.map((item, index) => (
                     <div
                         key={index}
-                        className={`nav-item ${item.active ? 'active' : ''}`}
+                        className={`nav-item ${currentView === item.id ? 'active' : ''}`}
                         role="button"
                         tabIndex={0}
-                        aria-current={item.active ? 'page' : undefined}
+                        aria-current={currentView === item.id ? 'page' : undefined}
+                        onClick={() => onNavigate(item.id)}
                         style={{ animationDelay: `${index * 0.05}s` }}
                     >
                         <div className="nav-icon" aria-hidden="true">{item.icon}</div>
