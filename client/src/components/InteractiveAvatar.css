@@ -1,0 +1,589 @@
+/* ============================================
+   INTERACTIVE AVATAR - CSS
+   Premium animated character with reactions
+   ============================================ */
+
+.interactive-avatar {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: var(--space-8) 0;
+    padding: var(--space-4);
+    z-index: 1;
+}
+
+/* ─── Character Container ─── */
+.avatar-character {
+    position: relative;
+    width: 120px;
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.interactive-avatar.watching .avatar-character {
+    animation: gentle-bob 2s ease-in-out infinite;
+}
+
+.interactive-avatar.idle .avatar-character {
+    animation: idle-breathe 3s ease-in-out infinite;
+}
+
+.interactive-avatar.celebrating .avatar-character {
+    animation: celebrate 0.5s ease-in-out infinite;
+}
+
+.interactive-avatar.sad .avatar-character {
+    animation: sad-shake 0.4s ease-in-out;
+}
+
+@keyframes gentle-bob {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes idle-breathe {
+
+    0%,
+    100% {
+        transform: scale(1) translateY(0);
+    }
+
+    50% {
+        transform: scale(1.02) translateY(-3px);
+    }
+}
+
+@keyframes celebrate {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-2deg);
+    }
+
+    50% {
+        transform: translateY(-10px) rotate(2deg);
+    }
+}
+
+@keyframes sad-shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20%,
+    60% {
+        transform: translateX(-5px);
+    }
+
+    40%,
+    80% {
+        transform: translateX(5px);
+    }
+}
+
+/* ─── Glow Effect ─── */
+.avatar-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center,
+            rgba(255, 107, 53, 0.15) 0%,
+            transparent 70%);
+    filter: blur(20px);
+    animation: pulse-glow 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.interactive-avatar.celebrating .avatar-glow {
+    background: radial-gradient(circle at center,
+            rgba(76, 217, 100, 0.25) 0%,
+            transparent 70%);
+}
+
+.interactive-avatar.sad .avatar-glow {
+    background: radial-gradient(circle at center,
+            rgba(255, 69, 58, 0.15) 0%,
+            transparent 70%);
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+/* ─── Head ─── */
+.avatar-head {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(145deg, #ffd8a8, #ffb74d);
+    border-radius: 50%;
+    box-shadow:
+        0 4px 20px rgba(255, 107, 53, 0.2),
+        inset 0 -4px 10px rgba(0, 0, 0, 0.05);
+    z-index: 2;
+}
+
+.dark-mode .avatar-head {
+    background: linear-gradient(145deg, #5c6bc0, #3f51b5);
+    box-shadow:
+        0 4px 20px rgba(63, 81, 181, 0.3),
+        inset 0 -4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ─── Ears ─── */
+.avatar-ear {
+    position: absolute;
+    width: 20px;
+    height: 30px;
+    background: linear-gradient(145deg, #ffd8a8, #ffb74d);
+    border-radius: 50% 50% 40% 40%;
+    top: 15px;
+}
+
+.avatar-ear.left {
+    left: -8px;
+    transform: rotate(-15deg);
+}
+
+.avatar-ear.right {
+    right: -8px;
+    transform: rotate(15deg);
+}
+
+.dark-mode .avatar-ear {
+    background: linear-gradient(145deg, #5c6bc0, #3f51b5);
+}
+
+/* ─── Face Container ─── */
+.avatar-face {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ─── Eyebrows ─── */
+.avatar-eyebrows {
+    position: absolute;
+    top: 18px;
+    width: 60px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.avatar-eyebrow {
+    width: 18px;
+    height: 4px;
+    background: #6d5e4c;
+    border-radius: 2px;
+    transition: transform 0.3s ease;
+}
+
+.avatar-eyebrow.left.worried {
+    transform: rotate(15deg) translateY(2px);
+}
+
+.avatar-eyebrow.right.worried {
+    transform: rotate(-15deg) translateY(2px);
+}
+
+.dark-mode .avatar-eyebrow {
+    background: #c5cae9;
+}
+
+/* ─── Eyes ─── */
+.avatar-eyes {
+    position: absolute;
+    top: 32px;
+    width: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.avatar-eye {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.avatar-eye.blink {
+    height: 4px;
+}
+
+.avatar-eye.happy {
+    height: 6px;
+    border-radius: 0 0 12px 12px;
+}
+
+.avatar-pupil {
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle at 30% 30%, #4a4a4a, #1a1a1a);
+    border-radius: 50%;
+    transition: transform 0.15s ease-out;
+}
+
+.avatar-pupil::before {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+}
+
+/* ─── Sparkle for celebration ─── */
+.avatar-sparkle {
+    position: absolute;
+    top: -15px;
+    font-size: 14px;
+    animation: sparkle-float 0.8s ease-out infinite;
+}
+
+.avatar-eye.left .avatar-sparkle {
+    left: -5px;
+}
+
+.avatar-eye.right .avatar-sparkle {
+    right: -5px;
+}
+
+@keyframes sparkle-float {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-15px) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* ─── Hands (covering eyes) ─── */
+.avatar-hand {
+    width: 28px;
+    height: 32px;
+    background: linear-gradient(145deg, #ffd8a8, #ffb74d);
+    border-radius: 50% 50% 45% 45%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    animation: cover-slide 0.3s ease-out forwards;
+}
+
+.avatar-hand.left {
+    transform: rotate(-10deg);
+}
+
+.avatar-hand.right {
+    transform: rotate(10deg);
+}
+
+.dark-mode .avatar-hand {
+    background: linear-gradient(145deg, #5c6bc0, #3f51b5);
+}
+
+@keyframes cover-slide {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ─── Cheeks ─── */
+.avatar-cheeks {
+    position: absolute;
+    top: 50px;
+    width: 80px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.avatar-cheek {
+    width: 14px;
+    height: 8px;
+    background: rgba(255, 150, 150, 0.3);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.avatar-cheek.blush {
+    background: rgba(255, 100, 100, 0.5);
+    width: 18px;
+    height: 10px;
+}
+
+/* ─── Mouth ─── */
+.avatar-mouth {
+    position: absolute;
+    bottom: 15px;
+    width: 20px;
+    height: 10px;
+    background: transparent;
+    border-bottom: 4px solid #6d5e4c;
+    border-radius: 0 0 20px 20px;
+    transition: all 0.3s ease;
+}
+
+.dark-mode .avatar-mouth {
+    border-color: #c5cae9;
+}
+
+/* Mouth States */
+.avatar-mouth.idle {
+    width: 15px;
+    border-bottom-width: 3px;
+}
+
+.avatar-mouth.watching {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    background: #6d5e4c;
+}
+
+.avatar-mouth.covering {
+    width: 30px;
+    height: 5px;
+    border: none;
+    background: #6d5e4c;
+    border-radius: 10px;
+}
+
+.avatar-mouth.celebrating {
+    width: 28px;
+    height: 18px;
+    background: #5c4033;
+    border: none;
+    border-radius: 0 0 28px 28px;
+    overflow: hidden;
+}
+
+.avatar-mouth.sad {
+    width: 20px;
+    height: 10px;
+    border-bottom: none;
+    border-top: 4px solid #6d5e4c;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(5px);
+}
+
+.dark-mode .avatar-mouth.watching,
+.dark-mode .avatar-mouth.covering {
+    background: #c5cae9;
+}
+
+.dark-mode .avatar-mouth.celebrating {
+    background: #1a1a3a;
+}
+
+.dark-mode .avatar-mouth.sad {
+    border-top-color: #c5cae9;
+}
+
+/* ─── Tongue ─── */
+.avatar-tongue {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 8px;
+    background: #ff7b7b;
+    border-radius: 0 0 6px 6px;
+}
+
+/* ─── Body ─── */
+.avatar-body {
+    position: relative;
+    width: 60px;
+    height: 40px;
+    background: linear-gradient(145deg, var(--color-ai), #e55b2e);
+    border-radius: 30px 30px 20px 20px;
+    margin-top: -8px;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    overflow: visible;
+}
+
+/* ─── Arms ─── */
+.avatar-arm {
+    position: absolute;
+    width: 14px;
+    height: 25px;
+    background: linear-gradient(145deg, var(--color-ai), #e55b2e);
+    border-radius: 7px;
+    top: 5px;
+}
+
+.avatar-arm.left {
+    left: -8px;
+    transform: rotate(20deg);
+    animation: wave-left 2s ease-in-out infinite;
+}
+
+.avatar-arm.right {
+    right: -8px;
+    transform: rotate(-20deg);
+    animation: wave-right 2s ease-in-out infinite 0.5s;
+}
+
+.interactive-avatar.idle .avatar-arm {
+    animation: none;
+}
+
+@keyframes wave-left {
+
+    0%,
+    100% {
+        transform: rotate(20deg);
+    }
+
+    50% {
+        transform: rotate(35deg);
+    }
+}
+
+@keyframes wave-right {
+
+    0%,
+    100% {
+        transform: rotate(-20deg);
+    }
+
+    50% {
+        transform: rotate(-35deg);
+    }
+}
+
+/* ─── Confetti Effect ─── */
+.avatar-confetti {
+    position: absolute;
+    top: -20px;
+    display: flex;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.avatar-confetti span {
+    animation: confetti-pop 0.6s ease-out infinite;
+    font-size: 20px;
+}
+
+.avatar-confetti span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.avatar-confetti span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.avatar-confetti span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes confetti-pop {
+    0% {
+        transform: translateY(0) scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: translateY(-20px) scale(1.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-40px) scale(0.8);
+        opacity: 0;
+    }
+}
+
+/* ─── Sweat Drop ─── */
+.avatar-sweat {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 18px;
+    animation: sweat-drop 1s ease-in-out infinite;
+}
+
+@keyframes sweat-drop {
+    0% {
+        transform: translateY(0);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 480px) {
+    .avatar-character {
+        width: 100px;
+        height: 120px;
+    }
+
+    .avatar-head {
+        width: 80px;
+        height: 80px;
+    }
+
+    .avatar-body {
+        width: 50px;
+        height: 35px;
+    }
+}

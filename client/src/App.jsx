@@ -10,8 +10,8 @@ import SmartTaskInput from './components/SmartTaskInput';
 import SmartInsightsPanel from './components/SmartInsightsPanel';
 import Timeline from './components/Timeline';
 import Settings from './components/Settings';
-import CommandPalette from './components/CommandPalette';
 import AITypewriter from './components/AITypewriter';
+import InteractiveAvatar from './components/InteractiveAvatar';
 
 function App() {
   // ─── STATE ───
@@ -21,7 +21,6 @@ function App() {
   const [activeView, setActiveView] = useState('tasks');
   const [showSettings, setShowSettings] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showPalette, setShowPalette] = useState(false);
   const [dragState, setDragState] = useState({ dragging: null, over: null });
 
   // Auth States
@@ -29,6 +28,12 @@ function App() {
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
+
+  // Avatar interaction states
+  const [isFocusedEmail, setIsFocusedEmail] = useState(false);
+  const [isFocusedPassword, setIsFocusedPassword] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [authResult, setAuthResult] = useState('idle'); // 'idle' | 'success' | 'error'
 
   // ─── EFFECTS ───
   useEffect(() => {
@@ -58,14 +63,6 @@ function App() {
       const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
       const key = e.key.toLowerCase();
 
-      // Ctrl/Cmd + Shift + K = Command Palette (avoids browser address bar)
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (key === 'k' || e.code === 'KeyK')) {
-        e.preventDefault();
-        e.stopPropagation();
-        setShowPalette(prev => !prev);
-        return;
-      }
-
       // Ctrl/Cmd + Shift + N = New Task (avoids new window)
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && (key === 'n' || e.code === 'KeyN')) {
         e.preventDefault();
@@ -77,7 +74,6 @@ function App() {
 
       // Escape = Close modals
       if (e.key === 'Escape') {
-        setShowPalette(false);
         setShowSettings(false);
         return;
       }
@@ -93,33 +89,7 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, []);
 
-  // Handle command palette actions
-  const handlePaletteAction = (action) => {
-    switch (action) {
-      case 'focus-input':
-        setTimeout(() => document.querySelector('.task-input')?.focus(), 100);
-        break;
-      case 'focus-search':
-        setTimeout(() => document.getElementById('search-input')?.focus(), 100);
-        break;
-      case 'toggle-theme':
-        const isDark = document.body.classList.toggle('dark-mode');
-        const saved = localStorage.getItem('karyaSettings');
-        const settings = saved ? JSON.parse(saved) : {};
-        settings.theme = isDark ? 'dark' : 'light';
-        localStorage.setItem('karyaSettings', JSON.stringify(settings));
-        break;
-      case 'view-insights':
-        setActiveView('insights');
-        break;
-      case 'view-tasks':
-        setActiveView('tasks');
-        break;
-      case 'open-settings':
-        setShowSettings(true);
-        break;
-    }
-  };
+
 
   // ─── API HELPERS ───
   const getHeaders = () => ({ headers: { 'x-auth-token': token } });
@@ -134,17 +104,26 @@ function App() {
   const handleAuth = async (e) => {
     e.preventDefault();
     setAuthError('');
+    setAuthResult('idle');
     const endpoint = isRegistering ? '/register' : '/login';
     try {
       const res = await axios.post(`/api/users${endpoint}`, { email, password });
       if (isRegistering) {
         setIsRegistering(false);
         setAuthError('Account created. Please sign in.');
+        setAuthResult('success');
       } else {
-        setToken(res.data.token);
+        setAuthResult('success');
+        // Delay token set to show celebration
+        setTimeout(() => {
+          setToken(res.data.token);
+        }, 1200);
       }
     } catch (err) {
       setAuthError(err.response?.data?.msg || 'Authentication failed');
+      setAuthResult('error');
+      // Reset error state after animation
+      setTimeout(() => setAuthResult('idle'), 2000);
     }
   };
 
@@ -224,61 +203,106 @@ function App() {
   };
 
   // ════════════════════════════════════════════════════════════════
-  // LOGIN VIEW (Brutalist)
+  // LOGIN VIEW (Split-Screen)
   // ════════════════════════════════════════════════════════════════
   if (!token) {
     return (
       <div className="auth-page">
-        <div className="auth-container">
+        {/* Left Panel - Branding & Avatar */}
+        <div className="auth-left-panel">
           <header className="auth-header">
             <h1 className="wordmark">KaryaAI</h1>
             <p className="tagline">Intelligent simplicity.<br />AI that gets out of your way.</p>
           </header>
 
+          {/* Interactive Avatar */}
+          <InteractiveAvatar
+            isTyping={isTyping}
+            isFocusedEmail={isFocusedEmail}
+            isFocusedPassword={isFocusedPassword}
+            authResult={authResult}
+            email={email}
+          />
+
           {/* AI Callout with Typewriter Effect */}
           <AITypewriter />
+        </div>
 
-          {authError && (
-            <div className="auth-error">{authError}</div>
-          )}
+        {/* Right Panel - Form */}
+        <div className="auth-right-panel">
+          <div className="auth-container">
+            <h2 className="auth-form-title">
+              {isRegistering ? 'Create your account' : 'Welcome back'}
+            </h2>
+            <p className="auth-form-subtitle">
+              {isRegistering
+                ? 'Start your productivity journey with AI'
+                : 'Sign in to continue to your tasks'}
+            </p>
 
-          <form onSubmit={handleAuth} className="auth-form">
-            <input
-              type="email"
-              className="input-field"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              className="input-field"
-              placeholder="Password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-            <button type="submit" className="btn-primary">
-              {isRegistering ? 'CREATE ACCOUNT' : 'SIGN IN'} <FaArrowRight size={12} />
-            </button>
-          </form>
+            {authError && (
+              <div className="auth-error">{authError}</div>
+            )}
 
-          <div className="auth-switch">
-            <span className="text-secondary">
-              {isRegistering ? 'Already have an account?' : 'New to KaryaAI?'}
-            </span>
-            <button
-              className="btn-ghost"
-              onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }}
-            >
-              {isRegistering ? 'Sign In' : 'Create Account'}
-            </button>
+            <form onSubmit={handleAuth} className="auth-form">
+              <input
+                type="email"
+                className="input-field"
+                placeholder="Email"
+                value={email}
+                onChange={e => {
+                  setEmail(e.target.value);
+                  setIsTyping(true);
+                  clearTimeout(window.typingTimeout);
+                  window.typingTimeout = setTimeout(() => setIsTyping(false), 500);
+                }}
+                onFocus={() => {
+                  setIsFocusedEmail(true);
+                  setAuthResult('idle');
+                }}
+                onBlur={() => setIsFocusedEmail(false)}
+                required
+              />
+              <input
+                type="password"
+                className="input-field"
+                placeholder="Password"
+                value={password}
+                onChange={e => {
+                  setPassword(e.target.value);
+                  setIsTyping(true);
+                  clearTimeout(window.typingTimeout);
+                  window.typingTimeout = setTimeout(() => setIsTyping(false), 500);
+                }}
+                onFocus={() => {
+                  setIsFocusedPassword(true);
+                  setAuthResult('idle');
+                }}
+                onBlur={() => setIsFocusedPassword(false)}
+                required
+              />
+              <button type="submit" className="btn-primary">
+                {isRegistering ? 'CREATE ACCOUNT' : 'SIGN IN'} <FaArrowRight size={12} />
+              </button>
+            </form>
+
+            <div className="auth-switch">
+              <span className="text-secondary">
+                {isRegistering ? 'Already have an account?' : 'New to KaryaAI?'}
+              </span>
+              <button
+                className="btn-ghost"
+                onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }}
+              >
+                {isRegistering ? 'Sign In' : 'Create Account'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
     );
   }
+
 
   // ════════════════════════════════════════════════════════════════
   // DASHBOARD VIEW (Brutalist)
@@ -325,14 +349,6 @@ function App() {
         <Settings
           onClose={() => setShowSettings(false)}
           onLogout={() => setToken(null)}
-        />
-      )}
-
-      {/* ── COMMAND PALETTE ── */}
-      {showPalette && (
-        <CommandPalette
-          onClose={() => setShowPalette(false)}
-          onAction={handlePaletteAction}
         />
       )}
 

@@ -97,47 +97,52 @@
 .main {
   flex: 1;
   width: 100%;
-  max-width: 900px;
+  max-width: 860px;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-10) var(--space-8);
 }
 
 /* ─── HERO SECTION ─── */
 .hero {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-10);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .hero-greeting {
   font-family: var(--font-display);
   font-size: var(--text-hero);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.1;
   letter-spacing: -0.04em;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
+  color: var(--color-ink);
 }
 
 /* ── AI Insight (Inline) ── */
 .ai-insight {
   display: inline-flex;
   align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   background: var(--color-ai-bg);
   border-left: 3px solid var(--color-ai);
+  border-radius: 0 var(--radius) var(--radius) 0;
 }
 
 .ai-label {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-ai);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
 }
 
 .ai-message {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   color: var(--color-ink);
+  line-height: 1.5;
 }
 
 /* ─── FILTER BAR ─── */
@@ -145,60 +150,69 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: var(--border);
+  margin-bottom: var(--space-6);
+  padding: var(--space-3) 0;
+  border-bottom: 2px solid var(--color-border);
 }
 
 .filter-tabs {
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .filter-tab {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-muted);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius);
   letter-spacing: 0.05em;
   transition: all var(--duration) var(--ease);
+  border: 1px solid transparent;
 }
 
 .filter-tab:hover {
   color: var(--color-ink);
   background: var(--color-surface);
+  border-color: var(--color-border);
 }
 
 .filter-tab.active {
   color: var(--color-bg);
   background: var(--color-ink);
+  border-color: var(--color-ink);
 }
 
 .task-count {
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--color-muted);
+  font-weight: 500;
+  color: var(--color-secondary);
+  letter-spacing: 0.02em;
 }
 
 /* ─── TASK LIST ─── */
 .task-list {
   display: flex;
   flex-direction: column;
+  gap: var(--space-1);
 }
 
 /* ─── EMPTY STATE ─── */
 .empty-state {
-  padding: var(--space-16) var(--space-6);
+  padding: var(--space-12) var(--space-8);
   text-align: center;
-  border: var(--border);
-  border-style: dashed;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
 }
 
 .empty-text {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   color: var(--color-muted);
+  line-height: 1.6;
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -207,34 +221,42 @@
 
 /* ─── TASK INPUT ─── */
 .task-input-container {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
 }
 
 .task-input-row {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border: 2px solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-bg);
-  transition: border-color var(--duration) var(--ease);
+  transition: all var(--duration) var(--ease);
 }
 
 .task-input-row:focus-within {
   border-color: var(--color-ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .task-input {
   flex: 1;
   font-size: var(--text-base);
+  font-weight: 500;
   border: none;
   background: transparent;
   outline: none;
+  color: var(--color-ink);
 }
 
 .task-input::placeholder {
   color: var(--color-muted);
+  font-weight: 400;
   font-style: italic;
 }
 
@@ -272,6 +294,93 @@
   padding: var(--space-1) var(--space-2);
   background: var(--color-ai-bg);
   border-radius: var(--radius);
+}
+
+/* ─── Date Toggle Button ─── */
+.date-toggle-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted);
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.date-toggle-btn:hover {
+  color: var(--color-ai);
+  border-color: var(--color-ai);
+  background: var(--color-ai-bg);
+}
+
+.date-toggle-btn.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-ai) 0%, #ff8a3d 100%);
+  border-color: transparent;
+}
+
+/* ─── DateTime Picker Row ─── */
+.datetime-picker-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.datetime-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-secondary);
+}
+
+.datetime-input {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.datetime-input:hover {
+  border-color: var(--color-ai);
+}
+
+.datetime-input:focus {
+  border-color: var(--color-ai);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.datetime-clear {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.datetime-clear:hover {
+  color: var(--color-error);
+  border-color: var(--color-error);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .priority-selector {
@@ -314,19 +423,33 @@
 .task-row {
   display: flex;
   flex-direction: column;
-  border-bottom: var(--border);
+  border-bottom: 1px solid var(--color-border);
+  transition: background var(--duration) var(--ease);
+}
+
+.task-row:hover {
+  background: var(--color-surface);
+}
+
+.task-row:last-child {
+  border-bottom: none;
 }
 
 .task-row.completed {
-  opacity: 0.5;
+  opacity: 0.6;
+}
+
+.task-row.completed:hover {
+  opacity: 0.8;
 }
 
 .task-row-main {
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-4) 0;
+  padding: var(--space-4) var(--space-3);
   cursor: pointer;
+  border-radius: var(--radius);
 }
 
 .task-checkbox {
@@ -433,15 +556,35 @@
 }
 
 .action-btn.ai {
-  color: var(--color-ai);
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-ai) 0%, #ff8a3d 100%);
+  border-radius: 6px;
+  padding: 6px 8px;
+  transition: all 0.2s ease;
 }
 
 .action-btn.ai:hover {
-  background: var(--color-ai-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.35);
+  background: linear-gradient(135deg, #ff7a2d 0%, #ff9a4d 100%);
 }
 
 .action-btn.ai.loading {
-  animation: fadeIn 500ms infinite alternate;
+  animation: ai-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ai-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(0.95);
+  }
 }
 
 /* ─── EXPANDED CONTENT ─── */
@@ -1180,94 +1323,6 @@
 }
 
 /* ════════════════════════════════════════════════════════════════
-   COMMAND PALETTE (Brutalist)
-   ════════════════════════════════════════════════════════════════ */
-
-.palette-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 15vh;
-  z-index: 1100;
-  animation: fadeIn 100ms var(--ease);
-}
-
-.palette-panel {
-  width: 100%;
-  max-width: 500px;
-  background: var(--color-bg);
-  border: 2px solid var(--color-ink);
-  border-radius: var(--radius);
-  overflow: hidden;
-  animation: slideIn 150ms var(--ease);
-}
-
-.palette-input {
-  width: 100%;
-  padding: var(--space-4);
-  font-family: var(--font-mono);
-  font-size: var(--text-base);
-  border: none;
-  border-bottom: var(--border);
-  background: var(--color-bg);
-  color: var(--color-ink);
-  outline: none;
-}
-
-.palette-input::placeholder {
-  color: var(--color-muted);
-}
-
-.palette-list {
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.palette-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-3) var(--space-4);
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  text-align: left;
-  background: none;
-  border: none;
-  color: var(--color-ink);
-  cursor: pointer;
-  transition: background var(--duration) var(--ease);
-}
-
-.palette-item:hover {
-  background: var(--color-surface);
-}
-
-.item-label {
-  flex: 1;
-}
-
-.item-shortcut {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--color-muted);
-  padding: 2px 6px;
-  background: var(--color-surface);
-  border-radius: var(--radius);
-}
-
-.palette-empty {
-  padding: var(--space-4);
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  color: var(--color-muted);
-}
-
-/* ════════════════════════════════════════════════════════════════
    DRAG & DROP REORDER
    ════════════════════════════════════════════════════════════════ */
 
@@ -1312,10 +1367,23 @@
 
 .action-btn.nlp {
   color: var(--color-ai);
+  border: 1.5px solid var(--color-ai);
+  border-radius: 6px;
+  padding: 5px 7px;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.action-btn.nlp:hover {
+  background: var(--color-ai-bg);
+  transform: translateY(-1px);
 }
 
 .action-btn.nlp.active {
-  background: var(--color-ai-bg);
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-ai) 0%, #ff8a3d 100%);
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
 }
 
 .nlp-input-row {
@@ -1375,6 +1443,56 @@
   font-size: var(--text-xs);
   color: var(--color-success);
   margin-left: var(--space-2);
+  animation: nlp-message-in 0.3s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.nlp-message.fading-out {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
+@keyframes nlp-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   DATETIME PICKER ERROR
+   ════════════════════════════════════════════════════════════════ */
+
+.datetime-picker-row.error {
+  animation: shake-error 0.4s ease;
+  border-color: var(--color-error);
+}
+
+.datetime-picker-row.error .datetime-input {
+  border-color: var(--color-error);
+}
+
+@keyframes shake-error {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
 }
 
 /* ════════════════════════════════════════════════════════════════

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaCheck, FaChevronDown, FaTrash, FaMagic, FaGripVertical, FaTerminal } from 'react-icons/fa';
+import { FaCheck, FaChevronDown, FaTrash, FaGripVertical, FaTerminal } from 'react-icons/fa';
+import { HiSparkles } from 'react-icons/hi2';
 
 const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, onDragStart, onDragOver, onDrop, isDragging, isDragOver }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -101,12 +102,15 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
     };
 
     // Natural Language Command Handler
+    const [isFadingOut, setIsFadingOut] = useState(false);
+
     const handleNlpCommand = async (e) => {
         e.preventDefault();
         if (!nlpCommand.trim() || isNlpLoading) return;
 
         setIsNlpLoading(true);
         setNlpMessage('');
+        setIsFadingOut(false);
 
         try {
             const token = localStorage.getItem('token');
@@ -120,10 +124,18 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
                 setNlpMessage(response.data.message);
                 onUpdate(response.data.task);
                 setNlpCommand('');
+
+                // Keep message visible for 3 seconds, then fade out
+                setTimeout(() => {
+                    setIsFadingOut(true);
+                }, 3000);
+
+                // After fade animation, hide and close
                 setTimeout(() => {
                     setNlpMessage('');
                     setShowNlpInput(false);
-                }, 2000);
+                    setIsFadingOut(false);
+                }, 3500);
             }
         } catch (err) {
             setNlpMessage('Failed to process command');
@@ -205,14 +217,14 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
                         <FaTerminal size={12} />
                     </button>
 
-                    {!task.isCompleted && localSubtasks.length === 0 && (
+                    {!task.isCompleted && (
                         <button
                             className={`action-btn ai ${isGenerating ? 'loading' : ''}`}
                             onClick={handleAIBreakdown}
                             disabled={isGenerating}
                             title="AI Breakdown"
                         >
-                            <FaMagic size={12} />
+                            <HiSparkles size={14} />
                         </button>
                     )}
 
@@ -246,7 +258,7 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
                     <button type="submit" className="nlp-submit" disabled={isNlpLoading}>
                         {isNlpLoading ? '...' : 'Go'}
                     </button>
-                    {nlpMessage && <span className="nlp-message">{nlpMessage}</span>}
+                    {nlpMessage && <span className={`nlp-message ${isFadingOut ? 'fading-out' : ''}`}>{nlpMessage}</span>}
                 </form>
             )}
 

@@ -1,22 +1,34 @@
 /* ============================================
    KARYAAI - App.css
-   Login Page: Brutalist with WOW Effects
+   Login Page: Split-Screen Modern Design
    ============================================ */
 
 /* ─── AUTH PAGE ─── */
 .auth-page {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   background: var(--color-bg);
-  padding: var(--space-6);
   position: relative;
   overflow: hidden;
 }
 
-/* Animated gradient background */
-.auth-page::before {
+/* Left Panel - Branding & Avatar */
+.auth-page .auth-left-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  background: linear-gradient(135deg,
+      rgba(255, 107, 53, 0.08) 0%,
+      rgba(255, 107, 53, 0.02) 50%,
+      transparent 100%);
+  position: relative;
+}
+
+/* Animated gradient background on left panel */
+.auth-page .auth-left-panel::before {
   content: '';
   position: absolute;
   top: -50%;
@@ -24,11 +36,11 @@
   width: 200%;
   height: 200%;
   background: conic-gradient(from 0deg at 50% 50%,
-      rgba(255, 107, 53, 0.03) 0deg,
+      rgba(255, 107, 53, 0.05) 0deg,
       rgba(255, 107, 53, 0) 60deg,
       rgba(0, 0, 0, 0) 180deg,
-      rgba(255, 107, 53, 0.03) 300deg,
-      rgba(255, 107, 53, 0.03) 360deg);
+      rgba(255, 107, 53, 0.05) 300deg,
+      rgba(255, 107, 53, 0.05) 360deg);
   animation: rotate-bg 20s linear infinite;
   pointer-events: none;
 }
@@ -43,15 +55,15 @@
   }
 }
 
-/* Floating particles */
-.auth-page::after {
+/* Floating orbs on left panel */
+.auth-page .auth-left-panel::after {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(255, 107, 53, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(0, 0, 0, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 60% 20%, rgba(255, 107, 53, 0.05) 0%, transparent 30%);
+    radial-gradient(circle at 30% 20%, rgba(255, 107, 53, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(255, 107, 53, 0.1) 0%, transparent 35%),
+    radial-gradient(circle at 20% 70%, rgba(255, 107, 53, 0.08) 0%, transparent 30%);
   animation: float-particles 15s ease-in-out infinite alternate;
   pointer-events: none;
 }
@@ -66,42 +78,44 @@
   }
 }
 
-/* Glassmorphism container */
+/* Right Panel - Form */
+.auth-page .auth-right-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  background: var(--color-bg);
+}
+
+/* Auth container in right panel */
 .auth-container {
   width: 100%;
-  max-width: 420px;
+  max-width: 380px;
   position: relative;
   z-index: 1;
-  padding: var(--space-8);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+  padding: var(--space-6);
+  background: transparent;
 }
 
 .dark-mode .auth-container {
-  background: rgba(20, 20, 25, 0.9);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 25px 50px -12px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  background: transparent;
 }
 
+/* Auth Header - Now in left panel */
 .auth-header {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 /* Animated wordmark */
 .wordmark {
   font-family: var(--font-display);
-  font-size: var(--text-4xl);
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
   font-weight: 700;
   letter-spacing: -0.03em;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
   background: linear-gradient(135deg, var(--color-ink) 0%, var(--color-ai) 50%, var(--color-ink) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -123,9 +137,46 @@
 }
 
 .tagline {
-  font-size: var(--text-base);
+  font-size: var(--text-lg);
   color: var(--color-secondary);
-  line-height: 1.4;
+  line-height: 1.6;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* Form Title in Right Panel */
+.auth-form-title {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: var(--space-2);
+}
+
+.auth-form-subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-secondary);
+  margin-bottom: var(--space-6);
+}
+
+/* Mobile: Stack vertically */
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .auth-page .auth-left-panel {
+    padding: var(--space-6) var(--space-4);
+    min-height: auto;
+  }
+
+  .auth-page .auth-right-panel {
+    padding: var(--space-4);
+  }
+
+  .tagline {
+    font-size: var(--text-base);
+  }
 }
 
 /* ── AI Callout with Typewriter ── */
