@@ -1,0 +1,250 @@
+/* --- SMART INSIGHTS PANEL --- */
+
+.smart-insights-panel {
+    width: 300px;
+    min-width: 300px;
+    background: #0D0D12;
+    border-left: 1px solid #1E1E28;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+}
+
+/* Header */
+.insights-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #2D2D3A;
+}
+
+.insights-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #E5E7EB;
+    margin: 0;
+}
+
+.insights-icon {
+    color: #BB86FC;
+    font-size: 18px;
+}
+
+/* Progress Ring */
+.insights-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.progress-ring-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.progress-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+    stroke: #2D2D3A;
+}
+
+.progress-ring-fill {
+    stroke: #BB86FC;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-ring-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.progress-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #E5E7EB;
+}
+
+.progress-label {
+    font-size: 12px;
+    color: #9CA3AF;
+    text-align: center;
+    margin: 0;
+}
+
+/* Section Styles */
+.insights-section {
+    padding: 16px 0;
+    border-top: 1px solid #2D2D3A;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.section-header h4 {
+    font-size: 13px;
+    font-weight: 600;
+    color: #E5E7EB;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.section-icon {
+    color: #03DAC6;
+    font-size: 14px;
+}
+
+.section-icon.urgent {
+    color: #CF6679;
+}
+
+/* Deadlines */
+.deadlines-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.deadline-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: rgba(45, 45, 58, 0.5);
+    border-radius: 8px;
+    border-left: 3px solid #BB86FC;
+}
+
+.deadline-title {
+    font-size: 13px;
+    color: #E5E7EB;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.deadline-date {
+    font-size: 11px;
+    color: #BB86FC;
+    font-weight: 600;
+}
+
+.no-deadlines {
+    font-size: 13px;
+    color: #6B7280;
+    font-style: italic;
+    margin: 0;
+}
+
+/* Focus Stats */
+.focus-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px;
+    background: rgba(45, 45, 58, 0.5);
+    border-radius: 10px;
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: 800;
+    color: #03DAC6;
+}
+
+.stat-number.urgent {
+    color: #CF6679;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Focus Mode Toggle */
+.focus-mode-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-top: 1px solid #2D2D3A;
+    margin-top: auto;
+}
+
+.focus-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #BB86FC;
+}
+
+.focus-toggle {
+    cursor: pointer;
+}
+
+.toggle-track {
+    width: 44px;
+    height: 24px;
+    background: #2D2D3A;
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.25s ease;
+}
+
+.toggle-track:hover {
+    background: #3D3D4A;
+}
+
+.toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: #03DAC6;
+    border-radius: 50%;
+    transition: transform 0.25s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-track.active {
+    background: rgba(3, 218, 198, 0.3);
+}
+
+.toggle-track.active .toggle-thumb {
+    transform: translateX(20px);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .smart-insights-panel {
+        display: none;
+    }
+}

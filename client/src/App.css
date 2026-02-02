@@ -1,23 +1,26 @@
-/* --- SPLIT SCREEN LAYOUT (Modern) --- */
+/* --- SPLIT SCREEN LAYOUT (Deep Focus Dark Theme) --- */
 .split-screen {
   display: flex;
   height: 100vh;
   width: 100vw;
-  background-color: var(--bg-color);
+  background-color: #121212;
   overflow: hidden;
 }
 
 /* Left Side: Visuals */
 .left-panel {
-  flex: 1;
-  background: var(--bg-secondary);
-  background-image: var(--gradient-subtle);
+  flex: 1.2;
+  background-color: #121212;
+  background-image:
+    linear-gradient(rgba(187, 134, 252, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(187, 134, 252, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  border-right: 1px solid var(--border-soft);
   overflow: hidden;
+  border-right: 1px solid #2D2D3A;
 }
 
 /* Right Side: The Form */
@@ -27,7 +30,7 @@
   justify-content: center;
   align-items: center;
   padding: 4rem;
-  background-color: var(--bg-color);
+  background-color: #1E1E26;
 }
 
 .auth-container {
@@ -48,22 +51,6 @@
   }
 }
 
-/* Left Side: Visuals (Minimalist Grid) */
-.left-panel {
-  flex: 1.2;
-  background-color: var(--bg-color);
-  background-image:
-    linear-gradient(var(--border-soft) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-soft) 1px, transparent 1px);
-  background-size: 40px 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  border-right: 1px solid var(--border-soft);
-}
-
 /* --- CENTER VISUAL --- */
 .orbit-container {
   position: relative;
@@ -76,33 +63,55 @@
   z-index: 2;
 }
 
-/* Sharp Box Logo Style */
+/* Logo Image Container */
 .logo-box {
   position: relative;
-  background: var(--bg-card);
-  padding: 30px 40px;
-  border: 4px solid var(--text-main);
-  box-shadow: 6px 6px 0px var(--text-main);
+  background: transparent;
+  padding: 20px;
   z-index: 10;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
+  gap: 16px;
+}
+
+.login-logo-img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(187, 134, 252, 0.4));
+  animation: logoPulse 3s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 20px rgba(187, 134, 252, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 30px rgba(187, 134, 252, 0.6));
+  }
 }
 
 .logo-box-text {
   font-family: var(--font-serif);
-  font-size: 3.5rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #E5E7EB;
   margin: 0;
   letter-spacing: -0.04em;
   white-space: nowrap;
+  text-align: center;
 }
 
-.orbit-container:hover .logo-box {
-  transform: translate(-1px, -1px);
-  box-shadow: 8px 8px 0px var(--text-main);
+.logo-box-text span {
+  background: linear-gradient(135deg, #BB86FC 0%, #D4A5FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Rotating Subtitle */
@@ -110,13 +119,13 @@
   font-family: var(--font-sans);
   font-size: 1.1rem;
   font-weight: 500;
-  color: var(--text-muted);
+  color: #9CA3AF;
   text-align: center;
   max-width: 320px;
   height: 3.2rem;
   display: grid;
   place-items: center;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   line-height: 1.5;
   z-index: 10;
 }
@@ -133,10 +142,10 @@
   }
 }
 
-/* Simple Orbit Rings */
+/* Simple Orbit Rings - Deep Focus Style */
 .orbit-ring {
   position: absolute;
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(187, 134, 252, 0.2);
   border-radius: 50%;
   top: 50%;
   left: 50%;
@@ -148,12 +157,14 @@
   width: 340px;
   height: 340px;
   border-style: dashed;
+  border-color: rgba(187, 134, 252, 0.25);
 }
 
 .ring-2 {
   width: 520px;
   height: 520px;
-  opacity: 0.5;
+  opacity: 0.4;
+  border-color: rgba(187, 134, 252, 0.15);
 }
 
 /* Orbit Wrapper & Items */
@@ -188,31 +199,30 @@
   transform: rotate(270deg) translate(200px);
 }
 
-/* Orbiting Icons Minimal */
+/* Orbiting Icons - Deep Focus Style */
 .orbiting-icon {
   position: absolute;
   width: 52px;
   height: 52px;
-  background: var(--bg-card);
-  border: 2px solid var(--border-soft);
+  background: #1E1E26;
+  border: 2px solid #2D2D3A;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 1.2rem;
-  color: var(--primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  color: #BB86FC;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
   z-index: 5;
-  /* Centering relative to orbit-item and counter-spinning */
   transform: translate(-50%, -50%);
   animation: counter-spin 60s linear infinite;
 }
 
 .orbiting-icon:hover {
-  border-color: var(--primary);
+  border-color: #BB86FC;
   scale: 1.05;
-  box-shadow: 0 8px 16px var(--primary-light);
+  box-shadow: 0 8px 16px rgba(187, 134, 252, 0.3);
 }
 
 @keyframes spin {
@@ -235,51 +245,51 @@
   }
 }
 
-/* Floating Cards Minimal */
+/* Floating Cards - Deep Focus Style */
 .floating-card {
   position: absolute;
-  background: var(--bg-card);
+  background: #1E1E26;
   padding: 14px 22px;
   border-radius: 12px;
-  border: 1px solid var(--border-soft);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+  border: 1px solid #2D2D3A;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-main);
+  color: #E5E7EB;
   z-index: 5;
   transition: all 0.3s ease;
-  border-left: 5px solid var(--primary);
+  border-left: 5px solid #BB86FC;
 }
 
 .card-1 {
   top: 15%;
   left: 8%;
-  border-left-color: var(--success);
+  border-left-color: #03DAC6;
 }
 
 .card-2 {
   bottom: 20%;
   right: 10%;
-  border-left-color: var(--warning);
+  border-left-color: #FFB74D;
 }
 
 .card-3 {
   bottom: 12%;
   left: 12%;
-  border-left-color: var(--danger);
+  border-left-color: #CF6679;
 }
 
 .floating-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
 
 .card-text-done {
   text-decoration: line-through;
-  color: var(--text-muted);
+  color: #9CA3AF;
 }
 
 @keyframes float {
@@ -294,7 +304,7 @@
   }
 }
 
-/* --- FORM STYLING --- */
+/* --- FORM STYLING - Deep Focus Theme --- */
 .auth-header {
   margin-bottom: 2.5rem;
   text-align: left;
@@ -304,20 +314,20 @@
   font-family: var(--font-serif);
   font-size: 3rem;
   font-weight: 700;
-  color: var(--text-main);
+  color: #E5E7EB;
   margin-bottom: 0.5rem;
   letter-spacing: -0.02em;
 }
 
 .sub-text {
-  color: var(--text-muted);
+  color: #9CA3AF;
   font-size: 1rem;
   font-family: var(--font-sans);
   font-weight: 500;
   line-height: 1.5;
 }
 
-/* Social Buttons */
+/* Social Buttons - Deep Focus Style */
 .social-login {
   display: flex;
   gap: 14px;
@@ -331,34 +341,34 @@
   align-items: center;
   gap: 10px;
   padding: 13px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-m);
+  background: #2A2A35;
+  border: 1px solid #2D2D3A;
+  border-radius: 10px;
   font-family: var(--font-sans);
   font-weight: 500;
-  color: var(--text-main);
+  color: #E5E7EB;
   font-size: 0.95rem;
-  transition: all var(--transition-base);
+  transition: all 0.25s ease;
   cursor: pointer;
 }
 
 .social-btn:hover {
-  background: var(--bg-secondary);
-  border-color: var(--border-hover);
+  background: #1E1E26;
+  border-color: #BB86FC;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .social-btn:active {
   transform: translateY(0);
 }
 
-/* Divider */
+/* Divider - Deep Focus Style */
 .divider {
   display: flex;
   align-items: center;
   margin-bottom: 28px;
-  color: var(--text-light);
+  color: #6B7280;
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -369,14 +379,14 @@
 .divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid var(--border-soft);
+  border-bottom: 1px solid #2D2D3A;
 }
 
 .divider span {
   padding: 0 18px;
 }
 
-/* Inputs */
+/* Form Inputs - Deep Focus Style */
 .form-group {
   margin-bottom: 1.5rem;
 }
@@ -386,7 +396,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   margin-bottom: 0.6rem;
-  color: var(--text-main);
+  color: #E5E7EB;
 }
 
 .input-group {
@@ -398,58 +408,58 @@
   top: 50%;
   left: 14px;
   transform: translateY(-50%);
-  color: var(--text-light);
+  color: #6B7280;
   font-size: 1rem;
   z-index: 2;
-  transition: color var(--transition-base);
+  transition: color 0.25s ease;
 }
 
 .input-group:focus-within .input-icon {
-  color: var(--primary);
+  color: #BB86FC;
 }
 
 .form-group input {
   width: 100%;
   padding: 14px 14px 14px 44px;
-  background: var(--bg-secondary);
-  border: 1px solid transparent;
+  background: #2A2A35;
+  border: 1px solid #2D2D3A;
   border-radius: 8px;
-  color: var(--text-main);
+  color: #E5E7EB;
   font-size: 1rem;
   font-family: var(--font-sans);
-  transition: all var(--transition-base);
+  transition: all 0.25s ease;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--border-soft);
-  background: var(--bg-secondary);
-  box-shadow: 0 0 0 4px var(--primary-light);
+  border-color: #BB86FC;
+  background: #2A2A35;
+  box-shadow: 0 0 0 4px rgba(187, 134, 252, 0.15);
 }
 
 .form-group input::placeholder {
-  color: var(--text-light);
+  color: #6B7280;
 }
 
-/* Main Button */
+/* Main Button - Deep Focus Style */
 .auth-container .btn-primary {
   width: 100%;
   padding: 16px;
-  background: var(--gradient-primary);
+  background: linear-gradient(135deg, #BB86FC 0%, #9A67EA 100%);
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.25s ease;
   margin-top: 0.5rem;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 12px rgba(187, 134, 252, 0.3);
 }
 
 .auth-container .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md), var(--shadow-glow);
+  box-shadow: 0 8px 24px rgba(187, 134, 252, 0.4);
 }
 
 .auth-container .btn-primary:hover::before {
@@ -458,24 +468,24 @@
 
 .auth-container .btn-primary:active {
   transform: translateY(0);
-  box-shadow: var(--shadow-xs);
+  box-shadow: 0 2px 8px rgba(187, 134, 252, 0.2);
 }
 
-/* Toggle Link */
+/* Toggle Link - Deep Focus Style */
 .switch-auth {
   margin-top: 28px;
   text-align: center;
-  color: var(--text-muted);
+  color: #9CA3AF;
   font-size: 0.95rem;
 }
 
 .switch-auth span {
-  color: var(--primary);
+  color: #BB86FC;
   cursor: pointer;
   font-weight: 600;
   margin-left: 6px;
   text-decoration: none;
-  transition: color var(--transition-base);
+  transition: color 0.25s ease;
   position: relative;
 }
 
@@ -486,14 +496,14 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background: var(--primary);
+  background: #BB86FC;
   transform: scaleX(0);
-  transition: transform var(--transition-base);
+  transition: transform 0.25s ease;
   transform-origin: right;
 }
 
 .switch-auth span:hover {
-  color: var(--primary-hover);
+  color: #D4A5FF;
 }
 
 .switch-auth span:hover::after {

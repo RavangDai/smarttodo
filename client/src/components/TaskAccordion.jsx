@@ -222,7 +222,7 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers }
     // FOCUS VIEW (Original)
     return (
         <div
-            className={`accordion-card ${isExpanded ? 'expanded' : ''} ${isOverdue ? 'overdue' : ''} priority-${task.priority}`}
+            className={`accordion-card ${isExpanded ? 'expanded' : ''} ${task.isCompleted ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} priority-${task.priority}`}
         >
             {/* Header Row */}
             <div className="accordion-header" onClick={() => setIsExpanded(!isExpanded)}>
@@ -291,9 +291,9 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers }
                         </button>
                     )}
 
-                    {/* Priority Badge */}
-                    <span className={`meta-priority priority-${task.priority}`}>
-                        {task.priority.toUpperCase()}
+                    {/* Priority Badge - URGENT for high priority */}
+                    <span className={`meta-priority priority-${task.priority} ${task.priority === 'high' ? 'urgent-badge' : ''}`}>
+                        {task.priority === 'high' ? 'URGENT' : task.priority.toUpperCase()}
                     </span>
 
                     <button

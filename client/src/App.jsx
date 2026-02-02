@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   FaCheckDouble, FaListUl, FaBell, FaClock, FaTrash, FaSignOutAlt, FaPlus,
-  FaEnvelope, FaLock, FaGoogle, FaGithub, FaCheck, FaMoon, FaSun, FaCalendarAlt,
+  FaEnvelope, FaLock, FaGoogle, FaGithub, FaCheck, FaCalendarAlt,
   FaList, FaTh
 } from 'react-icons/fa';
 import confetti from 'canvas-confetti';
@@ -15,6 +15,7 @@ import Timeline from './components/Timeline';
 import Sidebar from './components/Sidebar';
 import DynamicGreeting from './components/DynamicGreeting';
 import SmartTaskInput from './components/SmartTaskInput';
+import SmartInsightsPanel from './components/SmartInsightsPanel';
 
 function App() {
 
@@ -27,7 +28,7 @@ function App() {
   const [newPriority, setNewPriority] = useState("medium");
   const [newDueDate, setNewDueDate] = useState("");
   const [newTime, setNewTime] = useState("");
-  const [darkMode, setDarkMode] = useState(false);
+  // Dark mode is now always on (Deep Focus theme)
   const [activeView, setActiveView] = useState('Tasks');
   const [viewMode, setViewMode] = useState('focus'); // 'focus' or 'compact'
 
@@ -59,13 +60,11 @@ function App() {
     }
   }, [token]);
 
-  // Theme Management (Isolation)
+  // Theme Management - Always Dark Mode (Deep Focus Theme)
   useEffect(() => {
     if (token) {
       document.body.classList.add('theme-brutalist');
-      // Handle dark mode check
-      if (darkMode) document.body.classList.add('dark-mode');
-      else document.body.classList.remove('dark-mode');
+      document.body.classList.add('dark-mode');
     } else {
       document.body.classList.remove('theme-brutalist');
       document.body.classList.remove('dark-mode');
@@ -73,7 +72,7 @@ function App() {
       document.body.style.backgroundColor = '';
       document.body.style.color = '';
     }
-  }, [token, darkMode]);
+  }, [token]);
 
   const getHeaders = () => ({ headers: { 'x-auth-token': token } });
 
@@ -183,20 +182,21 @@ function App() {
       <div className="split-screen">
         <div className="left-panel">
           <div className="floating-card card-1">
-            <FaCheckDouble color="var(--success)" />
+            <FaCheckDouble color="#03DAC6" />
             <span className="card-text-done">Design System</span>
           </div>
           <div className="floating-card card-2">
-            <FaClock color="var(--warning)" />
+            <FaClock color="#FFB74D" />
             <span>Client Meeting 2pm</span>
           </div>
           <div className="floating-card card-3">
-            <FaBell color="var(--danger)" />
+            <FaBell color="#CF6679" />
             <span>Fix Server Bug</span>
           </div>
           <div className="orbit-container">
             <div className="logo-box">
-              <h1 className="logo-box-text">Smart<br />Todo.</h1>
+              <img src="/logo.png" alt="SmartTodo" className="login-logo-img" />
+              <h1 className="logo-box-text"><span>Smart</span>Todo</h1>
             </div>
             <p className="orbit-subtitle">{subtitles[subtitleIndex]}</p>
 
@@ -319,198 +319,209 @@ function App() {
           onNavigate={setActiveView}
         />
 
-        <div className="dashboard-container">
-          {/* --- HEADER --- */}
-          <header className="app-header">
-            <div className="brand-logo">
-              <img src="/logo.png" alt="SmartTodo" className="header-logo-img" />
-            </div>
+        <div className="main-content-wrapper">
+          <div className="dashboard-container">
+            {/* --- HEADER --- */}
+            <header className="app-header">
+              <div className="brand-logo">
+                <img src="/logo.png" alt="SmartTodo" className="header-logo-img" />
+              </div>
 
-            <div className="header-controls">
-              <div className="view-title-pill">{activeView}</div>
-              <button className="btn-icon" onClick={() => setDarkMode(!darkMode)} title="Toggle Dark Mode">
-                {darkMode ? <FaSun size={18} /> : <FaMoon size={18} />}
-              </button>
-              <div className="user-avatar">B</div>
-            </div>
-          </header>
+              {/* Center Date Display */}
+              <div className="header-date">
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              </div>
 
-          {activeView === 'Tasks' && (
-            <>
-              {/* --- HERO --- */}
-              <section className="hero-section">
-                <div className="hero-main-layout">
-                  {/* Dynamic Greeting */}
-                  <DynamicGreeting
-                    userName="User"
-                    highPriorityCount={tasks.filter(t => t.priority === 'high' && !t.isCompleted).length}
-                    completionRate={progress}
-                    totalTasks={totalCount}
-                  />
+              <div className="header-controls">
+                <div className="view-title-pill">{activeView}</div>
+                <div className="user-avatar">B</div>
+              </div>
+            </header>
 
-                  {/* Progress Ring */}
-                  <ProgressRing completed={completedCount} total={totalCount} />
-                </div>
-
-                {/* Timeline Visual */}
-                <Timeline tasks={tasks} />
-              </section>
-
-              {/* --- TABS --- */}
-              <nav className="tabs-nav">
-                <button
-                  className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
-                  onClick={() => setFilter('all')}
-                >
-                  All Tasks
-                </button>
-                <button
-                  className={`tab-btn ${filter === 'active' ? 'active' : ''}`}
-                  onClick={() => setFilter('active')}
-                >
-                  Active
-                </button>
-                <button
-                  className={`tab-btn ${filter === 'completed' ? 'active' : ''}`}
-                  onClick={() => setFilter('completed')}
-                >
-                  Completed
-                </button>
-
-                {/* View Mode Toggle */}
-                <div className="view-mode-toggle">
-                  <button
-                    className={`view-mode-btn ${viewMode === 'focus' ? 'active' : ''}`}
-                    onClick={() => setViewMode('focus')}
-                    title="Focus View - Detailed cards"
-                  >
-                    <FaTh size={12} />
-                  </button>
-                  <button
-                    className={`view-mode-btn ${viewMode === 'compact' ? 'active' : ''}`}
-                    onClick={() => setViewMode('compact')}
-                    title="Compact View - Dense list"
-                  >
-                    <FaList size={12} />
-                  </button>
-                </div>
-              </nav>
-
-              {/* --- SMART INPUT --- */}
-              <SmartTaskInput
-                onAddTask={handleSmartAddTask}
-                getLocalDateString={getLocalDateString}
-              />
-
-              {/* --- TASK LIST STACK --- */}
-              <div className={`task-list-stack ${viewMode}`}>
-                {filteredTasks.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-icon">✓</div>
-                    <p>Your canvas is clear. What will you accomplish today?</p>
-                  </div>
-                ) : (
-                  filteredTasks.map(task => (
-                    <TaskAccordion
-                      key={task._id}
-                      task={task}
-                      viewMode={viewMode}
-                      onUpdate={(updatedTask) => setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t))}
-                      onDelete={deleteTask}
-                      headers={getHeaders().headers}
+            {activeView === 'Tasks' && (
+              <>
+                {/* --- HERO --- */}
+                <section className="hero-section">
+                  <div className="hero-main-layout">
+                    {/* Dynamic Greeting */}
+                    <DynamicGreeting
+                      userName="User"
+                      highPriorityCount={tasks.filter(t => t.priority === 'high' && !t.isCompleted).length}
+                      completionRate={progress}
+                      totalTasks={totalCount}
                     />
-                  ))
-                )}
-              </div>
-            </>
-          )}
 
-          {activeView === 'Stats' && (
-            <div className="view-content fade-in">
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <h3>Completion Rate</h3>
-                  <div className="stat-value">{progress}%</div>
-                  <p>Overall task efficiency</p>
+                    {/* Progress Ring */}
+                    <ProgressRing completed={completedCount} total={totalCount} />
+                  </div>
+
+                  {/* Timeline Visual */}
+                  <Timeline tasks={tasks} />
+                </section>
+
+                {/* --- TABS --- */}
+                <nav className="tabs-nav">
+                  <button
+                    className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
+                    onClick={() => setFilter('all')}
+                  >
+                    All Tasks
+                  </button>
+                  <button
+                    className={`tab-btn ${filter === 'active' ? 'active' : ''}`}
+                    onClick={() => setFilter('active')}
+                  >
+                    Active
+                  </button>
+                  <button
+                    className={`tab-btn ${filter === 'completed' ? 'active' : ''}`}
+                    onClick={() => setFilter('completed')}
+                  >
+                    Completed
+                  </button>
+
+                  {/* View Mode Toggle */}
+                  <div className="view-mode-toggle">
+                    <button
+                      className={`view-mode-btn ${viewMode === 'focus' ? 'active' : ''}`}
+                      onClick={() => setViewMode('focus')}
+                      title="Focus View - Detailed cards"
+                    >
+                      <FaTh size={12} />
+                    </button>
+                    <button
+                      className={`view-mode-btn ${viewMode === 'compact' ? 'active' : ''}`}
+                      onClick={() => setViewMode('compact')}
+                      title="Compact View - Dense list"
+                    >
+                      <FaList size={12} />
+                    </button>
+                  </div>
+                </nav>
+
+                {/* --- SMART INPUT --- */}
+                <SmartTaskInput
+                  onAddTask={handleSmartAddTask}
+                  getLocalDateString={getLocalDateString}
+                />
+
+                {/* --- TASK LIST STACK --- */}
+                <div className={`task-list-stack ${viewMode}`}>
+                  {filteredTasks.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-icon">✓</div>
+                      <p>Your canvas is clear. What will you accomplish today?</p>
+                    </div>
+                  ) : (
+                    filteredTasks.map(task => (
+                      <TaskAccordion
+                        key={task._id}
+                        task={task}
+                        viewMode={viewMode}
+                        onUpdate={(updatedTask) => setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t))}
+                        onDelete={deleteTask}
+                        headers={getHeaders().headers}
+                      />
+                    ))
+                  )}
                 </div>
-                <div className="stat-card">
-                  <h3>Total Completed</h3>
-                  <div className="stat-value">{completedCount}</div>
-                  <p>Tasks finished to date</p>
+              </>
+            )}
+
+            {activeView === 'Stats' && (
+              <div className="view-content fade-in">
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <h3>Completion Rate</h3>
+                    <div className="stat-value">{progress}%</div>
+                    <p>Overall task efficiency</p>
+                  </div>
+                  <div className="stat-card">
+                    <h3>Total Completed</h3>
+                    <div className="stat-value">{completedCount}</div>
+                    <p>Tasks finished to date</p>
+                  </div>
+                  <div className="stat-card">
+                    <h3>Focus Hours</h3>
+                    <div className="stat-value">{(completedCount * 0.5).toFixed(1)}</div>
+                    <p>Estimated deep work time</p>
+                  </div>
                 </div>
-                <div className="stat-card">
-                  <h3>Focus Hours</h3>
-                  <div className="stat-value">{(completedCount * 0.5).toFixed(1)}</div>
-                  <p>Estimated deep work time</p>
+                <div className="chart-placeholder">
+                  <div className="chart-bars">
+                    {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
+                      <div key={i} className="chart-bar" style={{ height: `${h}%` }}>
+                        <span className="bar-label">Day {i + 1}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="chart-caption">Weekly Productivity Trend</p>
                 </div>
               </div>
-              <div className="chart-placeholder">
-                <div className="chart-bars">
-                  {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
-                    <div key={i} className="chart-bar" style={{ height: `${h}%` }}>
-                      <span className="bar-label">Day {i + 1}</span>
+            )}
+
+            {activeView === 'Goals' && (
+              <div className="view-content fade-in">
+                <div className="goals-header">
+                  <h2>Active Objectives</h2>
+                  <button className="btn-pill" onClick={() => alert("Goal creation coming soon!")}>+ New Goal</button>
+                </div>
+                <div className="goals-list">
+                  {[
+                    { title: "Master React Hooks", progress: 75, color: "var(--primary)" },
+                    { title: "Improve Daily Focus", progress: 40, color: "var(--warning)" },
+                    { title: "Health & Fitness", progress: 20, color: "var(--success)" }
+                  ].map((goal, i) => (
+                    <div key={i} className="goal-item glass-card">
+                      <div className="goal-info">
+                        <span className="goal-title">{goal.title}</span>
+                        <span className="goal-percent">{goal.progress}%</span>
+                      </div>
+                      <div className="goal-progress-track">
+                        <div className="goal-progress-bar" style={{ width: `${goal.progress}%`, background: goal.color }}></div>
+                      </div>
                     </div>
                   ))}
                 </div>
-                <p className="chart-caption">Weekly Productivity Trend</p>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeView === 'Goals' && (
-            <div className="view-content fade-in">
-              <div className="goals-header">
-                <h2>Active Objectives</h2>
-                <button className="btn-pill" onClick={() => alert("Goal creation coming soon!")}>+ New Goal</button>
-              </div>
-              <div className="goals-list">
-                {[
-                  { title: "Master React Hooks", progress: 75, color: "var(--primary)" },
-                  { title: "Improve Daily Focus", progress: 40, color: "var(--warning)" },
-                  { title: "Health & Fitness", progress: 20, color: "var(--success)" }
-                ].map((goal, i) => (
-                  <div key={i} className="goal-item glass-card">
-                    <div className="goal-info">
-                      <span className="goal-title">{goal.title}</span>
-                      <span className="goal-percent">{goal.progress}%</span>
-                    </div>
-                    <div className="goal-progress-track">
-                      <div className="goal-progress-bar" style={{ width: `${goal.progress}%`, background: goal.color }}></div>
-                    </div>
+            {activeView === 'Settings' && (
+              <div className="view-content fade-in">
+                <div className="settings-section glass-card">
+                  <h3>App Preferences</h3>
+                  <div className="setting-row">
+                    <span>Theme</span>
+                    <span className="status-label">Deep Focus</span>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeView === 'Settings' && (
-            <div className="view-content fade-in">
-              <div className="settings-section glass-card">
-                <h3>App Preferences</h3>
-                <div className="setting-row">
-                  <span>Appearance</span>
-                  <button className="btn-toggle" onClick={() => setDarkMode(!darkMode)}>
-                    {darkMode ? "Switch to Light" : "Switch to Dark"}
-                  </button>
-                </div>
-                <div className="setting-row">
-                  <span>Notifications</span>
-                  <span className="status-label success">Enabled</span>
-                </div>
-              </div>
-
-              <div className="settings-section glass-card">
-                <h3>Account</h3>
-                <div className="profile-preview">
-                  <div className="user-avatar-large">B</div>
-                  <div className="profile-info">
-                    <strong>Bibek User</strong>
-                    <span>bibek@example.com</span>
+                  <div className="setting-row">
+                    <span>Notifications</span>
+                    <span className="status-label success">Enabled</span>
                   </div>
                 </div>
-                <button className="btn-outline-danger" style={{ marginTop: '20px' }} onClick={() => setToken(null)}>Logout from device</button>
+
+                <div className="settings-section glass-card">
+                  <h3>Account</h3>
+                  <div className="profile-preview">
+                    <div className="user-avatar-large">B</div>
+                    <div className="profile-info">
+                      <strong>Bibek User</strong>
+                      <span>bibek@example.com</span>
+                    </div>
+                  </div>
+                  <button className="btn-outline-danger" style={{ marginTop: '20px' }} onClick={() => setToken(null)}>Logout from device</button>
+                </div>
               </div>
-            </div>
+            )}
+          </div>
+
+          {/* Smart Insights Right Sidebar */}
+          {activeView === 'Tasks' && (
+            <SmartInsightsPanel
+              tasks={tasks}
+              completedCount={completedCount}
+              totalCount={totalCount}
+            />
           )}
         </div>
       </div>

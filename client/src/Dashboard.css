@@ -17,8 +17,9 @@ body.theme-brutalist .paper-overlay {
 .app-shell {
   display: flex;
   min-height: 100vh;
-  background: var(--bg-color);
-  background-image: var(--gradient-subtle);
+  background: #121218;
+  margin-left: 200px;
+  /* Account for new fixed sidebar */
 }
 
 .sidebar {
@@ -214,23 +215,139 @@ body.theme-brutalist .paper-overlay {
   color: var(--danger);
 }
 
+/* --- NEW SIDEBAR DESIGN (SmartFlow Style) --- */
+
+.sidebar-new {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  background: #0D0D12;
+  border-right: 1px solid #1E1E28;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  z-index: 1000;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 24px 20px;
+  border-bottom: 1px solid #1E1E28;
+  margin-bottom: 20px;
+}
+
+.sidebar-brand-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.sidebar-brand-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #E5E7EB;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px;
+  flex: 1;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #9CA3AF;
+  position: relative;
+}
+
+.sidebar-nav-item:hover {
+  background: rgba(187, 134, 252, 0.08);
+  color: #E5E7EB;
+}
+
+.sidebar-nav-item.active {
+  background: rgba(187, 134, 252, 0.15);
+  color: #E5E7EB;
+}
+
+.sidebar-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 4px;
+  background: #BB86FC;
+  border-radius: 0 4px 4px 0;
+}
+
+.sidebar-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+.sidebar-nav-label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 28px;
+  margin-top: auto;
+  border-top: 1px solid #1E1E28;
+  padding-top: 20px;
+  cursor: pointer;
+  color: #9CA3AF;
+  transition: all 0.2s ease;
+}
+
+.sidebar-logout:hover {
+  color: #CF6679;
+}
+
+/* --- MAIN CONTENT WRAPPER (Dashboard + Right Sidebar) --- */
+
+.main-content-wrapper {
+  display: flex;
+  flex: 1;
+  min-height: 100vh;
+  background: #121218;
+}
+
 /* --- DASHBOARD CONTAINER --- */
 
 body.theme-brutalist .dashboard-container {
-  width: 100%;
-  max-width: 850px;
-  margin: 0 auto;
-  padding: 24px 60px 80px 60px;
-  margin-left: calc(72px + ((100vw - 72px - 850px) / 2));
+  flex: 1;
+  max-width: 800px;
+  padding: 28px 40px 80px 40px;
   box-sizing: border-box;
+  overflow-y: auto;
+  background: #121218;
 }
 
 /* Fallback for smaller screens where content takes full width */
-@media (max-width: 1000px) {
+@media (max-width: 1200px) {
   body.theme-brutalist .dashboard-container {
-    margin-left: 72px;
-    margin-right: 0;
-    max-width: calc(100vw - 72px);
+    max-width: 100%;
+    padding: 24px 32px 80px 32px;
   }
 }
 
@@ -243,6 +360,17 @@ body.theme-brutalist .app-header {
   margin-bottom: 24px;
   padding: 12px 0;
   border-bottom: 1px solid var(--border-soft);
+}
+
+/* Center Date Display */
+.header-date {
+  font-size: 13px;
+  font-weight: 500;
+  color: #9CA3AF;
+  background: rgba(45, 45, 58, 0.5);
+  padding: 8px 16px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
 }
 
 body.theme-brutalist .header-logo-img {
@@ -1003,20 +1131,33 @@ body.theme-brutalist .task-list-stack {
 /* --- ACCORDION CARD STYLES --- */
 
 .accordion-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: taskEnter 0.4s ease-out backwards;
+  background: #1A1A24;
+  border: 1px solid #2A2A38;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  animation: taskEnter 0.3s ease-out backwards;
   overflow: visible;
   position: relative;
-  padding-left: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.accordion-card:hover {
+  border-color: #3A3A48;
+  background: #1E1E2A;
 }
 
 body.dark-mode .accordion-card {
-  background: rgba(36, 36, 36, 0.95);
-  border-color: var(--border-soft);
+  background: #1A1A24;
+  border-color: #2A2A38;
+}
+
+/* Completed Task - Dimmed for Mental Closure */
+.accordion-card.completed {
+  opacity: 0.55;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .accordion-card.completed {
+  background: rgba(30, 30, 38, 0.5);
 }
 
 /* Curved parenthesis-style accent on left */
@@ -1046,8 +1187,22 @@ body.dark-mode .accordion-card {
   background: #10B981;
 }
 
+/* Smart Color Coding - Overdue with Pulse Effect */
 .accordion-card.overdue {
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.08);
+  box-shadow: 0 4px 16px rgba(207, 102, 121, 0.2);
+  animation: taskEnter 0.4s ease-out backwards, overduePulse 2s ease-in-out infinite;
+}
+
+@keyframes overduePulse {
+
+  0%,
+  100% {
+    box-shadow: 0 4px 16px rgba(207, 102, 121, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 4px 24px rgba(207, 102, 121, 0.3);
+  }
 }
 
 /* --- COMPACT MODE STYLES --- */
@@ -1163,6 +1318,7 @@ body.dark-mode .accordion-card {
   color: var(--danger);
 }
 
+/* Overdue Visual Indicator */
 .accordion-card.overdue::after {
   content: '';
   position: absolute;
@@ -1171,7 +1327,147 @@ body.dark-mode .accordion-card {
   right: 0;
   bottom: 0;
   pointer-events: none;
-  box-shadow: inset 5px 0 10px -5px rgba(239, 68, 68, 0.2);
+  border-radius: 16px;
+  box-shadow: inset 5px 0 15px -5px rgba(207, 102, 121, 0.3);
+}
+
+/* AI-Generated / Smart Content - Purple Gradient Magic */
+.subtask-row.ai-generated {
+  background: linear-gradient(135deg, rgba(187, 134, 252, 0.08) 0%, rgba(154, 103, 234, 0.05) 100%);
+  border-left: 3px solid #BB86FC;
+  padding-left: 12px;
+  margin-left: -12px;
+  animation: aiSlideIn 0.4s ease-out backwards;
+}
+
+@keyframes aiSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ai-indicator {
+  font-size: 12px;
+  margin-right: 6px;
+  animation: aiGlow 2s ease-in-out infinite;
+}
+
+@keyframes aiGlow {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(187, 134, 252, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 8px rgba(187, 134, 252, 0.7));
+  }
+}
+
+/* AI Breakdown Button - Purple Gradient */
+.ai-breakdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(187, 134, 252, 0.15) 0%, rgba(154, 103, 234, 0.1) 100%);
+  border: 1px solid rgba(187, 134, 252, 0.3);
+  border-radius: 8px;
+  color: #BB86FC;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.ai-breakdown-btn:hover {
+  background: linear-gradient(135deg, rgba(187, 134, 252, 0.25) 0%, rgba(154, 103, 234, 0.15) 100%);
+  border-color: #BB86FC;
+  box-shadow: 0 4px 12px rgba(187, 134, 252, 0.2);
+  transform: translateY(-1px);
+}
+
+.ai-breakdown-btn.generating {
+  background: linear-gradient(135deg, #BB86FC 0%, #9A67EA 100%);
+  color: white;
+  animation: generatingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes generatingPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 4px 12px rgba(187, 134, 252, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 4px 20px rgba(187, 134, 252, 0.5);
+  }
+}
+
+/* Completed Task Title with Strikethrough */
+.task-title.completed {
+  text-decoration: line-through;
+  color: #6B7280;
+  opacity: 0.7;
+}
+
+/* URGENT Badge Styling */
+.meta-priority {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.meta-priority.priority-high,
+.meta-priority.urgent-badge {
+  background: #CF6679;
+  color: white;
+  animation: urgentPulse 2s ease-in-out infinite;
+}
+
+.meta-priority.priority-medium {
+  background: rgba(255, 183, 77, 0.15);
+  color: #FFB74D;
+}
+
+.meta-priority.priority-low {
+  background: rgba(3, 218, 198, 0.15);
+  color: #03DAC6;
+}
+
+@keyframes urgentPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(207, 102, 121, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(207, 102, 121, 0);
+  }
+}
+
+/* Meta Overdue Badge */
+.meta-overdue {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 8px;
+  background: #CF6679;
+  color: white;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: urgentPulse 2s ease-in-out infinite;
 }
 
 @keyframes taskEnter {

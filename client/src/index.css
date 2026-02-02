@@ -78,33 +78,55 @@
   --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Dark Mode Variables */
+/* Dark Mode Variables - Deep Focus Theme */
 body.dark-mode {
+  /* Backgrounds - Deep Charcoal & Muted Navy */
   --bg-color: #121212;
-  --bg-secondary: #1E1E1E;
-  --bg-card: #242424;
-  --bg-elevated: #2C2C2C;
-  --bg-modal: #242424;
+  --bg-secondary: #1E1E26;
+  --bg-card: #1E1E26;
+  --bg-elevated: #2A2A35;
+  --bg-modal: #1E1E26;
 
+  /* Typography */
   --text-main: #E5E7EB;
   --text-muted: #9CA3AF;
   --text-light: #6B7280;
 
-  --primary: #A3C5A5;
-  --primary-hover: #B8D4BB;
-  --primary-light: rgba(163, 197, 165, 0.1);
-  --primary-glow: rgba(163, 197, 165, 0.2);
+  /* Primary Accent - Soft Violet */
+  --primary: #BB86FC;
+  --primary-hover: #D4A5FF;
+  --primary-light: rgba(187, 134, 252, 0.15);
+  --primary-glow: rgba(187, 134, 252, 0.3);
 
-  --border-soft: #2D2D2D;
+  /* Borders */
+  --border-soft: #2D2D3A;
   --border-focus: #4B5563;
   --border-hover: #374151;
 
-  --glass-bg: rgba(30, 30, 30, 0.8);
-  --glass-bg-strong: rgba(30, 30, 30, 0.95);
-  --glass-border: rgba(255, 255, 255, 0.05);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  /* Glassmorphism */
+  --glass-bg: rgba(30, 30, 38, 0.85);
+  --glass-bg-strong: rgba(30, 30, 38, 0.95);
+  --glass-border: rgba(187, 134, 252, 0.08);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
-  --gradient-subtle: linear-gradient(180deg, rgba(163, 197, 165, 0.05) 0%, transparent 100%);
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #BB86FC 0%, #9A67EA 100%);
+  --gradient-warm: linear-gradient(135deg, #CF6679 0%, #B85566 100%);
+  --gradient-subtle: linear-gradient(180deg, rgba(187, 134, 252, 0.05) 0%, transparent 100%);
+
+  /* Semantic Colors - Deep Focus Palette */
+  --success: #03DAC6;
+  --warning: #FFB74D;
+  --danger: #CF6679;
+  --accent-coral: #CF6679;
+
+  /* Priority Colors */
+  --priority-high: #CF6679;
+  --priority-high-bg: rgba(207, 102, 121, 0.15);
+  --priority-medium: #FFB74D;
+  --priority-medium-bg: rgba(255, 183, 77, 0.15);
+  --priority-low: #03DAC6;
+  --priority-low-bg: rgba(3, 218, 198, 0.15);
 }
 
 /* 1. FORCE FULL WIDTH & HEIGHT */

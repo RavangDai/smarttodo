@@ -1,55 +1,43 @@
-import React, { useState } from 'react';
-import { FaListUl, FaChartBar, FaBullseye, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import React from 'react';
+import { FaInbox, FaCalendarDay, FaCalendarAlt, FaProjectDiagram, FaChartPie, FaSignOutAlt } from 'react-icons/fa';
 
 const Sidebar = ({ onLogout, currentView, onNavigate }) => {
-    const [isHovered, setIsHovered] = useState(false);
-
     const navItems = [
-        { icon: <FaListUl />, label: 'Tasks', id: 'Tasks' },
-        { icon: <FaChartBar />, label: 'Stats', id: 'Stats' },
-        { icon: <FaBullseye />, label: 'Goals', id: 'Goals' },
-        { icon: <FaCog />, label: 'Settings', id: 'Settings' },
+        { icon: <FaInbox size={16} />, label: 'Inbox', id: 'Tasks' },
+        { icon: <FaCalendarDay size={16} />, label: 'Today', id: 'Tasks' },
+        { icon: <FaCalendarAlt size={16} />, label: 'Upcoming', id: 'Goals' },
+        { icon: <FaProjectDiagram size={16} />, label: 'Projects', id: 'Stats' },
+        { icon: <FaChartPie size={16} />, label: 'Analytics', id: 'Settings' },
     ];
 
     return (
-        <aside
-            className={`sidebar ${isHovered ? 'expanded' : 'collapsed'}`}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            role="navigation"
-            aria-label="Main navigation"
-        >
-            <div className="sidebar-logo">
-                <img src="/logo.png" alt="SmartTodo Logo" className="sidebar-logo-img" />
-                <span className="sidebar-logo-text">Smart<br />Todo.</span>
+        <aside className="sidebar-new" role="navigation" aria-label="Main navigation">
+            {/* Logo */}
+            <div className="sidebar-brand">
+                <img src="/logo.png" alt="SmartTodo" className="sidebar-brand-logo" />
+                <span className="sidebar-brand-text">SmartTodo</span>
             </div>
 
-            <nav className="sidebar-nav">
+            {/* Navigation */}
+            <nav className="sidebar-navigation">
                 {navItems.map((item, index) => (
                     <div
                         key={index}
-                        className={`nav-item ${currentView === item.id ? 'active' : ''}`}
+                        className={`sidebar-nav-item ${currentView === item.id ? 'active' : ''}`}
+                        onClick={() => onNavigate(item.id)}
                         role="button"
                         tabIndex={0}
-                        aria-current={currentView === item.id ? 'page' : undefined}
-                        onClick={() => onNavigate(item.id)}
-                        style={{ animationDelay: `${index * 0.05}s` }}
                     >
-                        <div className="nav-icon" aria-hidden="true">{item.icon}</div>
-                        <span className="nav-label">{item.label}</span>
+                        <span className="sidebar-nav-icon">{item.icon}</span>
+                        <span className="sidebar-nav-label">{item.label}</span>
                     </div>
                 ))}
             </nav>
 
-            <div
-                className="sidebar-footer"
-                onClick={onLogout}
-                role="button"
-                tabIndex={0}
-                aria-label="Logout"
-            >
-                <div className="nav-icon" aria-hidden="true"><FaSignOutAlt /></div>
-                <span className="nav-label">Logout</span>
+            {/* Logout */}
+            <div className="sidebar-logout" onClick={onLogout} role="button" tabIndex={0}>
+                <FaSignOutAlt size={16} />
+                <span>Logout</span>
             </div>
         </aside>
     );
