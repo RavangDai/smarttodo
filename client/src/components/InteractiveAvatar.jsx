@@ -130,6 +130,15 @@ const InteractiveAvatar = ({
                                 </>
                             ) : (
                                 <>
+                                    {/* Searchlight beam - casts light in gaze direction */}
+                                    <div
+                                        className="avatar-searchlight"
+                                        style={{
+                                            transform: `rotate(${Math.atan2(eyePosition.y, eyePosition.x) * (180 / Math.PI)}deg)`,
+                                            opacity: Math.sqrt(eyePosition.x * eyePosition.x + eyePosition.y * eyePosition.y) / 10
+                                        }}
+                                    ></div>
+
                                     <div className={`avatar-eye left ${blinkState ? 'blink' : ''} ${avatarState === 'celebrating' ? 'happy' : ''}`}>
                                         <div
                                             className="avatar-pupil"
