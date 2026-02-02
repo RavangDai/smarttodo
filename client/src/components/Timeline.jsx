@@ -12,19 +12,16 @@ const Timeline = ({ tasks }) => {
 
     if (todaysTasks.length === 0) return null;
 
-    // Calculate dynamic start and end hours
+    // Calculate dynamic time range
     const currentHour = today.getHours();
     const taskHours = todaysTasks.map(t => new Date(t.dueDate).getHours());
 
-    // Default range or based on tasks/now
     let startHour = Math.min(8, currentHour, ...taskHours);
     let endHour = Math.max(20, currentHour + 1, ...taskHours.map(h => h + 1));
 
-    // Add padding
     startHour = Math.max(0, startHour - 1);
     endHour = Math.min(24, endHour + 1);
 
-    // Ensure a minimum range for visual balance
     if (endHour - startHour < 6) {
         if (endHour <= 18) endHour = startHour + 6;
         else startHour = endHour - 6;
@@ -44,19 +41,11 @@ const Timeline = ({ tasks }) => {
         return ((decimalTime - startHour) / totalHours) * 100;
     };
 
-    // Calculate current time position
     const currentTimePosition = getPosition(today);
-
     const tasksAhead = todaysTasks.filter(t => !t.isCompleted).length;
     const tasksDone = todaysTasks.filter(t => t.isCompleted).length;
 
-    // Calculate progress percentage for gradient
-    const completedTasks = todaysTasks.filter(t => t.isCompleted);
-    const progressPercentage = completedTasks.length > 0
-        ? Math.max(...completedTasks.map(t => getPosition(t.dueDate)))
-        : 0;
-
-    // Generate hour markers dynamically (every 2-3 hours depending on range)
+    // Generate hour markers
     const step = totalHours > 12 ? 3 : 2;
     const markers = [];
     for (let h = Math.ceil(startHour / step) * step; h <= endHour; h += step) {
@@ -68,56 +57,31 @@ const Timeline = ({ tasks }) => {
     return (
         <div className="timeline-container">
             <div className="timeline-header">
-                <span className="timeline-title">Today's Focus</span>
+                <span className="timeline-title">TODAY'S TIMELINE</span>
                 <span className="timeline-stats">
-                    <span style={{ color: 'var(--warning)', fontWeight: 600 }}>{tasksAhead}</span> ahead •
-                    <span style={{ color: 'var(--success)', fontWeight: 600 }}> {tasksDone}</span> done
+                    <span className="stat-ahead">{tasksAhead}</span> AHEAD ·
+                    <span className="stat-done">{tasksDone}</span> DONE
                 </span>
             </div>
 
             <div className="timeline-track">
-                {/* Base Line with Gradient */}
+                {/* Base Line */}
+                <div className="timeline-line" />
+
+                {/* Progress Fill */}
                 <div
-                    className="timeline-line"
-                    style={{
-                        background: `linear-gradient(90deg, 
-                            var(--primary) 0%, 
-                            var(--primary) ${progressPercentage}%, 
-                            var(--border-soft) ${progressPercentage}%, 
-                            var(--border-soft) 100%)`
-                    }}
+                    className="timeline-progress"
+                    style={{ width: `${currentTimePosition}%` }}
                 />
 
-                {/* Current Time Indicator */}
+                {/* Current Time Marker */}
                 {currentTimePosition >= 0 && currentTimePosition <= 100 && (
                     <div
-                        style={{
-                            position: 'absolute',
-                            left: `${currentTimePosition}%`,
-                            top: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '2px',
-                            height: '32px',
-                            background: 'var(--danger)',
-                            borderRadius: '1px',
-                            zIndex: 5,
-                            boxShadow: '0 0 8px rgba(239, 68, 68, 0.4)'
-                        }}
+                        className="timeline-now"
+                        style={{ left: `${currentTimePosition}%` }}
                     >
-                        <div style={{
-                            position: 'absolute',
-                            top: '-20px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            fontSize: '10px',
-                            fontWeight: '700',
-                            color: 'var(--danger)',
-                            whiteSpace: 'nowrap',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
-                        }}>
-                            Now
-                        </div>
+                        <span className="now-label">NOW</span>
+                        <div className="now-line" />
                     </div>
                 )}
 
@@ -125,30 +89,26 @@ const Timeline = ({ tasks }) => {
                 {markers.map(h => (
                     <div
                         key={h}
-                        className="time-marker"
+                        className="timeline-marker"
                         style={{ left: `${((h - startHour) / totalHours) * 100}%` }}
                     >
-                        <div className="marker-dot" />
-                        <span className="marker-label">
-                            {String(h).padStart(2, '0')}:00
-                        </span>
+                        <span className="marker-time">{String(h).padStart(2, '0')}:00</span>
                     </div>
                 ))}
 
-                {/* Tasks */}
+                {/* Task Dots */}
                 {todaysTasks.map((task, index) => (
                     <div
                         key={task._id}
-                        className={`task-dot priority-${task.priority || 'medium'} ${task.isCompleted ? 'completed' : ''}`}
+                        className={`timeline-dot priority-${task.priority || 'medium'} ${task.isCompleted ? 'completed' : ''}`}
                         style={{
                             left: `${getPosition(task.dueDate)}%`,
-                            animationDelay: `${index * 0.1}s`
+                            animationDelay: `${index * 100}ms`
                         }}
-                        title={`${task.title} (${(() => {
-                            const d = new Date(task.dueDate);
-                            return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-                        })()}) - ${(task.priority || 'medium').toUpperCase()} priority`}
-                    />
+                        title={task.title}
+                    >
+                        {task.isCompleted && <span className="dot-check">✓</span>}
+                    </div>
                 ))}
             </div>
         </div>

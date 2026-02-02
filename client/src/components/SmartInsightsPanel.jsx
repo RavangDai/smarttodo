@@ -1,11 +1,11 @@
 import React from 'react';
-import { FaClock, FaFire, FaBrain } from 'react-icons/fa';
-import './SmartInsightsPanel.css';
 
 const SmartInsightsPanel = ({ tasks = [], completedCount = 0, totalCount = 0 }) => {
     const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+    const pendingCount = totalCount - completedCount;
+    const highPriorityCount = tasks.filter(t => t.priority === 'high' && !t.isCompleted).length;
 
-    // Get upcoming deadlines (next 7 days, not completed)
+    // Get upcoming deadlines
     const getUpcomingDeadlines = () => {
         const now = new Date();
         const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -17,7 +17,7 @@ const SmartInsightsPanel = ({ tasks = [], completedCount = 0, totalCount = 0 }) 
                 return dueDate >= now && dueDate <= weekAhead;
             })
             .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
-            .slice(0, 3);
+            .slice(0, 5);
     };
 
     const formatDeadline = (dueDate) => {
@@ -25,108 +25,111 @@ const SmartInsightsPanel = ({ tasks = [], completedCount = 0, totalCount = 0 }) 
         const now = new Date();
         const diffDays = Math.ceil((date - now) / (1000 * 60 * 60 * 24));
 
-        if (diffDays === 0) return 'Today';
-        if (diffDays === 1) return 'Tomorrow';
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        if (diffDays === 0) return 'TODAY';
+        if (diffDays === 1) return 'TOMORROW';
+        return date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
     };
 
     const upcomingDeadlines = getUpcomingDeadlines();
-    const highPriorityCount = tasks.filter(t => t.priority === 'high' && !t.isCompleted).length;
-
-    // Calculate stroke dasharray for progress ring
-    const radius = 45;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference - (progress / 100) * circumference;
 
     return (
-        <aside className="smart-insights-panel">
-            {/* Smart Insights Header */}
-            <div className="insights-header">
-                <FaBrain className="insights-icon" />
-                <h3>Smart Insights</h3>
-            </div>
+        <section className="insights-section">
+            <h2 className="insights-title">Insights</h2>
 
-            {/* Progress Ring */}
-            <div className="insights-progress">
-                <div className="progress-ring-container">
-                    <svg className="progress-ring" viewBox="0 0 100 100">
-                        <circle
-                            className="progress-ring-bg"
-                            cx="50"
-                            cy="50"
-                            r={radius}
-                            fill="none"
-                            strokeWidth="8"
-                        />
-                        <circle
-                            className="progress-ring-fill"
-                            cx="50"
-                            cy="50"
-                            r={radius}
-                            fill="none"
-                            strokeWidth="8"
-                            strokeDasharray={circumference}
-                            strokeDashoffset={strokeDashoffset}
-                            strokeLinecap="round"
-                        />
-                    </svg>
-                    <div className="progress-ring-text">
-                        <span className="progress-value">{progress}%</span>
+            {/* Main Stats */}
+            <div className="stat-grid">
+                <div className="stat-block">
+                    <span className="stat-value">{progress}%</span>
+                    <span className="stat-label">COMPLETION RATE</span>
+                    <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${progress}%` }} />
                     </div>
                 </div>
-                <p className="progress-label">
-                    Progress: {completedCount}/{totalCount} Tasks Completed
-                </p>
+
+                <div className="stat-row">
+                    <div className="stat-item">
+                        <span className="stat-number">{pendingCount}</span>
+                        <span className="stat-label">PENDING</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-number urgent">{highPriorityCount}</span>
+                        <span className="stat-label">URGENT</span>
+                    </div>
+                    <div className="stat-item">
+                        <span className="stat-number">{completedCount}</span>
+                        <span className="stat-label">DONE</span>
+                    </div>
+                </div>
             </div>
 
             {/* Upcoming Deadlines */}
-            <div className="insights-section">
-                <div className="section-header">
-                    <FaClock className="section-icon" />
-                    <h4>Upcoming Deadlines</h4>
-                </div>
-                {upcomingDeadlines.length > 0 ? (
+            {upcomingDeadlines.length > 0 && (
+                <div className="deadlines-section">
+                    <h3 className="section-title">UPCOMING DEADLINES</h3>
                     <div className="deadlines-list">
                         {upcomingDeadlines.map((task, i) => (
-                            <div key={task._id || i} className="deadline-item">
+                            <div key={task._id || i} className="deadline-row">
                                 <span className="deadline-title">{task.title}</span>
                                 <span className="deadline-date">{formatDeadline(task.dueDate)}</span>
                             </div>
                         ))}
                     </div>
-                ) : (
-                    <p className="no-deadlines">No upcoming deadlines</p>
-                )}
-            </div>
+                </div>
+            )}
 
-            {/* Focus Stats */}
-            <div className="insights-section">
-                <div className="section-header">
-                    <FaFire className="section-icon urgent" />
-                    <h4>Focus Stats</h4>
+            {/* AI Tip */}
+            {highPriorityCount > 0 && (
+                <div className="ai-insight slide-in" style={{ marginTop: 'var(--space-6)' }}>
+                    <span className="ai-label">AI:</span>
+                    <span className="ai-message">
+                        Focus on {highPriorityCount} urgent task{highPriorityCount > 1 ? 's' : ''} first.
+                    </span>
                 </div>
-                <div className="focus-stats">
-                    <div className="stat-item">
-                        <span className="stat-number urgent">{highPriorityCount}</span>
-                        <span className="stat-label">Urgent Tasks</span>
-                    </div>
-                    <div className="stat-item">
-                        <span className="stat-number">{tasks.filter(t => !t.isCompleted).length}</span>
-                        <span className="stat-label">Remaining</span>
-                    </div>
-                </div>
-            </div>
+            )}
 
-            {/* Focus Mode Toggle */}
-            <div className="focus-mode-section">
-                <span className="focus-label">Focus Mode</span>
-                <div className="focus-toggle">
-                    <div className="toggle-track">
-                        <div className="toggle-thumb"></div>
+            {/* Focus Time Recommendations */}
+            {(() => {
+                // Analyze completed task timestamps to find productive hours
+                const completedTasks = tasks.filter(t => t.isCompleted && t.updatedAt);
+
+                if (completedTasks.length < 3) return null;
+
+                const hourCounts = {};
+                completedTasks.forEach(t => {
+                    const hour = new Date(t.updatedAt).getHours();
+                    hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+                });
+
+                // Find peak hour
+                const peakHour = Object.entries(hourCounts)
+                    .sort(([, a], [, b]) => b - a)[0];
+
+                if (!peakHour) return null;
+
+                const formatHour = (h) => {
+                    const hour = parseInt(h);
+                    if (hour === 0) return '12 AM';
+                    if (hour < 12) return `${hour} AM`;
+                    if (hour === 12) return '12 PM';
+                    return `${hour - 12} PM`;
+                };
+
+                const peakHourStr = formatHour(peakHour[0]);
+                const nextHourStr = formatHour((parseInt(peakHour[0]) + 1) % 24);
+
+                return (
+                    <div className="focus-time-section" style={{ marginTop: 'var(--space-6)' }}>
+                        <h3 className="section-title">PEAK PRODUCTIVITY</h3>
+                        <div className="ai-insight slide-in">
+                            <span className="ai-label">AI:</span>
+                            <span className="ai-message">
+                                You complete {Math.round((peakHour[1] / completedTasks.length) * 100)}% of tasks between {peakHourStr}-{nextHourStr}. Schedule important work then.
+                            </span>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </aside>
+                );
+            })()}
+        </section>
     );
 };
 

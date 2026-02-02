@@ -1,136 +1,155 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import {
-  FaCheckDouble, FaListUl, FaBell, FaClock, FaTrash, FaSignOutAlt, FaPlus,
-  FaEnvelope, FaLock, FaGoogle, FaGithub, FaCheck, FaCalendarAlt,
-  FaList, FaTh
-} from 'react-icons/fa';
+import { FaArrowRight } from 'react-icons/fa';
 import confetti from 'canvas-confetti';
 
-import './App.css';       // <--- 1. Loads your Login Styles
-import './Dashboard.css'; // <--- 2. LOADS YOUR NEW DASHBOARD STYLES
-import ProgressRing from './components/ProgressRing';
+import './App.css';
+import './Dashboard.css';
 import TaskAccordion from './components/TaskAccordion';
-import Timeline from './components/Timeline';
-import Sidebar from './components/Sidebar';
-import DynamicGreeting from './components/DynamicGreeting';
 import SmartTaskInput from './components/SmartTaskInput';
 import SmartInsightsPanel from './components/SmartInsightsPanel';
+import Timeline from './components/Timeline';
+import Settings from './components/Settings';
+import CommandPalette from './components/CommandPalette';
+import AITypewriter from './components/AITypewriter';
 
 function App() {
-
-  const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed'
+  // ─── STATE ───
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [tasks, setTasks] = useState([]);
+  const [filter, setFilter] = useState('active');
+  const [activeView, setActiveView] = useState('tasks');
+  const [showSettings, setShowSettings] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showPalette, setShowPalette] = useState(false);
+  const [dragState, setDragState] = useState({ dragging: null, over: null });
 
-  // New States
-  const [newTask, setNewTask] = useState("");
-  const [newPriority, setNewPriority] = useState("medium");
-  const [newDueDate, setNewDueDate] = useState("");
-  const [newTime, setNewTime] = useState("");
-  // Dark mode is now always on (Deep Focus theme)
-  const [activeView, setActiveView] = useState('Tasks');
-  const [viewMode, setViewMode] = useState('focus'); // 'focus' or 'compact'
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // Auth States
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [authError, setAuthError] = useState('');
 
-  // Subtitle Rotation State
-  const [subtitleIndex, setSubtitleIndex] = useState(0);
-  const subtitles = [
-    "AI suggests when to tackle each task",
-    "Understands 'tomorrow at 3pm' like a human",
-    "Focus mode eliminates decision fatigue"
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSubtitleIndex(i => (i + 1) % subtitles.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Sync Token with LocalStorage
+  // ─── EFFECTS ───
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
+      fetchTasks();
     } else {
       localStorage.removeItem('token');
     }
   }, [token]);
 
-  // Theme Management - Always Dark Mode (Deep Focus Theme)
+  // Apply dark mode on mount
   useEffect(() => {
-    if (token) {
-      document.body.classList.add('theme-brutalist');
-      document.body.classList.add('dark-mode');
-    } else {
-      document.body.classList.remove('theme-brutalist');
-      document.body.classList.remove('dark-mode');
-      // Reset styles for login page
-      document.body.style.backgroundColor = '';
-      document.body.style.color = '';
+    const saved = localStorage.getItem('karyaSettings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.theme === 'dark') {
+        document.body.classList.add('dark-mode');
+      }
     }
-  }, [token]);
+  }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Don't trigger if typing in input/textarea
+      const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+      const key = e.key.toLowerCase();
+
+      // Ctrl/Cmd + Shift + K = Command Palette (avoids browser address bar)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (key === 'k' || e.code === 'KeyK')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowPalette(prev => !prev);
+        return;
+      }
+
+      // Ctrl/Cmd + Shift + N = New Task (avoids new window)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (key === 'n' || e.code === 'KeyN')) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.querySelector('.task-input')?.focus();
+        setActiveView('tasks');
+        return;
+      }
+
+      // Escape = Close modals
+      if (e.key === 'Escape') {
+        setShowPalette(false);
+        setShowSettings(false);
+        return;
+      }
+
+      // / = Focus search (only if not typing)
+      if (key === '/' && !isTyping) {
+        e.preventDefault();
+        document.getElementById('search-input')?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
+  }, []);
+
+  // Handle command palette actions
+  const handlePaletteAction = (action) => {
+    switch (action) {
+      case 'focus-input':
+        setTimeout(() => document.querySelector('.task-input')?.focus(), 100);
+        break;
+      case 'focus-search':
+        setTimeout(() => document.getElementById('search-input')?.focus(), 100);
+        break;
+      case 'toggle-theme':
+        const isDark = document.body.classList.toggle('dark-mode');
+        const saved = localStorage.getItem('karyaSettings');
+        const settings = saved ? JSON.parse(saved) : {};
+        settings.theme = isDark ? 'dark' : 'light';
+        localStorage.setItem('karyaSettings', JSON.stringify(settings));
+        break;
+      case 'view-insights':
+        setActiveView('insights');
+        break;
+      case 'view-tasks':
+        setActiveView('tasks');
+        break;
+      case 'open-settings':
+        setShowSettings(true);
+        break;
+    }
+  };
+
+  // ─── API HELPERS ───
   const getHeaders = () => ({ headers: { 'x-auth-token': token } });
 
-  // Fetch Tasks
-  useEffect(() => {
-    if (token) {
-      axios.get('/api/tasks', getHeaders())
-        .then(res => setTasks(res.data))
-        .catch(err => console.error(err));
-    }
-  }, [token]);
+  const fetchTasks = () => {
+    axios.get('/api/tasks', getHeaders())
+      .then(res => setTasks(res.data))
+      .catch(err => console.error(err));
+  };
 
-  // Auth Handle
+  // ─── AUTH ───
   const handleAuth = async (e) => {
-    if (e) e.preventDefault();
+    e.preventDefault();
+    setAuthError('');
     const endpoint = isRegistering ? '/register' : '/login';
     try {
       const res = await axios.post(`/api/users${endpoint}`, { email, password });
       if (isRegistering) {
-        alert("Account created! Now login.");
         setIsRegistering(false);
+        setAuthError('Account created. Please sign in.');
       } else {
         setToken(res.data.token);
       }
     } catch (err) {
-      alert(err.response?.data?.msg || "Error logging in");
+      setAuthError(err.response?.data?.msg || 'Authentication failed');
     }
   };
 
-  // Task Actions
-  const addTask = () => {
-    if (!newTask) return;
-
-    let taskDate = newDueDate;
-    if (newDueDate && newTime) {
-      taskDate = `${newDueDate}T${newTime}`;
-    }
-
-    axios.post('/api/tasks', {
-      title: newTask,
-      priority: newPriority,
-      dueDate: taskDate
-    }, getHeaders())
-      .then(res => {
-        setTasks([...tasks, res.data]);
-        setNewTask("");
-        setNewPriority("medium");
-        setNewDueDate("");
-        setNewTime("");
-      })
-      .catch(err => {
-        console.error("Error adding task:", err);
-        alert("Failed to add task. Please check if you are logged in.");
-      });
-  };
-
-  // Smart Task Add Handler (for SmartTaskInput component)
-  const handleSmartAddTask = (taskData) => {
+  // ─── TASK ACTIONS ───
+  const handleAddTask = (taskData) => {
     if (!taskData.title) return;
 
     let taskDate = null;
@@ -145,387 +164,280 @@ function App() {
       priority: taskData.priority || 'medium',
       dueDate: taskDate
     }, getHeaders())
-      .then(res => {
-        setTasks([...tasks, res.data]);
-      })
-      .catch(err => {
-        console.error("Error adding task:", err);
-        alert("Failed to add task. Please check if you are logged in.");
-      });
+      .then(res => setTasks([res.data, ...tasks]))
+      .catch(err => console.error('Error adding task:', err));
   };
 
   const deleteTask = (id) => {
     axios.delete(`/api/tasks/${id}`, getHeaders())
       .then(() => setTasks(tasks.filter(t => t._id !== id)))
-      .catch(err => console.error("Error deleting task:", err));
+      .catch(err => console.error(err));
   };
 
-  const toggleTask = (id) => {
-    axios.put(`/api/tasks/${id}`, {}, getHeaders())
-      .then(res => {
-        setTasks(tasks.map(t => t._id === id ? { ...t, isCompleted: res.data.isCompleted } : t));
-        // Trigger Confetti if completed!
-        if (res.data.isCompleted) {
-          confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-          });
-        }
-      })
-      .catch(err => console.error("Error toggling task:", err));
+  const updateTask = (updatedTask) => {
+    setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t));
+    if (updatedTask.isCompleted) {
+      confetti({ particleCount: 40, spread: 40, origin: { y: 0.7 } });
+    }
   };
 
-  // --- 3. LOGIN VIEW (Uses App.css 'split-screen') ---
-  if (!token) {
-    return (
-      <div className="split-screen">
-        <div className="left-panel">
-          <div className="floating-card card-1">
-            <FaCheckDouble color="#03DAC6" />
-            <span className="card-text-done">Design System</span>
-          </div>
-          <div className="floating-card card-2">
-            <FaClock color="#FFB74D" />
-            <span>Client Meeting 2pm</span>
-          </div>
-          <div className="floating-card card-3">
-            <FaBell color="#CF6679" />
-            <span>Fix Server Bug</span>
-          </div>
-          <div className="orbit-container">
-            <div className="logo-box">
-              <img src="/logo.png" alt="SmartTodo" className="login-logo-img" />
-              <h1 className="logo-box-text"><span>Smart</span>Todo</h1>
-            </div>
-            <p className="orbit-subtitle">{subtitles[subtitleIndex]}</p>
-
-            <div className="orbit-ring ring-1"></div>
-            <div className="orbit-ring ring-2"></div>
-
-            <div className="orbit-wrapper">
-              <div className="orbit-item item-1">
-                <div className="orbiting-icon">
-                  <FaCheckDouble />
-                </div>
-              </div>
-              <div className="orbit-item item-2">
-                <div className="orbiting-icon">
-                  <FaListUl />
-                </div>
-              </div>
-              <div className="orbit-item item-3">
-                <div className="orbiting-icon">
-                  <FaBell />
-                </div>
-              </div>
-              <div className="orbit-item item-4">
-                <div className="orbiting-icon">
-                  <FaClock />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="right-panel">
-          <div className="auth-container">
-            <div className="auth-header">
-              <h2>{isRegistering ? "Create Account" : "Welcome Back"}</h2>
-              <p className="sub-text">Enter your details to access your workspace.</p>
-            </div>
-
-            <div className="social-login">
-              <button className="social-btn" type="button" onClick={() => alert("Google Login coming soon!")}>
-                <FaGoogle color="#DB4437" /> Google
-              </button>
-              <button className="social-btn" type="button" onClick={() => alert("GitHub Login coming soon!")}>
-                <FaGithub /> GitHub
-              </button>
-            </div>
-
-            <div className="divider"><span>OR</span></div>
-
-            <form onSubmit={handleAuth}>
-              <div className="form-group">
-                <label>Email Address</label>
-                <div className="input-group">
-                  <FaEnvelope className="input-icon" />
-                  <input
-                    type="email"
-                    placeholder="name@company.com"
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label>Password</label>
-                <div className="input-group">
-                  <FaLock className="input-icon" />
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <button className="btn-primary" type="submit">
-                {isRegistering ? "Sign Up" : "Sign In"}
-              </button>
-            </form>
-
-            <div className="switch-auth">
-              {isRegistering ? "Already have an account?" : "Don't have an account?"}
-              <span onClick={() => setIsRegistering(!isRegistering)}>
-                {isRegistering ? " Login" : " Sign Up"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  // --- CALCULATIONS ---
-  const completedCount = tasks.filter(t => t.isCompleted).length;
-  const totalCount = tasks.length;
-  const progress = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
-
-  const filteredTasks = tasks.filter(task => {
-    if (filter === 'active') return !task.isCompleted;
-    if (filter === 'completed') return task.isCompleted;
-    return true;
-  });
-
-  // Helper for local date in YYYY-MM-DD
+  // ─── HELPERS ───
   const getLocalDateString = (date) => {
     const d = new Date(date);
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     return d.toISOString().split('T')[0];
   };
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning.';
+    if (hour < 18) return 'Good afternoon.';
+    return 'Good evening.';
+  };
 
-  return (
-    <>
-      {/* Paper Texture Overlay */}
-      <div className="paper-overlay"></div>
+  // ─── COMPUTED ───
+  const pendingCount = tasks.filter(t => !t.isCompleted).length;
+  const completedCount = tasks.filter(t => t.isCompleted).length;
+  const totalCount = tasks.length;
 
-      <div className="app-shell">
-        <Sidebar
-          onLogout={() => setToken(null)}
-          currentView={activeView}
-          onNavigate={setActiveView}
-        />
+  const filteredTasks = tasks.filter(task => {
+    // Filter by completion status
+    if (filter === 'active' && task.isCompleted) return false;
+    if (filter === 'completed' && !task.isCompleted) return false;
+    // Filter by search query
+    if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    return true;
+  });
 
-        <div className="main-content-wrapper">
-          <div className="dashboard-container">
-            {/* --- HEADER --- */}
-            <header className="app-header">
-              <div className="brand-logo">
-                <img src="/logo.png" alt="SmartTodo" className="header-logo-img" />
-              </div>
+  // AI Suggestion (mock for now)
+  const getAISuggestion = () => {
+    const highPriority = tasks.filter(t => t.priority === 'high' && !t.isCompleted);
+    if (highPriority.length > 0) {
+      return `Start with "${highPriority[0].title}" — it's marked urgent.`;
+    }
+    if (pendingCount > 0) {
+      return `You have ${pendingCount} task${pendingCount > 1 ? 's' : ''} pending.`;
+    }
+    return 'All clear. AI will suggest tasks as they arrive.';
+  };
 
-              {/* Center Date Display */}
-              <div className="header-date">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-              </div>
+  // ════════════════════════════════════════════════════════════════
+  // LOGIN VIEW (Brutalist)
+  // ════════════════════════════════════════════════════════════════
+  if (!token) {
+    return (
+      <div className="auth-page">
+        <div className="auth-container">
+          <header className="auth-header">
+            <h1 className="wordmark">KaryaAI</h1>
+            <p className="tagline">Intelligent simplicity.<br />AI that gets out of your way.</p>
+          </header>
 
-              <div className="header-controls">
-                <div className="view-title-pill">{activeView}</div>
-                <div className="user-avatar">B</div>
-              </div>
-            </header>
+          {/* AI Callout with Typewriter Effect */}
+          <AITypewriter />
 
-            {activeView === 'Tasks' && (
-              <>
-                {/* --- HERO --- */}
-                <section className="hero-section">
-                  <div className="hero-main-layout">
-                    {/* Dynamic Greeting */}
-                    <DynamicGreeting
-                      userName="User"
-                      highPriorityCount={tasks.filter(t => t.priority === 'high' && !t.isCompleted).length}
-                      completionRate={progress}
-                      totalTasks={totalCount}
-                    />
-
-                    {/* Progress Ring */}
-                    <ProgressRing completed={completedCount} total={totalCount} />
-                  </div>
-
-                  {/* Timeline Visual */}
-                  <Timeline tasks={tasks} />
-                </section>
-
-                {/* --- TABS --- */}
-                <nav className="tabs-nav">
-                  <button
-                    className={`tab-btn ${filter === 'all' ? 'active' : ''}`}
-                    onClick={() => setFilter('all')}
-                  >
-                    All Tasks
-                  </button>
-                  <button
-                    className={`tab-btn ${filter === 'active' ? 'active' : ''}`}
-                    onClick={() => setFilter('active')}
-                  >
-                    Active
-                  </button>
-                  <button
-                    className={`tab-btn ${filter === 'completed' ? 'active' : ''}`}
-                    onClick={() => setFilter('completed')}
-                  >
-                    Completed
-                  </button>
-
-                  {/* View Mode Toggle */}
-                  <div className="view-mode-toggle">
-                    <button
-                      className={`view-mode-btn ${viewMode === 'focus' ? 'active' : ''}`}
-                      onClick={() => setViewMode('focus')}
-                      title="Focus View - Detailed cards"
-                    >
-                      <FaTh size={12} />
-                    </button>
-                    <button
-                      className={`view-mode-btn ${viewMode === 'compact' ? 'active' : ''}`}
-                      onClick={() => setViewMode('compact')}
-                      title="Compact View - Dense list"
-                    >
-                      <FaList size={12} />
-                    </button>
-                  </div>
-                </nav>
-
-                {/* --- SMART INPUT --- */}
-                <SmartTaskInput
-                  onAddTask={handleSmartAddTask}
-                  getLocalDateString={getLocalDateString}
-                />
-
-                {/* --- TASK LIST STACK --- */}
-                <div className={`task-list-stack ${viewMode}`}>
-                  {filteredTasks.length === 0 ? (
-                    <div className="empty-state">
-                      <div className="empty-icon">✓</div>
-                      <p>Your canvas is clear. What will you accomplish today?</p>
-                    </div>
-                  ) : (
-                    filteredTasks.map(task => (
-                      <TaskAccordion
-                        key={task._id}
-                        task={task}
-                        viewMode={viewMode}
-                        onUpdate={(updatedTask) => setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t))}
-                        onDelete={deleteTask}
-                        headers={getHeaders().headers}
-                      />
-                    ))
-                  )}
-                </div>
-              </>
-            )}
-
-            {activeView === 'Stats' && (
-              <div className="view-content fade-in">
-                <div className="stats-grid">
-                  <div className="stat-card">
-                    <h3>Completion Rate</h3>
-                    <div className="stat-value">{progress}%</div>
-                    <p>Overall task efficiency</p>
-                  </div>
-                  <div className="stat-card">
-                    <h3>Total Completed</h3>
-                    <div className="stat-value">{completedCount}</div>
-                    <p>Tasks finished to date</p>
-                  </div>
-                  <div className="stat-card">
-                    <h3>Focus Hours</h3>
-                    <div className="stat-value">{(completedCount * 0.5).toFixed(1)}</div>
-                    <p>Estimated deep work time</p>
-                  </div>
-                </div>
-                <div className="chart-placeholder">
-                  <div className="chart-bars">
-                    {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
-                      <div key={i} className="chart-bar" style={{ height: `${h}%` }}>
-                        <span className="bar-label">Day {i + 1}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="chart-caption">Weekly Productivity Trend</p>
-                </div>
-              </div>
-            )}
-
-            {activeView === 'Goals' && (
-              <div className="view-content fade-in">
-                <div className="goals-header">
-                  <h2>Active Objectives</h2>
-                  <button className="btn-pill" onClick={() => alert("Goal creation coming soon!")}>+ New Goal</button>
-                </div>
-                <div className="goals-list">
-                  {[
-                    { title: "Master React Hooks", progress: 75, color: "var(--primary)" },
-                    { title: "Improve Daily Focus", progress: 40, color: "var(--warning)" },
-                    { title: "Health & Fitness", progress: 20, color: "var(--success)" }
-                  ].map((goal, i) => (
-                    <div key={i} className="goal-item glass-card">
-                      <div className="goal-info">
-                        <span className="goal-title">{goal.title}</span>
-                        <span className="goal-percent">{goal.progress}%</span>
-                      </div>
-                      <div className="goal-progress-track">
-                        <div className="goal-progress-bar" style={{ width: `${goal.progress}%`, background: goal.color }}></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {activeView === 'Settings' && (
-              <div className="view-content fade-in">
-                <div className="settings-section glass-card">
-                  <h3>App Preferences</h3>
-                  <div className="setting-row">
-                    <span>Theme</span>
-                    <span className="status-label">Deep Focus</span>
-                  </div>
-                  <div className="setting-row">
-                    <span>Notifications</span>
-                    <span className="status-label success">Enabled</span>
-                  </div>
-                </div>
-
-                <div className="settings-section glass-card">
-                  <h3>Account</h3>
-                  <div className="profile-preview">
-                    <div className="user-avatar-large">B</div>
-                    <div className="profile-info">
-                      <strong>Bibek User</strong>
-                      <span>bibek@example.com</span>
-                    </div>
-                  </div>
-                  <button className="btn-outline-danger" style={{ marginTop: '20px' }} onClick={() => setToken(null)}>Logout from device</button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Smart Insights Right Sidebar */}
-          {activeView === 'Tasks' && (
-            <SmartInsightsPanel
-              tasks={tasks}
-              completedCount={completedCount}
-              totalCount={totalCount}
-            />
+          {authError && (
+            <div className="auth-error">{authError}</div>
           )}
+
+          <form onSubmit={handleAuth} className="auth-form">
+            <input
+              type="email"
+              className="input-field"
+              placeholder="Email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+            <input
+              type="password"
+              className="input-field"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+            <button type="submit" className="btn-primary">
+              {isRegistering ? 'CREATE ACCOUNT' : 'SIGN IN'} <FaArrowRight size={12} />
+            </button>
+          </form>
+
+          <div className="auth-switch">
+            <span className="text-secondary">
+              {isRegistering ? 'Already have an account?' : 'New to KaryaAI?'}
+            </span>
+            <button
+              className="btn-ghost"
+              onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }}
+            >
+              {isRegistering ? 'Sign In' : 'Create Account'}
+            </button>
+          </div>
         </div>
       </div>
-    </>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  // DASHBOARD VIEW (Brutalist)
+  // ════════════════════════════════════════════════════════════════
+  return (
+    <div className="app-layout">
+      {/* ── TOP BAR ── */}
+      <header className="top-bar">
+        <div className="top-bar-left">
+          <span className="logo">KaryaAI</span>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search tasks... (/)"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            id="search-input"
+          />
+        </div>
+        <nav className="top-bar-nav">
+          <button
+            className={`nav-item ${activeView === 'tasks' ? 'active' : ''}`}
+            onClick={() => setActiveView('tasks')}
+          >
+            Tasks
+          </button>
+          <button
+            className={`nav-item ${activeView === 'insights' ? 'active' : ''}`}
+            onClick={() => setActiveView('insights')}
+          >
+            Insights
+          </button>
+          <button className="nav-item" onClick={() => setShowSettings(true)}>
+            Settings
+          </button>
+          <button className="nav-item logout" onClick={() => setToken(null)}>
+            Logout
+          </button>
+        </nav>
+      </header>
+
+      {/* ── SETTINGS MODAL ── */}
+      {showSettings && (
+        <Settings
+          onClose={() => setShowSettings(false)}
+          onLogout={() => setToken(null)}
+        />
+      )}
+
+      {/* ── COMMAND PALETTE ── */}
+      {showPalette && (
+        <CommandPalette
+          onClose={() => setShowPalette(false)}
+          onAction={handlePaletteAction}
+        />
+      )}
+
+      {/* ── MAIN ── */}
+      <main className="main">
+        {activeView === 'tasks' ? (
+          <>
+            {/* ── HERO GREETING ── */}
+            <section className="hero">
+              <h1 className="hero-greeting">{getGreeting()}</h1>
+              <div className="ai-insight slide-in">
+                <span className="ai-label">AI:</span>
+                <span className="ai-message">{getAISuggestion()}</span>
+              </div>
+            </section>
+
+            {/* ── TIMELINE ── */}
+            <Timeline tasks={tasks} />
+
+            {/* ── TASK INPUT ── */}
+            <SmartTaskInput
+              onAddTask={handleAddTask}
+              getLocalDateString={getLocalDateString}
+              tasks={tasks}
+            />
+
+            {/* ── FILTER BAR ── */}
+            <div className="filter-bar">
+              <div className="filter-tabs">
+                {['active', 'completed', 'all'].map(f => (
+                  <button
+                    key={f}
+                    className={`filter-tab ${filter === f ? 'active' : ''}`}
+                    onClick={() => setFilter(f)}
+                  >
+                    {f.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              <span className="task-count mono">
+                {filteredTasks.length} {filter === 'all' ? 'total' : filter}
+              </span>
+            </div>
+
+            {/* ── TASK LIST ── */}
+            <section className="task-list">
+              {filteredTasks.length === 0 ? (
+                <div className="empty-state">
+                  <p className="empty-text">
+                    {filter === 'active'
+                      ? 'All clear. AI will suggest tasks as they arrive.'
+                      : filter === 'completed'
+                        ? 'No completed tasks yet.'
+                        : 'No tasks. Add one above.'}
+                  </p>
+                </div>
+              ) : (
+                filteredTasks.map((task, index) => (
+                  <TaskAccordion
+                    key={task._id}
+                    task={task}
+                    viewMode="focus"
+                    onUpdate={updateTask}
+                    onDelete={deleteTask}
+                    headers={getHeaders().headers}
+                    isDragging={dragState.dragging === task._id}
+                    isDragOver={dragState.over === task._id}
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = 'move';
+                      setDragState(s => ({ ...s, dragging: task._id }));
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      if (dragState.over !== task._id) {
+                        setDragState(s => ({ ...s, over: task._id }));
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const fromId = dragState.dragging;
+                      const toId = task._id;
+                      if (fromId && fromId !== toId) {
+                        const fromIndex = tasks.findIndex(t => t._id === fromId);
+                        const toIndex = tasks.findIndex(t => t._id === toId);
+                        const reordered = [...tasks];
+                        const [moved] = reordered.splice(fromIndex, 1);
+                        reordered.splice(toIndex, 0, moved);
+                        setTasks(reordered);
+                      }
+                      setDragState({ dragging: null, over: null });
+                    }}
+                  />
+                ))
+              )}
+            </section>
+          </>
+        ) : (
+          <SmartInsightsPanel
+            tasks={tasks}
+            completedCount={completedCount}
+            totalCount={totalCount}
+          />
+        )}
+      </main>
+    </div>
   );
 }
 

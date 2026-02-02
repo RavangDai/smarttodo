@@ -81,4 +81,93 @@ router.post('/breakdown/:taskId', async (req, res) => {
     }
 });
 
+// POST /api/ai/nlp - Natural Language Task Editing
+router.post('/nlp', auth, async (req, res) => {
+    try {
+        const { taskId, command } = req.body;
+
+        if (!taskId || !command) {
+            return res.status(400).json({ error: 'taskId and command are required' });
+        }
+
+        const task = await Task.findById(taskId);
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const prompt = `
+You are a task management AI. Parse this natural language command and return a JSON action.
+
+Task: "${task.title}"
+Current due date: ${task.dueDate || 'none'}
+Current priority: ${task.priority || 'medium'}
+User command: "${command}"
+
+Today is: ${today.toISOString().split('T')[0]}
+Tomorrow is: ${tomorrow.toISOString().split('T')[0]}
+
+Return ONLY valid JSON (no markdown, no explanation) in this format:
+{
+  "action": "update" | "add_subtask" | "delete" | "none",
+  "updates": { 
+    "dueDate": "ISO date string or null",
+    "priority": "low" | "medium" | "high",
+    "title": "new title if changed"
+  },
+  "subtask": "subtask title if action is add_subtask",
+  "message": "Human readable confirmation message"
+}
+
+Examples:
+- "move to tomorrow" → {"action": "update", "updates": {"dueDate": "${tomorrow.toISOString()}"}, "message": "Moved to tomorrow"}
+- "high priority" → {"action": "update", "updates": {"priority": "high"}, "message": "Priority set to high"}
+- "add subtask buy milk" → {"action": "add_subtask", "subtask": "buy milk", "message": "Added subtask: buy milk"}
+`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let text = response.text().trim();
+
+        // Clean up markdown code blocks if present
+        text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+
+        console.log('🤖 NLP Response:', text);
+
+        let parsed;
+        try {
+            parsed = JSON.parse(text);
+        } catch (e) {
+            return res.status(500).json({ error: 'Failed to parse AI response', raw: text });
+        }
+
+        // Apply the action
+        if (parsed.action === 'update' && parsed.updates) {
+            Object.keys(parsed.updates).forEach(key => {
+                if (parsed.updates[key] !== undefined && parsed.updates[key] !== null) {
+                    task[key] = parsed.updates[key];
+                }
+            });
+            await task.save();
+        } else if (parsed.action === 'add_subtask' && parsed.subtask) {
+            task.subtasks = [...(task.subtasks || []), { title: parsed.subtask, isCompleted: false }];
+            await task.save();
+        }
+
+        res.json({
+            success: true,
+            action: parsed.action,
+            message: parsed.message,
+            task: task
+        });
+
+    } catch (error) {
+        console.error('❌ NLP Error:', error);
+        res.status(500).json({ error: 'Failed to process command' });
+    }
+});
+
 module.exports = router;
