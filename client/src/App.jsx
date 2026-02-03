@@ -28,6 +28,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Avatar interaction states
   const [isFocusedEmail, setIsFocusedEmail] = useState(false);
@@ -220,6 +221,7 @@ function App() {
             isTyping={isTyping}
             isFocusedEmail={isFocusedEmail}
             isFocusedPassword={isFocusedPassword}
+            isPasswordVisible={showPassword}
             authResult={authResult}
             email={email}
           />
@@ -263,24 +265,44 @@ function App() {
                 onBlur={() => setIsFocusedEmail(false)}
                 required
               />
-              <input
-                type="password"
-                className="input-field"
-                placeholder="Password"
-                value={password}
-                onChange={e => {
-                  setPassword(e.target.value);
-                  setIsTyping(true);
-                  clearTimeout(window.typingTimeout);
-                  window.typingTimeout = setTimeout(() => setIsTyping(false), 500);
-                }}
-                onFocus={() => {
-                  setIsFocusedPassword(true);
-                  setAuthResult('idle');
-                }}
-                onBlur={() => setIsFocusedPassword(false)}
-                required
-              />
+              <div className="password-input-group" style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="input-field"
+                  placeholder="Password"
+                  value={password}
+                  onChange={e => {
+                    setPassword(e.target.value);
+                    setIsTyping(true);
+                    clearTimeout(window.typingTimeout);
+                    window.typingTimeout = setTimeout(() => setIsTyping(false), 500);
+                  }}
+                  onFocus={() => {
+                    setIsFocusedPassword(true);
+                    setAuthResult('idle');
+                  }}
+                  onBlur={() => setIsFocusedPassword(false)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--text-secondary)',
+                    fontSize: '14px'
+                  }}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
               <button type="submit" className="btn-primary">
                 {isRegistering ? 'CREATE ACCOUNT' : 'SIGN IN'} <FaArrowRight size={12} />
               </button>
@@ -399,10 +421,10 @@ function App() {
                 <div className="empty-state">
                   <p className="empty-text">
                     {filter === 'active'
-                      ? 'All clear. AI will suggest tasks as they arrive.'
+                      ? 'All clear. Grab a coffee, you earned it.'
                       : filter === 'completed'
                         ? 'No completed tasks yet.'
-                        : 'No tasks. Add one above.'}
+                        : 'No tasks found.'}
                   </p>
                 </div>
               ) : (

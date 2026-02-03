@@ -10,12 +10,26 @@ const InteractiveAvatar = ({
     isFocusedPassword = false,
     authResult = 'idle',
     email = '',
-    isFocusedEmail = false
+    isFocusedEmail = false,
+    isPasswordVisible = false,
+    mode = 'auth' // 'auth' | 'zen'
 }) => {
     const [blinkState, setBlinkState] = useState(false);
     const [eyePosition, setEyePosition] = useState({ x: 3, y: 0 });
     const [isTrackingMouse, setIsTrackingMouse] = useState(true);
+    const [isWelcoming, setIsWelcoming] = useState(true);
+    const [isHovered, setIsHovered] = useState(false);
     const avatarRef = useRef(null);
+
+    // Initial Welcome Animation
+    useEffect(() => {
+        if (mode === 'auth') {
+            const timer = setTimeout(() => setIsWelcoming(false), 2000);
+            return () => clearTimeout(timer);
+        } else {
+            setIsWelcoming(false);
+        }
+    }, [mode]);
 
     // Random blink effect
     useEffect(() => {
@@ -59,18 +73,20 @@ const InteractiveAvatar = ({
 
     // Set up mouse tracking
     useEffect(() => {
-        // Only track mouse when in idle state (not typing, not focused on inputs)
-        const shouldTrack = !isFocusedEmail && !isFocusedPassword && !isTyping && authResult === 'idle';
+        // Track mouse in zen mode OR when idle in auth mode
+        const shouldTrack = mode === 'zen' || (!isFocusedEmail && !isFocusedPassword && !isTyping && authResult === 'idle');
         setIsTrackingMouse(shouldTrack);
 
         if (shouldTrack) {
             window.addEventListener('mousemove', handleMouseMove);
             return () => window.removeEventListener('mousemove', handleMouseMove);
         }
-    }, [isFocusedEmail, isFocusedPassword, isTyping, authResult, handleMouseMove]);
+    }, [isFocusedEmail, isFocusedPassword, isTyping, authResult, handleMouseMove, mode]);
 
     // Track email for eye movement when typing - look RIGHT towards the form panel
     useEffect(() => {
+        if (mode === 'zen') return; // Skip in zen mode
+
         if (isFocusedEmail && email.length > 0) {
             // Eyes look RIGHT towards the email input and follow typing
             const progress = Math.min(email.length / 30, 1);
@@ -86,13 +102,22 @@ const InteractiveAvatar = ({
             setEyePosition({ x: 5, y: 0 });
         }
         // Don't set position for idle - mouse tracking handles that
-    }, [email, isFocusedEmail, isFocusedPassword, isTyping]);
+    }, [email, isFocusedEmail, isFocusedPassword, isTyping, mode]);
 
     // Determine avatar state
     const getAvatarState = () => {
-        if (authResult === 'success') return 'celebrating';
-        if (authResult === 'error') return 'sad';
-        if (isFocusedPassword) return 'covering';
+        if (mode === 'zen') {
+            if (isHovered) return 'active'; // Wave/Thumbs up on hover (reusing active state keyframes or new ones)
+            return 'zen';
+        }
+
+        if (isWelcoming) return 'welcome';
+        if (authResult === 'success') return 'active'; // Ready to work!
+        if (authResult === 'error') return 'confused';
+        if (isFocusedPassword) {
+            if (isPasswordVisible) return 'peeking'; // Or watching?
+            return 'whistling'; // Look up innocently
+        }
         if (isTyping || isFocusedEmail) return 'watching';
         return 'idle';
     };
@@ -100,9 +125,20 @@ const InteractiveAvatar = ({
     const avatarState = getAvatarState();
 
     return (
-        <div className={`interactive-avatar ${avatarState}`} ref={avatarRef}>
+        <div
+            className={`interactive-avatar ${avatarState}`}
+            ref={avatarRef}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{ cursor: mode === 'zen' ? 'pointer' : 'default' }}
+        >
             {/* Avatar Container */}
             <div className="avatar-character">
+                {/* Floating Coffee Cup (Zen Mode) */}
+                {avatarState === 'zen' && (
+                    <div className="avatar-coffee">☕</div>
+                )}
+
                 {/* Glow Effect */}
                 <div className="avatar-glow"></div>
 
@@ -139,23 +175,29 @@ const InteractiveAvatar = ({
                                         }}
                                     ></div>
 
-                                    <div className={`avatar-eye left ${blinkState ? 'blink' : ''} ${avatarState === 'celebrating' ? 'happy' : ''}`}>
+                                    <div className={`avatar-eye left ${blinkState ? 'blink' : ''} ${avatarState === 'active' ? 'happy' : ''} ${avatarState === 'confused' ? 'question' : ''}`}>
                                         <div
                                             className="avatar-pupil"
                                             style={{
                                                 transform: `translate(${eyePosition.x}px, ${eyePosition.y}px)`
                                             }}
-                                        ></div>
-                                        {avatarState === 'celebrating' && <div className="avatar-sparkle">✨</div>}
+                                        >
+                                            {avatarState === 'confused' && '?'}
+                                            {avatarState === 'active' && '^'}
+                                            {avatarState === 'zen' && '-'}
+                                        </div>
                                     </div>
-                                    <div className={`avatar-eye right ${blinkState ? 'blink' : ''} ${avatarState === 'celebrating' ? 'happy' : ''}`}>
+                                    <div className={`avatar-eye right ${blinkState ? 'blink' : ''} ${avatarState === 'active' ? 'happy' : ''} ${avatarState === 'confused' ? 'question' : ''}`}>
                                         <div
                                             className="avatar-pupil"
                                             style={{
                                                 transform: `translate(${eyePosition.x}px, ${eyePosition.y}px)`
                                             }}
-                                        ></div>
-                                        {avatarState === 'celebrating' && <div className="avatar-sparkle">✨</div>}
+                                        >
+                                            {avatarState === 'confused' && '?'}
+                                            {avatarState === 'active' && '^'}
+                                            {avatarState === 'zen' && '-'}
+                                        </div>
                                     </div>
                                 </>
                             )}
@@ -169,8 +211,8 @@ const InteractiveAvatar = ({
 
                         {/* Mouth */}
                         <div className={`avatar-mouth ${avatarState}`}>
-                            {avatarState === 'celebrating' && (
-                                <div className="avatar-tongue"></div>
+                            {avatarState === 'whistling' && (
+                                <div className="avatar-whistle-note">♪</div>
                             )}
                         </div>
                     </div>
