@@ -42,12 +42,20 @@ const AITypewriter = () => {
     }, [displayText, isDeleting, suggestionIndex]);
 
     return (
-        <div className="ai-callout">
-            <span className="ai-prefix">AI SUGGESTS</span>
-            <p>
-                <span className="typewriter-text">{displayText}</span>
-                <span className="cursor" />
-            </p>
+        <div className="ai-hud-container">
+            <div className="hud-header">
+                <span className="scrolling-text">SYSTEM.OPTIMIZING</span>
+                <div className="hud-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+            <div className="ai-callout">
+                <span className="ai-prefix">AI SUGGESTS &gt;</span>
+                <p>
+                    <span className="typewriter-text">{displayText}</span>
+                    <span className="cursor" />
+                </p>
+            </div>
         </div>
     );
 };

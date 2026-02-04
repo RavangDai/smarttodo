@@ -3,6 +3,35 @@
    High-Fidelity Plastic Render using CSS Shading
    ============================================ */
 
+/* ─── AVATAR STAGE ─── */
+.interactive-avatar::after {
+    content: '';
+    position: absolute;
+    bottom: -40px;
+    width: 200px;
+    height: 60px;
+    background: radial-gradient(ellipse at center, rgba(255, 107, 0, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: perspective(600px) rotateX(60deg);
+    z-index: -1;
+    animation: stage-pulse 4s ease-in-out infinite;
+    filter: blur(10px);
+}
+
+@keyframes stage-pulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: perspective(600px) rotateX(60deg) scale(0.9);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: perspective(600px) rotateX(60deg) scale(1.1);
+    }
+}
+
 .interactive-avatar {
     position: relative;
     display: flex;
@@ -18,10 +47,7 @@
 
 /* ─── SUCCESS EXIT TRANSITION ─── */
 /* The Avatar container will ripple/flash then fade */
-.interactive-avatar.active {
-    /* No fly away, we want to stay for the high five */
-    /* The flash will be handled by the glow */
-}
+
 
 /* ─── Character Container w/ Float ─── */
 .avatar-character {

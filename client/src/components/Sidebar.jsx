@@ -1,43 +1,69 @@
-import React from 'react';
-import { FaInbox, FaCalendarDay, FaCalendarAlt, FaProjectDiagram, FaChartPie, FaSignOutAlt } from 'react-icons/fa';
+import React, { useState } from 'react';
+import {
+    FaInbox, FaCalendarDay, FaChartPie, FaCog,
+    FaChevronLeft, FaChevronRight, FaLayerGroup,
+    FaSignOutAlt
+} from 'react-icons/fa';
+import './Sidebar.css';
 
-const Sidebar = ({ onLogout, currentView, onNavigate }) => {
-    const navItems = [
-        { icon: <FaInbox size={16} />, label: 'Inbox', id: 'Tasks' },
-        { icon: <FaCalendarDay size={16} />, label: 'Today', id: 'Tasks' },
-        { icon: <FaCalendarAlt size={16} />, label: 'Upcoming', id: 'Goals' },
-        { icon: <FaProjectDiagram size={16} />, label: 'Projects', id: 'Stats' },
-        { icon: <FaChartPie size={16} />, label: 'Analytics', id: 'Settings' },
+const Sidebar = ({ activeView, onNavigate, onLogout, onOpenSettings }) => {
+    const [isCollapsed, setIsCollapsed] = useState(false);
+
+    const mainNavItems = [
+        { id: 'tasks', label: 'Tasks', icon: <FaInbox /> },
+        { id: 'projects', label: 'Projects', icon: <FaLayerGroup /> },
+        { id: 'insights', label: 'Insights', icon: <FaChartPie /> },
     ];
 
     return (
-        <aside className="sidebar-new" role="navigation" aria-label="Main navigation">
-            {/* Logo */}
-            <div className="sidebar-brand">
-                <img src="/logo.png" alt="SmartTodo" className="sidebar-brand-logo" />
-                <span className="sidebar-brand-text">SmartTodo</span>
+        <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+            <div className="sidebar-header">
+                <div className="brand-icon">⚡</div>
+                <span className="brand-text">KaryaAI</span>
             </div>
 
-            {/* Navigation */}
-            <nav className="sidebar-navigation">
-                {navItems.map((item, index) => (
+            <nav className="sidebar-nav">
+                {mainNavItems.map(item => (
                     <div
-                        key={index}
-                        className={`sidebar-nav-item ${currentView === item.id ? 'active' : ''}`}
+                        key={item.id}
+                        className={`nav-item ${activeView === item.id ? 'active' : ''}`}
                         onClick={() => onNavigate(item.id)}
-                        role="button"
-                        tabIndex={0}
+                        title={isCollapsed ? item.label : ''}
                     >
-                        <span className="sidebar-nav-icon">{item.icon}</span>
-                        <span className="sidebar-nav-label">{item.label}</span>
+                        <span className="nav-icon">{item.icon}</span>
+                        <span className="nav-label">{item.label}</span>
                     </div>
                 ))}
             </nav>
 
-            {/* Logout */}
-            <div className="sidebar-logout" onClick={onLogout} role="button" tabIndex={0}>
-                <FaSignOutAlt size={16} />
-                <span>Logout</span>
+            <div className="sidebar-bottom-actions">
+                <div
+                    className="nav-item"
+                    onClick={onOpenSettings}
+                    title={isCollapsed ? 'Settings' : ''}
+                >
+                    <span className="nav-icon"><FaCog /></span>
+                    <span className="nav-label">Settings</span>
+                </div>
+
+                <div
+                    className="nav-item logout"
+                    onClick={onLogout}
+                    title={isCollapsed ? 'Logout' : ''}
+                >
+                    <span className="nav-icon"><FaSignOutAlt /></span>
+                    <span className="nav-label">Logout</span>
+                </div>
+            </div>
+
+            <div className="sidebar-footer">
+                <button
+                    className="collapse-btn"
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    title={isCollapsed ? "Expand" : "Collapse"}
+                >
+                    {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+                </button>
             </div>
         </aside>
     );

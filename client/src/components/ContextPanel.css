@@ -1,0 +1,8 @@
+.context-panel {
+    background-color: var(--bg-primary);
+    border-left: 1px solid var(--border-color);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}

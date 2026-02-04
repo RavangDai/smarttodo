@@ -4,14 +4,18 @@ import { FaArrowRight } from 'react-icons/fa';
 import confetti from 'canvas-confetti';
 
 import './App.css';
-import './Dashboard.css';
+import './Dashboard.css'; // Might need to cull this later
 import TaskAccordion from './components/TaskAccordion';
 import SmartTaskInput from './components/SmartTaskInput';
 import SmartInsightsPanel from './components/SmartInsightsPanel';
-import Timeline from './components/Timeline';
 import Settings from './components/Settings';
 import AITypewriter from './components/AITypewriter';
 import InteractiveAvatar from './components/InteractiveAvatar';
+
+// New Components
+import Sidebar from './components/Sidebar';
+import FocusBar from './components/FocusBar';
+import ContextPanel from './components/ContextPanel';
 
 function App() {
   // ─── STATE ───
@@ -34,7 +38,7 @@ function App() {
   const [isFocusedEmail, setIsFocusedEmail] = useState(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [authResult, setAuthResult] = useState('idle'); // 'idle' | 'success' | 'error'
+  const [authResult, setAuthResult] = useState('idle');
 
   // ─── EFFECTS ───
   useEffect(() => {
@@ -46,25 +50,17 @@ function App() {
     }
   }, [token]);
 
-  // Apply dark mode on mount
+  // Apply dark mode on mount (force enabled for HUD look for now or respect persist)
   useEffect(() => {
-    const saved = localStorage.getItem('karyaSettings');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.theme === 'dark') {
-        document.body.classList.add('dark-mode');
-      }
-    }
+    document.body.classList.add('dark-mode');
   }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Don't trigger if typing in input/textarea
       const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
       const key = e.key.toLowerCase();
 
-      // Ctrl/Cmd + Shift + N = New Task (avoids new window)
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && (key === 'n' || e.code === 'KeyN')) {
         e.preventDefault();
         e.stopPropagation();
@@ -73,24 +69,15 @@ function App() {
         return;
       }
 
-      // Escape = Close modals
       if (e.key === 'Escape') {
         setShowSettings(false);
         return;
-      }
-
-      // / = Focus search (only if not typing)
-      if (key === '/' && !isTyping) {
-        e.preventDefault();
-        document.getElementById('search-input')?.focus();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, []);
-
-
 
   // ─── API HELPERS ───
   const getHeaders = () => ({ headers: { 'x-auth-token': token } });
@@ -115,7 +102,6 @@ function App() {
         setAuthResult('success');
       } else {
         setAuthResult('success');
-        // Delay token set to show celebration
         setTimeout(() => {
           setToken(res.data.token);
         }, 1200);
@@ -123,7 +109,6 @@ function App() {
     } catch (err) {
       setAuthError(err.response?.data?.msg || 'Authentication failed');
       setAuthResult('error');
-      // Reset error state after animation
       setTimeout(() => setAuthResult('idle'), 2000);
     }
   };
@@ -168,55 +153,36 @@ function App() {
     return d.toISOString().split('T')[0];
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning.';
-    if (hour < 18) return 'Good afternoon.';
-    return 'Good evening.';
-  };
-
   // ─── COMPUTED ───
   const pendingCount = tasks.filter(t => !t.isCompleted).length;
   const completedCount = tasks.filter(t => t.isCompleted).length;
   const totalCount = tasks.length;
 
   const filteredTasks = tasks.filter(task => {
-    // Filter by completion status
     if (filter === 'active' && task.isCompleted) return false;
     if (filter === 'completed' && !task.isCompleted) return false;
-    // Filter by search query
     if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
     return true;
   });
 
-  // AI Suggestion (mock for now)
-  const getAISuggestion = () => {
-    const highPriority = tasks.filter(t => t.priority === 'high' && !t.isCompleted);
-    if (highPriority.length > 0) {
-      return `Start with "${highPriority[0].title}" — it's marked urgent.`;
-    }
-    if (pendingCount > 0) {
-      return `You have ${pendingCount} task${pendingCount > 1 ? 's' : ''} pending.`;
-    }
-    return 'All clear. AI will suggest tasks as they arrive.';
-  };
-
   // ════════════════════════════════════════════════════════════════
-  // LOGIN VIEW (Split-Screen)
+  // LOGIN VIEW
   // ════════════════════════════════════════════════════════════════
   if (!token) {
     return (
       <div className="auth-page">
-        {/* Left Panel - Branding & Avatar */}
         <div className="auth-left-panel">
           <header className="auth-header">
             <h1 className="wordmark">KaryaAI</h1>
             <p className="tagline">Intelligent simplicity.<br />AI that gets out of your way.</p>
           </header>
 
-          {/* Interactive Avatar */}
+          <div className="sanskrit-overlay">
+            <span className="sanskrit-symbol chakra"></span>
+          </div>
+
           <InteractiveAvatar
             isTyping={isTyping}
             isFocusedEmail={isFocusedEmail}
@@ -225,28 +191,18 @@ function App() {
             authResult={authResult}
             email={email}
           />
-
-          {/* AI Callout with Typewriter Effect */}
           <AITypewriter />
         </div>
-
-        {/* Right Panel - Form */}
         <div className="auth-right-panel">
           <div className="auth-container">
-            <h2 className="auth-form-title">
+            <h2 className="auth-form-title slide-up-stagger" style={{ animationDelay: '0.1s' }}>
               {isRegistering ? 'Create your account' : 'Welcome back'}
             </h2>
-            <p className="auth-form-subtitle">
-              {isRegistering
-                ? 'Start your productivity journey with AI'
-                : 'Sign in to continue to your tasks'}
+            <p className="auth-form-subtitle slide-up-stagger" style={{ animationDelay: '0.2s' }}>
+              {isRegistering ? 'Start your productivity journey with AI' : 'Sign in to continue to your tasks'}
             </p>
-
-            {authError && (
-              <div className="auth-error">{authError}</div>
-            )}
-
-            <form onSubmit={handleAuth} className="auth-form">
+            {authError && <div className="auth-error slide-up-stagger" style={{ animationDelay: '0.25s' }}>{authError}</div>}
+            <form onSubmit={handleAuth} className="auth-form slide-up-stagger" style={{ animationDelay: '0.3s' }}>
               <input
                 type="email"
                 className="input-field"
@@ -258,10 +214,7 @@ function App() {
                   clearTimeout(window.typingTimeout);
                   window.typingTimeout = setTimeout(() => setIsTyping(false), 500);
                 }}
-                onFocus={() => {
-                  setIsFocusedEmail(true);
-                  setAuthResult('idle');
-                }}
+                onFocus={() => { setIsFocusedEmail(true); setAuthResult('idle'); }}
                 onBlur={() => setIsFocusedEmail(false)}
                 required
               />
@@ -277,10 +230,7 @@ function App() {
                     clearTimeout(window.typingTimeout);
                     window.typingTimeout = setTimeout(() => setIsTyping(false), 500);
                   }}
-                  onFocus={() => {
-                    setIsFocusedPassword(true);
-                    setAuthResult('idle');
-                  }}
+                  onFocus={() => { setIsFocusedPassword(true); setAuthResult('idle'); }}
                   onBlur={() => setIsFocusedPassword(false)}
                   required
                 />
@@ -288,17 +238,7 @@ function App() {
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{
-                    position: 'absolute',
-                    right: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'var(--text-secondary)',
-                    fontSize: '14px'
-                  }}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '14px' }}
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -307,15 +247,11 @@ function App() {
                 {isRegistering ? 'CREATE ACCOUNT' : 'SIGN IN'} <FaArrowRight size={12} />
               </button>
             </form>
-
-            <div className="auth-switch">
+            <div className="auth-switch slide-up-stagger" style={{ animationDelay: '0.4s' }}>
               <span className="text-secondary">
                 {isRegistering ? 'Already have an account?' : 'New to KaryaAI?'}
               </span>
-              <button
-                className="btn-ghost"
-                onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }}
-              >
+              <button className="btn-ghost" onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }}>
                 {isRegistering ? 'Sign In' : 'Create Account'}
               </button>
             </div>
@@ -325,80 +261,44 @@ function App() {
     );
   }
 
-
   // ════════════════════════════════════════════════════════════════
-  // DASHBOARD VIEW (Brutalist)
+  // DASHBOARD VIEW (Pilot's HUD)
   // ════════════════════════════════════════════════════════════════
   return (
-    <div className="app-layout">
-      {/* ── TOP BAR ── */}
-      <header className="top-bar">
-        <div className="top-bar-left">
-          <span className="logo">KaryaAI</span>
-          <input
-            type="text"
-            className="search-input"
-            placeholder="Search tasks... (/)"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            id="search-input"
-          />
-        </div>
-        <nav className="top-bar-nav">
-          <button
-            className={`nav-item ${activeView === 'tasks' ? 'active' : ''}`}
-            onClick={() => setActiveView('tasks')}
-          >
-            Tasks
-          </button>
-          <button
-            className={`nav-item ${activeView === 'insights' ? 'active' : ''}`}
-            onClick={() => setActiveView('insights')}
-          >
-            Insights
-          </button>
-          <button className="nav-item" onClick={() => setShowSettings(true)}>
-            Settings
-          </button>
-          <button className="nav-item logout" onClick={() => setToken(null)}>
-            Logout
-          </button>
-        </nav>
-      </header>
+    <div className="app-container">
+      {/* ── SIDEBAR ── */}
+      <Sidebar
+        activeView={activeView}
+        onNavigate={setActiveView}
+        onOpenSettings={() => setShowSettings(true)}
+        onLogout={() => setToken(null)}
+      />
 
-      {/* ── SETTINGS MODAL ── */}
-      {showSettings && (
-        <Settings
-          onClose={() => setShowSettings(false)}
-          onLogout={() => setToken(null)}
+      {/* ── MAIN CONTENT ── */}
+      <main className="main-content">
+
+        {/* ── FOCUS BAR ── */}
+        <FocusBar
+          taskCount={pendingCount}
         />
-      )}
 
-      {/* ── MAIN ── */}
-      <main className="main">
-        {activeView === 'tasks' ? (
-          <>
-            {/* ── HERO GREETING ── */}
-            <section className="hero">
-              <h1 className="hero-greeting">{getGreeting()}</h1>
-              <div className="ai-insight slide-in">
-                <span className="ai-label">AI:</span>
-                <span className="ai-message">{getAISuggestion()}</span>
-              </div>
-            </section>
+        {/* ── CONTENT SPLIT ── */}
+        <div className="content-split">
 
-            {/* ── TIMELINE ── */}
-            <Timeline tasks={tasks} />
+          {/* ── LEFT: TASK LIST ── */}
+          <section className="task-list-container">
 
-            {/* ── TASK INPUT ── */}
-            <SmartTaskInput
-              onAddTask={handleAddTask}
-              getLocalDateString={getLocalDateString}
-              tasks={tasks}
-            />
+            {/* ── INPUT AREA (Sticky Top) ── */}
+            <div style={{ padding: '1.5rem', paddingBottom: '0.5rem', background: 'var(--bg-primary)', position: 'sticky', top: 0, zIndex: 10 }}>
+              <SmartTaskInput
+                onAddTask={handleAddTask}
+                getLocalDateString={getLocalDateString}
+                tasks={tasks}
+              />
+            </div>
 
-            {/* ── FILTER BAR ── */}
-            <div className="filter-bar">
+            {/* ── FILTER TABS ── */}
+            <div className="filter-bar" style={{ padding: '0 1.5rem', marginBottom: '1rem' }}>
               <div className="filter-tabs">
                 {['active', 'completed', 'all'].map(f => (
                   <button
@@ -410,25 +310,16 @@ function App() {
                   </button>
                 ))}
               </div>
-              <span className="task-count mono">
-                {filteredTasks.length} {filter === 'all' ? 'total' : filter}
-              </span>
             </div>
 
-            {/* ── TASK LIST ── */}
-            <section className="task-list">
+            {/* ── TASKS ── */}
+            <div style={{ padding: '0 1.5rem 2rem 1.5rem' }}>
               {filteredTasks.length === 0 ? (
                 <div className="empty-state">
-                  <p className="empty-text">
-                    {filter === 'active'
-                      ? 'All clear. Grab a coffee, you earned it.'
-                      : filter === 'completed'
-                        ? 'No completed tasks yet.'
-                        : 'No tasks found.'}
-                  </p>
+                  <p className="empty-text">No tasks found.</p>
                 </div>
               ) : (
-                filteredTasks.map((task, index) => (
+                filteredTasks.map((task) => (
                   <TaskAccordion
                     key={task._id}
                     task={task}
@@ -450,31 +341,39 @@ function App() {
                     }}
                     onDrop={(e) => {
                       e.preventDefault();
-                      const fromId = dragState.dragging;
-                      const toId = task._id;
-                      if (fromId && fromId !== toId) {
-                        const fromIndex = tasks.findIndex(t => t._id === fromId);
-                        const toIndex = tasks.findIndex(t => t._id === toId);
-                        const reordered = [...tasks];
-                        const [moved] = reordered.splice(fromIndex, 1);
-                        reordered.splice(toIndex, 0, moved);
-                        setTasks(reordered);
-                      }
                       setDragState({ dragging: null, over: null });
+                      // Add reorder logic if backend supports it
                     }}
                   />
                 ))
               )}
-            </section>
-          </>
-        ) : (
-          <SmartInsightsPanel
-            tasks={tasks}
-            completedCount={completedCount}
-            totalCount={totalCount}
-          />
-        )}
+            </div>
+          </section>
+
+          {/* ── RIGHT: CONTEXT PANEL ── */}
+          <section className="context-panel-container">
+            {activeView === 'insights' ? (
+              <SmartInsightsPanel
+                tasks={tasks}
+                completedCount={completedCount}
+                totalCount={totalCount}
+              />
+            ) : (
+              /* Default to Timeline for 'tasks' or 'projects' for now */
+              <ContextPanel tasks={tasks} />
+            )}
+          </section>
+
+        </div>
       </main>
+
+      {/* ── SETTINGS MODAL ── */}
+      {showSettings && (
+        <Settings
+          onClose={() => setShowSettings(false)}
+          onLogout={() => setToken(null)}
+        />
+      )}
     </div>
   );
 }

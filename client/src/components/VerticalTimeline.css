@@ -1,0 +1,110 @@
+.vertical-timeline {
+    padding: 1.5rem;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.timeline-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.timeline-content {
+    position: relative;
+    padding-left: 1rem;
+    border-left: 2px solid var(--border-color);
+    margin-left: 0.5rem;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+    padding-left: 1.5rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -1.45rem;
+    /* Aligns with border-left center */
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--text-secondary);
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+
+.timeline-item.completed::before {
+    background-color: var(--accent-success);
+    border-color: var(--accent-success);
+}
+
+.timeline-item.active::before {
+    background-color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 4px var(--bg-secondary), 0 0 8px var(--accent-primary);
+}
+
+.timeline-time {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+    font-feature-settings: "tnum";
+}
+
+.timeline-card {
+    background-color: var(--bg-card);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.timeline-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent-primary-dim);
+}
+
+.timeline-task-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.timeline-now-indicator {
+    position: absolute;
+    left: -1rem;
+    /* Adjust based on parent padding/border */
+    width: calc(100% + 1rem);
+    border-top: 2px dashed var(--accent-primary);
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.now-label {
+    position: absolute;
+    left: -3rem;
+    top: -0.6em;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--accent-primary);
+    background-color: var(--bg-primary);
+    padding: 0 4px;
+}

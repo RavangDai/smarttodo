@@ -166,7 +166,7 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
             {isExpanded && <div className="focus-mode-overlay" onClick={() => setIsExpanded(false)} />}
 
             <div
-                className={`task-row ${task.isCompleted ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''} ${isExpanded ? 'focused' : ''}`}
+                className={`task-row ${task.isCompleted ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''} ${isExpanded ? 'focused' : ''} ${(isGenerating || isNlpLoading) ? 'ai-active' : ''}`}
                 draggable
                 onDragStart={onDragStart}
                 onDragOver={onDragOver}
