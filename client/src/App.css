@@ -1,25 +1,26 @@
 /* Global Reset & Base */
 :root {
-  --bg-primary: #121212;
-  --bg-secondary: #0a0a0a;
-  /* Darker sidebar/header */
-  --bg-card: #1e1e1e;
-  --bg-hover: #2a2a2a;
-  --bg-active: #333333;
+  /* Mapping to Master Theme (index.css) */
+  --bg-primary: var(--color-bg);
+  --bg-secondary: var(--color-surface);
+  --bg-card: var(--color-surface);
+  --bg-hover: var(--color-surface-hover);
+  --bg-active: var(--color-surface-active);
 
-  --text-primary: #e0e0e0;
-  --text-secondary: #a0a0a0;
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-secondary);
 
-  --accent-primary: #bb86fc;
-  --accent-primary-dim: rgba(187, 134, 252, 0.3);
-  --accent-secondary: #03dac6;
-  --accent-success: #00e676;
-  --accent-danger: #cf6679;
+  --accent-primary: var(--color-ai);
+  --accent-primary-dim: var(--color-ai-dim);
+  --accent-secondary: var(--color-ai);
+  /* Unifying accents */
+  --accent-success: var(--color-success);
+  --accent-danger: var(--color-error);
 
-  --border-color: #333333;
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --border-color: var(--color-border);
+  --font-family: var(--font-sans);
 
-  --accent-gradient: linear-gradient(135deg, #bb86fc 0%, #7c4dff 100%);
+  --accent-gradient: var(--color-ai-gradient);
 }
 
 body {
@@ -60,7 +61,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding: 0;
+  padding: 0 2.5rem;
   position: relative;
 }
 
@@ -98,8 +99,8 @@ body {
   display: flex;
   height: 100vh;
   width: 100vw;
-  background-color: #050505;
-  color: var(--text-primary);
+  background-color: var(--color-bg);
+  color: var(--color-ink);
   overflow: hidden;
   font-family: var(--font-display);
 }
@@ -108,10 +109,9 @@ body {
 .auth-left-panel {
   flex: 1;
   background:
-    radial-gradient(circle at 15% 25%, rgba(255, 107, 0, 0.08) 0%, transparent 45%),
-    /* Primary Orange Glow */
+    radial-gradient(circle at 15% 25%, rgba(255, 140, 66, 0.05) 0%, transparent 45%),
     radial-gradient(circle at 85% 85%, rgba(20, 20, 20, 1) 0%, transparent 60%),
-    linear-gradient(135deg, #0a0a0a 0%, #000000 100%);
+    linear-gradient(135deg, var(--color-bg) 0%, #000000 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -119,7 +119,7 @@ body {
   padding: 3rem;
   position: relative;
   overflow: hidden;
-  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  border-right: 1px solid var(--glass-border);
 }
 
 /* HIGH-TECH NEURAL GRID */
@@ -130,7 +130,7 @@ body {
   width: 200%;
   height: 200%;
   background-image:
-    radial-gradient(circle, rgba(255, 107, 0, 0.15) 1px, transparent 1px),
+    radial-gradient(circle, var(--color-ai-dim) 1px, transparent 1px),
     linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 30px 30px, 100px 100px, 100px 100px;
@@ -152,7 +152,7 @@ body {
 
 .sanskrit-symbol {
   position: absolute;
-  color: var(--color-monokit-orange);
+  color: var(--color-ai);
   opacity: 0.04;
   /* Very subtle */
   font-family: 'Noto Sans Devanagari', sans-serif;
@@ -162,14 +162,12 @@ body {
   user-select: none;
 }
 
-/* Om Removed */
-
 .sanskrit-symbol.chakra {
   width: 400px;
   height: 400px;
   bottom: -100px;
   right: -100px;
-  border: 2px dashed var(--color-monokit-orange);
+  border: 2px dashed var(--color-ai);
   border-radius: 50%;
   opacity: 0.03;
   animation: chakra-spin 60s linear infinite;
@@ -180,7 +178,7 @@ body {
   content: '';
   position: absolute;
   inset: 20px;
-  border: 1px solid var(--color-monokit-orange);
+  border: 1px solid var(--color-ai);
   border-radius: 50%;
   opacity: 0.5;
 }
@@ -195,13 +193,11 @@ body {
   width: 100%;
   height: 100%;
   font-size: 4rem;
-  color: var(--color-monokit-orange);
+  color: var(--color-ai);
   text-align: center;
   line-height: 400px;
   letter-spacing: 20px;
 }
-
-/* om-float removed */
 
 @keyframes chakra-spin {
   from {
@@ -232,14 +228,11 @@ body {
   pointer-events: none;
 }
 
-/* ─── JAGGED SEPARATOR (The "Zigzag" Line) ─── */
+/* ─── JAGGED SEPARATOR ─── */
 .auth-left-panel {
-  /* Existing properties maintained */
   border-right: none;
-  /* Remove simple border */
 }
 
-/* Divider Container */
 .auth-page::before {
   content: '';
   position: absolute;
@@ -247,21 +240,15 @@ body {
   bottom: 0;
   left: 50%;
   width: 4px;
-  /* Thickness of the line */
-  background: linear-gradient(to bottom, transparent, var(--color-monokit-orange), transparent);
+  background: linear-gradient(to bottom, transparent, var(--color-ai), transparent);
   transform: translateX(-50%);
   z-index: 50;
   filter: blur(1px);
-  /* Jagged Effect using clip-path could be applied here or on a wrapper, 
-     but for a "blend all" effect, a glowing energy beam is safer.
-     User asked for "Zigzag". Let's try a repeating linear gradient zigzag. */
   --zigzag-size: 20px;
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-  /* Placeholder for complex zigzag if needed, but a straight glowing beam blends better. 
-     If user insists on actual zigzag geometry: */
+  mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
 }
 
-/* Real Zigzag Separator */
 .auth-page::after {
   content: '';
   position: absolute;
@@ -272,8 +259,8 @@ body {
   background: repeating-linear-gradient(45deg,
       transparent,
       transparent 10px,
-      var(--color-monokit-orange) 10px,
-      var(--color-monokit-orange) 11px);
+      var(--color-ai) 10px,
+      var(--color-ai) 11px);
   transform: translateX(-50%);
   opacity: 0.3;
   z-index: 49;
@@ -288,7 +275,7 @@ body {
   padding: 1rem;
   background: rgba(10, 10, 10, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-left: 2px solid var(--color-monokit-orange);
+  border-left: 2px solid var(--color-ai);
   border-radius: 4px;
   backdrop-filter: blur(8px);
   position: relative;
@@ -314,7 +301,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, transparent 50%, rgba(255, 107, 0, 0.02) 50%);
+  background: linear-gradient(to bottom, transparent 50%, var(--color-ai-dim) 50%);
   background-size: 100% 4px;
   pointer-events: none;
 }
@@ -331,7 +318,7 @@ body {
 .scrolling-text {
   font-family: var(--font-mono);
   font-size: 0.6rem;
-  color: var(--color-monokit-orange);
+  color: var(--color-ai);
   opacity: 0.8;
   letter-spacing: 0.2em;
 }
@@ -344,7 +331,7 @@ body {
 .hud-dots span {
   width: 4px;
   height: 4px;
-  background: var(--color-monokit-orange);
+  background: var(--color-ai);
   border-radius: 50%;
   animation: pulse 1s infinite;
 }
@@ -404,7 +391,7 @@ body {
 .tagline {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: var(--text-secondary);
+  color: var(--color-secondary);
   margin-top: 0.75rem;
   line-height: 1.6;
   opacity: 0.6;
@@ -412,7 +399,6 @@ body {
   letter-spacing: 0.1em;
   text-align: center;
   max-width: 80%;
-  /* Prevent it from getting too wide if that's the issue */
 }
 
 /* ─── TYPEWRITER TEXT ─── */
@@ -428,9 +414,6 @@ body {
   color: rgba(255, 255, 255, 0.4);
   margin-bottom: 0.25rem;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 0.25rem;
-  letter-spacing: 0.1em;
 }
 
 .ai-callout p {
@@ -443,15 +426,15 @@ body {
   font-family: var(--font-mono);
   font-size: 0.9rem;
   line-height: 1.5;
-  color: #fff;
-  text-shadow: 0 0 10px rgba(255, 107, 0, 0.3);
+  color: var(--color-ink);
+  text-shadow: 0 0 10px var(--color-ai-dim);
 }
 
 .cursor {
   display: inline-block;
   width: 8px;
   height: 14px;
-  background-color: var(--color-monokit-orange);
+  background-color: var(--color-ai);
   margin-left: 5px;
   vertical-align: middle;
   animation: cursor-blink 1s step-end infinite;
@@ -477,7 +460,7 @@ body {
   justify-content: center;
   align-items: center;
   padding: 3rem;
-  background-color: #050505;
+  background-color: var(--color-bg);
   position: relative;
   z-index: 10;
 }
@@ -485,10 +468,7 @@ body {
 .auth-container {
   width: 100%;
   max-width: 420px;
-  /* Animation handled by children via stagger */
 }
-
-/* Auth Branding - MOVED UP TO LEFT PANEL (CENTERED) */
 
 /* Auth Form */
 .auth-form-title {
@@ -497,7 +477,7 @@ body {
   font-weight: 700;
   margin-top: 0;
   margin-bottom: 0.5rem;
-  color: #fff;
+  color: var(--color-ink);
   letter-spacing: -0.04em;
   background: linear-gradient(to right, #ffffff, #a0a0a0);
   -webkit-background-clip: text;
@@ -506,14 +486,14 @@ body {
 }
 
 .auth-form-subtitle {
-  color: var(--text-secondary);
+  color: var(--color-secondary);
   margin-bottom: 3rem;
   font-size: 1rem;
   font-weight: 400;
 }
 
 .auth-form-subtitle a {
-  color: var(--color-monokit-orange);
+  color: var(--color-ai);
   text-decoration: none;
   font-weight: 500;
   transition: all 0.2s;
@@ -537,8 +517,7 @@ body {
   border: 1px solid var(--glass-border);
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: var(--glass-blur);
-  /* Glass Effect */
-  color: #fff;
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 1rem;
   width: 100%;
@@ -548,20 +527,20 @@ body {
 
 /* Hover: 2% Orange Tint */
 .input-field:hover {
-  background: rgba(255, 107, 0, 0.03);
+  background: var(--color-ai-dim);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
 .input-field:focus {
-  border-color: var(--color-monokit-orange);
+  border-color: var(--color-ai);
   outline: none;
   background: rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 0 1px var(--color-monokit-orange), 0 0 30px rgba(255, 107, 0, 0.1);
+  box-shadow: 0 0 0 1px var(--color-ai), 0 0 30px rgba(255, 107, 0, 0.1);
   transform: translateY(-1px);
 }
 
 .input-field::placeholder {
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--color-muted);
 }
 
 /* Password Toggle */
@@ -575,8 +554,12 @@ body {
   font-size: 0.9rem;
 }
 
+.auth-switch .text-secondary {
+  color: var(--color-secondary);
+}
+
 .auth-switch .btn-ghost {
-  color: var(--text-primary);
+  color: var(--color-ink);
   opacity: 0.7;
   font-weight: 600;
   margin-left: 0.5rem;
@@ -585,13 +568,13 @@ body {
 
 .auth-switch .btn-ghost:hover {
   opacity: 1;
-  color: var(--color-monokit-orange);
+  color: var(--color-ai);
 }
 
 .auth-error {
   color: #fff;
   background-color: rgba(207, 102, 121, 0.1);
-  border: 1px solid var(--accent-danger);
+  border: 1px solid var(--color-error);
   padding: 0.75rem 1rem;
   border-radius: 6px;
   margin-bottom: 1.5rem;
@@ -604,7 +587,7 @@ body {
 
 /* High Contrast Button - GOATED ORANGE */
 .auth-form .btn-primary {
-  background: linear-gradient(135deg, #FF6B00 0%, #FF8800 100%);
+  background: var(--color-ai-gradient);
   color: #000000;
   font-weight: 700;
   border: none;

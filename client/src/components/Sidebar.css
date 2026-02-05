@@ -1,7 +1,7 @@
 .sidebar {
     height: 100vh;
-    background-color: var(--bg-secondary);
-    border-right: 1px solid var(--border-color);
+    background-color: var(--color-surface);
+    border-right: 1px solid var(--color-border);
     display: flex;
     flex-direction: column;
     transition: width 0.3s cubic-bezier(0.2, 0, 0, 1);
@@ -20,7 +20,7 @@
     display: flex;
     align-items: center;
     padding: 0 1.5rem;
-    /* border-bottom: 1px solid var(--border-color); */
+    /* border-bottom: 1px solid var(--color-border); */
     white-space: nowrap;
     overflow: hidden;
 }
@@ -32,13 +32,13 @@
 
 .brand-icon {
     font-size: 1.5rem;
-    color: var(--accent-primary);
+    color: var(--color-ai);
 }
 
 .brand-text {
     font-weight: 700;
     margin-left: 0.75rem;
-    color: var(--text-primary);
+    color: var(--color-ink);
     opacity: 1;
     transition: opacity 0.2s;
     font-size: 1.1rem;
@@ -61,7 +61,7 @@
     display: flex;
     align-items: center;
     padding: 0.75rem 1rem;
-    color: var(--text-secondary);
+    color: var(--color-secondary);
     text-decoration: none;
     cursor: pointer;
     transition: all 0.2s;
@@ -74,13 +74,15 @@
 }
 
 .nav-item:hover {
-    color: var(--text-primary);
-    background-color: var(--bg-hover);
+    color: var(--color-ink);
+    background-color: var(--color-surface-hover);
 }
 
 .nav-item.active {
-    color: var(--text-primary);
-    background-color: var(--bg-active);
+    color: var(--color-ink);
+    background-color: var(--color-surface-active);
+    border-left: 3px solid var(--color-ai);
+    /* Added active indicator */
 }
 
 .nav-icon {
@@ -107,7 +109,7 @@
 
 .sidebar-footer {
     padding: 1rem;
-    /* border-top: 1px solid var(--border-color); */
+    /* border-top: 1px solid var(--color-border); */
     display: flex;
     justify-content: flex-end;
 }
@@ -119,7 +121,7 @@
 .collapse-btn {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--color-secondary);
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 8px;
@@ -130,8 +132,8 @@
 }
 
 .collapse-btn:hover {
-    background-color: var(--bg-hover);
-    color: var(--text-primary);
+    background-color: var(--color-surface-hover);
+    color: var(--color-ink);
 }
 
 .sidebar-bottom-actions {
@@ -139,7 +141,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--color-border);
     padding-top: 1rem;
     margin-top: auto;
     /* Pushes to bottom if parent flex */
@@ -150,11 +152,11 @@
 }
 
 .nav-item.logout {
-    color: var(--text-secondary);
+    color: var(--color-secondary);
 }
 
 .nav-item.logout:hover {
     background-color: rgba(207, 102, 121, 0.15);
     /* Accent Danger dim */
-    color: var(--accent-danger);
+    color: var(--color-error);
 }

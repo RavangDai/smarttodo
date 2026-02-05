@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SmartInsightsPanel = ({ tasks = [], completedCount = 0, totalCount = 0 }) => {
+const SmartInsightsPanel = ({ tasks = [], completedCount = 0, totalCount = 0, onAutoSchedule }) => {
     const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
     const pendingCount = totalCount - completedCount;
     const highPriorityCount = tasks.filter(t => t.priority === 'high' && !t.isCompleted).length;
@@ -77,15 +77,57 @@ const SmartInsightsPanel = ({ tasks = [], completedCount = 0, totalCount = 0 }) 
                 </div>
             )}
 
-            {/* AI Tip */}
-            {highPriorityCount > 0 && (
-                <div className="ai-insight slide-in" style={{ marginTop: 'var(--space-6)' }}>
-                    <span className="ai-label">AI:</span>
-                    <span className="ai-message">
-                        Focus on {highPriorityCount} urgent task{highPriorityCount > 1 ? 's' : ''} first.
-                    </span>
-                </div>
-            )}
+            {/* AI Tip / Proactive Scheduler */}
+            {(() => {
+                // Check if we have unscheduled tasks but no schedule for today
+                const todaysSchedule = tasks.filter(t => {
+                    if (!t.dueDate) return false;
+                    const d = new Date(t.dueDate);
+                    const now = new Date();
+                    return d.getDate() === now.getDate() && d.getMonth() === now.getMonth();
+                });
+
+                const hasUnscheduled = tasks.some(t => !t.isCompleted && (!t.dueDate || !t.dueDate.includes('T')));
+
+                if (todaysSchedule.length === 0 && hasUnscheduled) {
+                    return (
+                        <div className="ai-insight slide-in" style={{ marginTop: 'var(--space-6)', border: '1px solid var(--color-ai)', background: 'rgba(255, 107, 0, 0.05)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <span className="ai-label">KaryaAI:</span>
+                                    <span className="ai-message" style={{ display: 'block', marginTop: '4px' }}>
+                                        Your execution timeline is empty, but you have tasks. Shall I build a schedule for you?
+                                    </span>
+                                </div>
+                                <button
+                                    className="ai-action-btn"
+                                    onClick={onAutoSchedule}
+                                    style={{
+                                        background: 'var(--color-ai)', color: '#fff', border: 'none',
+                                        padding: '6px 12px', borderRadius: '6px', fontSize: '11px',
+                                        cursor: 'pointer', fontWeight: '600'
+                                    }}
+                                >
+                                    PLAN DAY
+                                </button>
+                            </div>
+                        </div>
+                    );
+                }
+
+                // Fallback to urgent tip
+                if (highPriorityCount > 0) {
+                    return (
+                        <div className="ai-insight slide-in" style={{ marginTop: 'var(--space-6)' }}>
+                            <span className="ai-label">AI:</span>
+                            <span className="ai-message">
+                                Focus on {highPriorityCount} urgent task{highPriorityCount > 1 ? 's' : ''} first.
+                            </span>
+                        </div>
+                    );
+                }
+                return null;
+            })()}
 
             {/* Focus Time Recommendations */}
             {(() => {

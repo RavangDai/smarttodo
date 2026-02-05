@@ -3,6 +3,9 @@ import axios from 'axios';
 import { FaArrowRight } from 'react-icons/fa';
 import confetti from 'canvas-confetti';
 
+import { DndContext } from '@dnd-kit/core';
+import { useSearchParams } from 'react-router-dom';
+
 import './App.css';
 import './Dashboard.css'; // Might need to cull this later
 import TaskAccordion from './components/TaskAccordion';
@@ -16,6 +19,7 @@ import InteractiveAvatar from './components/InteractiveAvatar';
 import Sidebar from './components/Sidebar';
 import FocusBar from './components/FocusBar';
 import ContextPanel from './components/ContextPanel';
+import { generateSchedule } from './utils/aiScheduler';
 
 function App() {
   // ─── STATE ───
@@ -25,7 +29,55 @@ function App() {
   const [activeView, setActiveView] = useState('tasks');
   const [showSettings, setShowSettings] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [dragState, setDragState] = useState({ dragging: null, over: null });
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // URL State
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTaskId = searchParams.get('task');
+
+  const handleToggleTask = (taskId) => {
+    if (activeTaskId === taskId) {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete('task');
+        return next;
+      });
+    } else {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.set('task', taskId);
+        return next;
+      });
+    }
+  };
+
+  // Drag State handled by dnd-kit context
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    if (over.id.startsWith('hour-')) {
+      // Task dropped on timeline hour
+      const taskId = active.id;
+      const hour = parseInt(over.id.split('-')[1]);
+
+      // Formats time as HH:00
+      const timeString = `${String(hour).padStart(2, '0')}:00`;
+
+      // Update task data locally first for instant feedback (optimistic)
+      const updatedTask = tasks.find(t => t._id === taskId);
+      if (updatedTask) {
+        const newTask = { ...updatedTask, dueTime: timeString };
+        setTasks(tasks.map(t => t._id === taskId ? newTask : t));
+
+        // Persist to server
+        axios.put(`/api/tasks/${taskId}`, { dueTime: timeString }, getHeaders())
+          .catch(err => console.error(err));
+
+        confetti({ particleCount: 30, spread: 30, origin: { x: 0.8, y: 0.5 }, colors: ['#FF6B00', '#FFFFFF'] });
+      }
+    }
+  };
 
   // Auth States
   const [email, setEmail] = useState('');
@@ -38,6 +90,7 @@ function App() {
   const [isFocusedEmail, setIsFocusedEmail] = useState(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isHoveringSubmit, setIsHoveringSubmit] = useState(false);
   const [authResult, setAuthResult] = useState('idle');
 
   // ─── EFFECTS ───
@@ -71,13 +124,21 @@ function App() {
 
       if (e.key === 'Escape') {
         setShowSettings(false);
+        // Also close task detail
+        if (activeTaskId) {
+          setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.delete('task');
+            return next;
+          });
+        }
         return;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown, true);
     return () => window.removeEventListener('keydown', handleKeyDown, true);
-  }, []);
+  }, [activeTaskId, setSearchParams]);
 
   // ─── API HELPERS ───
   const getHeaders = () => ({ headers: { 'x-auth-token': token } });
@@ -146,6 +207,59 @@ function App() {
     }
   };
 
+  const handleAutoSchedule = async () => {
+    // Call AI Scheduler API
+    try {
+      const res = await axios.post('/api/ai/plan', {
+        tasks: tasks.filter(t => !t.isCompleted),
+        userContext: { currentTime: new Date().toLocaleTimeString() }
+      }, getHeaders());
+
+      const plan = res.data;
+      if (!plan.schedule) return;
+
+      // Apply schedule to tasks (Optimistic + Server)
+      const updates = [];
+      plan.schedule.forEach(slot => {
+        if (slot.taskId) {
+          const task = tasks.find(t => t._id === slot.taskId);
+          if (task) {
+            // Start time from slot "09:00 - ..."
+            const startTime = slot.time.split('-')[0].trim(); // "09:00"
+
+            // Construct Date
+            const [hours, minutes] = startTime.split(':');
+            const newDate = new Date();
+            newDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+            updates.push({
+              ...task,
+              dueTime: startTime,
+              dueDate: newDate.toISOString()
+            });
+          }
+        }
+      });
+
+      // Batch update
+      const newTasks = tasks.map(t => {
+        const update = updates.find(u => u._id === t._id);
+        return update ? update : t;
+      });
+      setTasks(newTasks);
+
+      Promise.all(updates.map(task =>
+        axios.put(`/api/tasks/${task._id}`, { dueDate: task.dueDate, dueTime: task.dueTime }, getHeaders())
+      ))
+        .then(() => {
+          confetti({ particleCount: 50, spread: 60, origin: { x: 0.8, y: 0.5 }, colors: ['#4ade80', '#60a5fa'] });
+        });
+
+    } catch (err) {
+      console.error('AI Planning Failed:', err);
+    }
+  };
+
   // ─── HELPERS ───
   const getLocalDateString = (date) => {
     const d = new Date(date);
@@ -183,13 +297,27 @@ function App() {
             <span className="sanskrit-symbol chakra"></span>
           </div>
 
+          {/* Avatar State Logic */}
           <InteractiveAvatar
-            isTyping={isTyping}
-            isFocusedEmail={isFocusedEmail}
-            isFocusedPassword={isFocusedPassword}
-            isPasswordVisible={showPassword}
-            authResult={authResult}
+            state={(() => {
+              if (authResult === 'success') return 'success';
+              if (authResult === 'error') return 'confused';
+
+              if (isFocusedPassword) {
+                if (showPassword) return 'scanning'; // Scan when password visible
+                if (isTyping) return 'peeking'; // Peek when typing
+                return 'looking-away'; // Avert eyes by default on password
+              }
+
+              if (isFocusedEmail) {
+                if (isTyping) return 'watching';
+                return 'active'; // Look attentive
+              }
+
+              return 'idle';
+            })()}
             email={email}
+            mode="auth"
           />
           <AITypewriter />
         </div>
@@ -238,7 +366,7 @@ function App() {
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '14px' }}
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-secondary)', fontSize: '14px' }}
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -256,8 +384,8 @@ function App() {
               </button>
             </div>
           </div>
-        </div>
-      </div>
+        </div >
+      </div >
     );
   }
 
@@ -265,7 +393,7 @@ function App() {
   // DASHBOARD VIEW (Pilot's HUD)
   // ════════════════════════════════════════════════════════════════
   return (
-    <div className="app-container">
+    <div className={`app-container ${isFocusMode ? 'focus-mode-active' : ''}`}>
       {/* ── SIDEBAR ── */}
       <Sidebar
         activeView={activeView}
@@ -275,97 +403,91 @@ function App() {
       />
 
       {/* ── MAIN CONTENT ── */}
-      <main className="main-content">
+      <DndContext onDragEnd={handleDragEnd}>
+        <main className="main-content">
 
-        {/* ── FOCUS BAR ── */}
-        <FocusBar
-          taskCount={pendingCount}
-        />
+          {/* ── FOCUS BAR ── */}
+          <FocusBar
+            taskCount={pendingCount}
+            tasks={tasks}
+            isFocusMode={isFocusMode}
+            onToggleFocus={() => setIsFocusMode(!isFocusMode)}
+          />
 
-        {/* ── CONTENT SPLIT ── */}
-        <div className="content-split">
+          {/* ── CONTENT SPLIT ── */}
+          <div className="content-split">
 
-          {/* ── LEFT: TASK LIST ── */}
-          <section className="task-list-container">
+            {/* ── LEFT: TASK LIST ── */}
+            <section className="task-list-container">
 
-            {/* ── INPUT AREA (Sticky Top) ── */}
-            <div style={{ padding: '1.5rem', paddingBottom: '0.5rem', background: 'var(--bg-primary)', position: 'sticky', top: 0, zIndex: 10 }}>
-              <SmartTaskInput
-                onAddTask={handleAddTask}
-                getLocalDateString={getLocalDateString}
-                tasks={tasks}
-              />
-            </div>
-
-            {/* ── FILTER TABS ── */}
-            <div className="filter-bar" style={{ padding: '0 1.5rem', marginBottom: '1rem' }}>
-              <div className="filter-tabs">
-                {['active', 'completed', 'all'].map(f => (
-                  <button
-                    key={f}
-                    className={`filter-tab ${filter === f ? 'active' : ''}`}
-                    onClick={() => setFilter(f)}
-                  >
-                    {f.toUpperCase()}
-                  </button>
-                ))}
+              {/* ── INPUT AREA (Sticky Top) ── */}
+              <div style={{ padding: '1.5rem', paddingBottom: '0.5rem', background: 'var(--color-bg)', position: 'sticky', top: 0, zIndex: 10 }}>
+                <SmartTaskInput
+                  onAddTask={handleAddTask}
+                  getLocalDateString={getLocalDateString}
+                  tasks={tasks}
+                />
               </div>
-            </div>
 
-            {/* ── TASKS ── */}
-            <div style={{ padding: '0 1.5rem 2rem 1.5rem' }}>
-              {filteredTasks.length === 0 ? (
-                <div className="empty-state">
-                  <p className="empty-text">No tasks found.</p>
+              {/* ── FILTER TABS ── */}
+              <div className="filter-bar" style={{ padding: '0 1.5rem', marginBottom: '1rem' }}>
+                <div className="filter-tabs">
+                  {['active', 'completed', 'all'].map(f => (
+                    <button
+                      key={f}
+                      className={`filter-tab ${filter === f ? 'active' : ''}`}
+                      onClick={() => setFilter(f)}
+                    >
+                      {f.toUpperCase()}
+                    </button>
+                  ))}
                 </div>
+              </div>
+
+              {/* ── TASKS ── */}
+              <div style={{ padding: '0 1.5rem 2rem 1.5rem' }}>
+                {filteredTasks.length === 0 ? (
+                  <div className="empty-state">
+                    <p className="empty-text">No tasks found.</p>
+                  </div>
+                ) : (
+                  filteredTasks.map((task) => (
+                    <TaskAccordion
+                      key={task._id}
+                      task={task}
+                      viewMode="focus"
+                      onUpdate={updateTask}
+                      onDelete={deleteTask}
+                      headers={getHeaders().headers}
+                      isExpanded={activeTaskId === task._id}
+                      onToggle={() => handleToggleTask(task._id)}
+                    />
+                  ))
+                )}
+              </div>
+            </section>
+
+            {/* ── RIGHT: CONTEXT PANEL ── */}
+            <section className="context-panel-container">
+              {activeView === 'insights' ? (
+                <SmartInsightsPanel
+                  tasks={tasks}
+                  completedCount={completedCount}
+                  totalCount={totalCount}
+                  onAutoSchedule={() => handleAutoSchedule()}
+                />
               ) : (
-                filteredTasks.map((task) => (
-                  <TaskAccordion
-                    key={task._id}
-                    task={task}
-                    viewMode="focus"
-                    onUpdate={updateTask}
-                    onDelete={deleteTask}
-                    headers={getHeaders().headers}
-                    isDragging={dragState.dragging === task._id}
-                    isDragOver={dragState.over === task._id}
-                    onDragStart={(e) => {
-                      e.dataTransfer.effectAllowed = 'move';
-                      setDragState(s => ({ ...s, dragging: task._id }));
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      if (dragState.over !== task._id) {
-                        setDragState(s => ({ ...s, over: task._id }));
-                      }
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setDragState({ dragging: null, over: null });
-                      // Add reorder logic if backend supports it
-                    }}
-                  />
-                ))
+                /* Default to Timeline for 'tasks' or 'projects' for now */
+                <ContextPanel
+                  tasks={tasks}
+                  onAutoSchedule={handleAutoSchedule}
+                />
               )}
-            </div>
-          </section>
+            </section>
 
-          {/* ── RIGHT: CONTEXT PANEL ── */}
-          <section className="context-panel-container">
-            {activeView === 'insights' ? (
-              <SmartInsightsPanel
-                tasks={tasks}
-                completedCount={completedCount}
-                totalCount={totalCount}
-              />
-            ) : (
-              /* Default to Timeline for 'tasks' or 'projects' for now */
-              <ContextPanel tasks={tasks} />
-            )}
-          </section>
-
-        </div>
-      </main>
+          </div>
+        </main>
+      </DndContext>
 
       {/* ── SETTINGS MODAL ── */}
       {showSettings && (

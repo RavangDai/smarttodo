@@ -76,7 +76,13 @@ router.post('/breakdown/:taskId', async (req, res) => {
 
     } catch (error) {
         console.error("❌ AI Error:", error);
-        res.write(`data: {"error": "Failed to generate breakdown"}\n\n`);
+        let errorMessage = "Failed to generate breakdown";
+
+        if (error.response?.status === 429 || error.message.includes('429') || error.message.includes('Quota')) {
+            errorMessage = "AI Quota Exceeded. Try again later.";
+        }
+
+        res.write(`data: {"error": "${errorMessage}"}\n\n`);
         res.end();
     }
 });
@@ -167,6 +173,116 @@ Examples:
     } catch (error) {
         console.error('❌ NLP Error:', error);
         res.status(500).json({ error: 'Failed to process command' });
+    }
+});
+
+// POST /api/ai/plan - Daily Scheduler Chatbot
+router.post('/plan', auth, async (req, res) => {
+    try {
+        const { tasks, userContext } = req.body;
+        // userContext can include: currentTime, preferences, etc.
+
+        const systemPrompt = `
+IDENTITY
+You are KaryaAI, an AI-powered daily planning assistant.
+You are calm, precise, supportive, and decisive.
+Your job is to create realistic, executable daily schedules.
+
+INPUT DATA
+Current Time: ${userContext?.currentTime || new Date().toLocaleTimeString()}
+Tasks Provided: ${JSON.stringify(tasks)}
+
+SCHEDULING RULES
+1. Schedule high-focus tasks during peak energy hours (monitor assumption or user pref).
+2. Insert 10-15m breaks every 60-90m.
+3. Lunch break around 12:30 or 13:00.
+4. Deadlines > High Priority > Personal Preference.
+5. If overloaded, suggest deferring low priority tasks.
+6. Be realistic with time.
+
+OUTPUT FORMAT
+Return a pure JSON object with this structure:
+{
+  "schedule": [
+    { "time": "09:00 - 09:30", "activity": "Morning Setup", "type": "routine" },
+    { "time": "09:30 - 11:00", "activity": "Task Name", "type": "task", "taskId": "..." }
+  ],
+  "notes": "Explanation of the plan.",
+  "improvement": "One tip for better flow.",
+  "question": "Optional adjustment question."
+}
+`;
+
+        const result = await model.generateContent(systemPrompt);
+        const response = await result.response;
+        let text = response.text().trim();
+
+        // Clean markdown
+        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+        const plan = JSON.parse(text);
+        res.json(plan);
+
+    } catch (error) {
+        console.error('❌ Planner Error:', error);
+        res.status(500).json({ error: 'Failed to generate plan' });
+    }
+});
+
+// POST /api/ai/chat - Conversational Interface
+router.post('/chat', auth, async (req, res) => {
+    try {
+        const { message, history, tasks, userContext } = req.body;
+
+        const systemPrompt = `
+IDENTITY
+You are KaryaAI, a proactive, intelligent productivity assistant.
+You are embedded in a Todo App. You have access to the user's tasks.
+
+CONTEXT
+Current Time: ${userContext?.currentTime || new Date().toLocaleTimeString()}
+User Tasks: ${JSON.stringify(tasks.map(t => ({ id: t._id, title: t.title, priority: t.priority, due: t.dueTime || t.dueDate, status: t.isCompleted ? 'done' : 'pending' })))}
+
+GOAL
+Help the user plan, prioritize, and execute.
+If the user asks to "plan my day", suggest a schedule in JSON.
+If the user is overwhelmed, suggest 1 small task.
+If the user chats casually, be brief and professional but friendly.
+
+IMPORTANT
+If you want to perform an action (like updating the UI), output a JSON block at the end of your message.
+Action Formats:
+- SCHEDULE: { "action": "schedule", "schedule": [ ... ] }
+- ADD_TASK: { "action": "add_task", "task": { ... } }
+
+Stay concise. No fluff.
+`;
+
+        const chatHistory = history.map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }]
+        }));
+
+        // Add current message
+        chatHistory.push({ role: 'user', parts: [{ text: message }] });
+
+        // Prepend system instruction (Gemini specific way or just insert as first message context)
+        // For Gemini 1.5 Flash, system instructions are supported or we just prepend to context.
+        // We'll prepend context to the last message for simplicity or use generationConfig if available.
+
+        const result = await model.generateContent({
+            contents: chatHistory,
+            systemInstruction: { role: 'system', parts: [{ text: systemPrompt }] }
+        });
+
+        const response = await result.response;
+        const text = response.text();
+
+        res.json({ reply: text });
+
+    } catch (error) {
+        console.error('❌ Chat Error:', error);
+        res.status(500).json({ error: 'Failed to chat' });
     }
 });
 

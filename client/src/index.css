@@ -9,58 +9,48 @@
    1. DESIGN TOKENS
    ───────────────────────────────────────────── */
 :root {
-  /* ── PALETTE (Refined Monokai) ── */
-  --color-bg: #0D0D0D;
-  /* Rich Black */
-  --color-surface: #1A1A1A;
-  /* Dark Surface */
-  --color-ink: #E6E6E6;
-  /* Off-white for readability */
-  --color-secondary: #A3A3A3;
+  /* ── PALETTE (Master Theme) ── */
+  /* User Requirement: Dark bg (#0a0a0a-#1a1a1a), orange accent (#ff8c42) */
+
+  /* Backgrounds */
+  --color-bg: #0a0a0a;
+  /* Deepest Black */
+  --color-surface: #141414;
+  /* Card/Panel Background */
+  --color-surface-hover: #1a1a1a;
+  --color-surface-active: #222222;
+
+  /* Text */
+  --color-ink: #EDEDED;
+  /* Primary Text (High Contrast) */
+  --color-secondary: #A1A1A1;
+  /* Secondary Text */
   --color-muted: #666666;
+  /* Disabled/Placeholder */
   --color-border: #333333;
-  --color-hover: #252525;
+  /* Borders */
 
-  /* ── AI Accent (Orange Gradient) ── */
-  --color-ai: #FF6B00;
-  --color-ai-gradient: linear-gradient(135deg, #FF6B00 0%, #FF8800 100%);
-  --color-ai-bg: rgba(255, 107, 0, 0.1);
-  --color-ai-glow: 0 0 20px rgba(255, 107, 0, 0.25);
+  /* Accents */
+  --color-ai: #ff8c42;
+  /* The "Karya Orange" */
+  --color-ai-dim: rgba(255, 140, 66, 0.1);
+  --color-ai-glow: 0 0 20px rgba(255, 140, 66, 0.3);
+  --color-ai-gradient: linear-gradient(135deg, #ff8c42 0%, #ff6b00 100%);
 
-  /* ── Monokit Orange (Request Specific) ── */
-  --color-monokit-orange: #FF6B00;
-  --color-monokit-glow: radial-gradient(circle, rgba(255, 107, 0, 0.4) 0%, rgba(255, 107, 0, 0) 70%);
+  /* Semantic */
+  --color-success: #00D1B2;
+  --color-warning: #FD971F;
+  --color-error: #F92672;
 
-  /* ── Glassmorphism ── */
+  /* ── GLASSMORPHISM ── */
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-blur: blur(10px);
-
-  /* ── Semantic ── */
-  --color-success: #00D1B2;
-  /* Teal */
-  --color-warning: #FD971F;
-  /* Monokai Orange/Yellow */
-  --color-error: #F92672;
-  /* Monokai Pink */
+  --glass-blur: blur(12px);
 
   /* ── TYPOGRAPHY ── */
   --font-display: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
-  /* Simplified */
   --font-sans: 'Inter', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
-
-  /* ── Type Scale ── */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 2rem;
-  --text-4xl: 2.5rem;
-  --text-5xl: 3.5rem;
-  --text-hero: 6rem;
 
   /* ── SPACING ── */
   --space-1: 0.25rem;
@@ -74,24 +64,22 @@
 
   /* ── BORDERS ── */
   --radius: 12px;
+  --radius-sm: 8px;
   --border: 1px solid var(--color-border);
 
-  /* ── TRANSITIONS ── */
-  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --duration: 200ms;
+  /* ── ANIMATIONS ── */
+  /* User Requirement: 200-300ms ease-in-out */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Standard Ease-in-out */
+  --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --duration: 250ms;
+  --duration-fast: 150ms;
+  --duration-slow: 400ms;
 }
 
-/* ─── DARK MODE (Default) ─── */
-.dark-mode {
-  --color-bg: #0D0D0D;
-  --color-surface: #1A1A1A;
-  --color-ink: #E6E6E6;
-  --color-secondary: #A3A3A3;
-  --color-muted: #666666;
-  --color-border: #333333;
-  --color-hover: #252525;
-  --color-ai-bg: rgba(255, 107, 0, 0.1);
-}
+/* Defaulting to dark mode vars implies we don't need a separate .dark-mode block 
+   unless we plan to support light mode later. For now, unifying to Dark. */
+
 
 /* ─────────────────────────────────────────────
    2. RESET & BASE
@@ -183,7 +171,7 @@ code {
 .ai-suggestion {
   border-left: 3px solid var(--color-ai);
   padding-left: var(--space-3);
-  background: var(--color-ai-bg);
+  background: var(--color-ai-dim);
 }
 
 /* ─────────────────────────────────────────────
@@ -361,8 +349,10 @@ button {
 }
 
 /* ─────────────────────────────────────────────
-   12. ANIMATIONS (Subtle Only)
+   12. ANIMATIONS & UTILITIES
    ───────────────────────────────────────────── */
+
+/* Keyframes */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -373,10 +363,22 @@ button {
   }
 }
 
-@keyframes slideIn {
+@keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateX(-8px);
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
   }
 
   to {
@@ -385,10 +387,95 @@ button {
   }
 }
 
-.fade-in {
-  animation: fadeIn 200ms var(--ease);
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-.slide-in {
-  animation: slideIn 150ms var(--ease);
+@keyframes checkMark {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Utility Classes */
+.animate-fade-in {
+  animation: fadeIn var(--duration) var(--ease) forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp var(--duration) var(--ease) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight var(--duration) var(--ease) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--duration) var(--ease) forwards;
+}
+
+/* Staggered Delays */
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-400 {
+  animation-delay: 400ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
+}
+
+/* Focus Rings (Accessibility) */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-ai);
+}
+
+/* Scrollbar Polish */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 99px;
+  transition: background var(--duration);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
 }

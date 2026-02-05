@@ -1,12 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FaCheck, FaChevronDown, FaTrash, FaGripVertical, FaTerminal } from 'react-icons/fa';
-import { HiSparkles } from 'react-icons/hi2';
+import { FaCheck, FaChevronDown, FaTrash, FaGripVertical, FaTerminal, FaPlus, FaListUl } from 'react-icons/fa';
+import AIChip from './AIChip';
 import ProgressMandala from './ProgressMandala';
 import './ProgressMandala.css';
 
-const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, onDragStart, onDragOver, onDrop, isDragging, isDragOver }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+
+const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, isExpanded: propIsExpanded, onToggle }) => {
+    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+        id: task._id,
+    });
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        opacity: isDragging ? 0.5 : 1,
+        touchAction: 'none',
+    };
+
+    // Use prop if controlled, otherwise local state (though we are moving to fully controlled)
+    const [localIsExpanded, setLocalIsExpanded] = useState(false);
+
+    const isExpanded = propIsExpanded !== undefined ? propIsExpanded : localIsExpanded;
+
+    const toggleExpanded = (e) => {
+        if (e) e.stopPropagation();
+        if (onToggle) {
+            onToggle();
+        } else {
+            setLocalIsExpanded(!localIsExpanded);
+        }
+    };
+
     const [localNotes, setLocalNotes] = useState(task.notes || '');
     const [localSubtasks, setLocalSubtasks] = useState(task.subtasks || []);
     const [newSubtask, setNewSubtask] = useState('');
@@ -15,6 +41,8 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
     const [nlpMessage, setNlpMessage] = useState('');
     const [isNlpLoading, setIsNlpLoading] = useState(false);
     const [showNlpInput, setShowNlpInput] = useState(false);
+    const [isAddingSubtask, setIsAddingSubtask] = useState(false);
+    const [aiError, setAiError] = useState('');
 
     useEffect(() => {
         setLocalSubtasks(task.subtasks || []);
@@ -53,6 +81,7 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
         const updated = [...localSubtasks, { title: newSubtask, isCompleted: false }];
         setLocalSubtasks(updated);
         setNewSubtask('');
+        setIsAddingSubtask(false);
         saveChanges({ subtasks: updated });
     };
 
@@ -62,7 +91,12 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
         if (isGenerating) return;
 
         setIsGenerating(true);
-        setIsExpanded(true);
+        setAiError('');
+        if (onToggle) {
+            if (!isExpanded) onToggle();
+        } else {
+            setLocalIsExpanded(true);
+        }
 
         try {
             const token = localStorage.getItem('token');
@@ -87,6 +121,11 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
                     if (line.startsWith('data: ')) {
                         try {
                             const data = JSON.parse(line.slice(6));
+                            if (data.error) {
+                                setAiError(data.error);
+                                setIsGenerating(false);
+                                break;
+                            }
                             if (data.done) {
                                 const res = await axios.get('http://localhost:5000/api/tasks', { headers });
                                 const refreshed = res.data.find(t => t._id === task._id);
@@ -99,6 +138,7 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
             }
         } catch (err) {
             console.error('AI Error:', err);
+            setAiError('Connection failed.');
             setIsGenerating(false);
         }
     };
@@ -163,19 +203,18 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
     return (
         <>
             {/* Focus Mode Overlay */}
-            {isExpanded && <div className="focus-mode-overlay" onClick={() => setIsExpanded(false)} />}
+            {isExpanded && <div className="focus-mode-overlay" onClick={toggleExpanded} />}
 
             <div
-                className={`task-row ${task.isCompleted ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${isDragging ? 'dragging' : ''} ${isDragOver ? 'drag-over' : ''} ${isExpanded ? 'focused' : ''} ${(isGenerating || isNlpLoading) ? 'ai-active' : ''}`}
-                draggable
-                onDragStart={onDragStart}
-                onDragOver={onDragOver}
-                onDrop={onDrop}
+                ref={setNodeRef}
+                style={style}
+                {...attributes}
+                className={`task-row ${task.isCompleted ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${isExpanded ? 'focused' : ''} ${(isGenerating || isNlpLoading) ? 'ai-active' : ''}`}
             >
                 {/* Main Row */}
-                <div className="task-row-main" onClick={() => setIsExpanded(!isExpanded)}>
+                <div className="task-row-main" onClick={toggleExpanded}>
                     {/* Drag Handle */}
-                    <div className="drag-handle" onMouseDown={e => e.stopPropagation()}>
+                    <div className="drag-handle" {...listeners} onMouseDown={e => e.stopPropagation()}>
                         <FaGripVertical />
                     </div>
 
@@ -185,7 +224,7 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
                         onClick={toggleComplete}
                         aria-label={task.isCompleted ? 'Mark incomplete' : 'Mark complete'}
                     >
-                        {task.isCompleted && <FaCheck size={10} />}
+                        {task.isCompleted && <FaCheck size={10} className="animate-scale-in" />}
                     </button>
 
                     {/* Title */}
@@ -232,13 +271,13 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
                                 disabled={isGenerating}
                                 title="AI Breakdown"
                             >
-                                <HiSparkles size={14} />
+                                <AIChip size={28} />
                             </button>
                         )}
 
                         <button
                             className="action-btn expand"
-                            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+                            onClick={toggleExpanded}
                         >
                             <FaChevronDown size={12} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} />
                         </button>
@@ -275,31 +314,43 @@ const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, 
                     <div className="task-expanded fade-in">
                         {/* Subtasks */}
                         <div className="subtasks-section">
-                            <span className="section-label">SUBTASKS</span>
+                            <span className="section-label"><FaListUl /> SUBTASKS</span>
                             {localSubtasks.map((st, i) => (
                                 <div key={i} className="subtask-row">
                                     <button
                                         className={`subtask-check ${st.isCompleted ? 'checked' : ''}`}
                                         onClick={() => toggleSubtask(i)}
                                     >
-                                        {st.isCompleted && <FaCheck size={8} />}
+                                        {st.isCompleted && <FaCheck size={8} className="animate-scale-in" />}
                                     </button>
                                     <span className={st.isCompleted ? 'done' : ''}>{st.title}</span>
                                 </div>
                             ))}
 
                             {isGenerating && (
-                                <div className="generating-indicator">AI generating subtasks...</div>
+                                <div className="generating-indicator"></div>
                             )}
 
-                            <input
-                                type="text"
-                                className="add-subtask-input"
-                                placeholder="+ Add subtask"
-                                value={newSubtask}
-                                onChange={e => setNewSubtask(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && addSubtask()}
-                            />
+                            {aiError && (
+                                <div className="generating-indicator error">{aiError}</div>
+                            )}
+
+                            {isAddingSubtask ? (
+                                <input
+                                    type="text"
+                                    className="add-subtask-input"
+                                    placeholder="Enter subtask..."
+                                    value={newSubtask}
+                                    autoFocus
+                                    onBlur={() => !newSubtask && setIsAddingSubtask(false)}
+                                    onChange={e => setNewSubtask(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && addSubtask()}
+                                />
+                            ) : (
+                                <button className="add-subtask-btn" onClick={() => setIsAddingSubtask(true)}>
+                                    <FaPlus size={10} /> Add subtask
+                                </button>
+                            )}
                         </div>
 
                         {/* Notes */}

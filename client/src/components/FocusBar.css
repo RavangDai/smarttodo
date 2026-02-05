@@ -3,8 +3,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1.5rem;
-    background-color: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
     height: 60px;
     box-sizing: border-box;
 }
@@ -18,13 +18,13 @@
 .focus-greeting {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--color-ink);
     margin: 0;
 }
 
 .focus-status {
     font-size: 0.75rem;
-    color: var(--text-secondary);
+    color: var(--color-secondary);
     margin: 0;
 }
 
@@ -38,7 +38,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: var(--text-secondary);
+    color: var(--color-secondary);
     font-size: 0.85rem;
 }
 
@@ -51,7 +51,7 @@
 .icon-btn {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--color-secondary);
     cursor: pointer;
     padding: 0.25rem;
     display: flex;
@@ -76,4 +76,39 @@
     font-weight: bold;
     font-size: 0.8rem;
     cursor: pointer;
+}
+
+.focus-ai-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+    font-size: 0.9rem;
+    color: var(--color-secondary);
+}
+
+.ai-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--color-ai);
+    border: 1px solid var(--color-ai);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+}
+
+.ai-suggestion-text {
+    font-family: var(--font-mono);
+    color: var(--color-ink);
+}
+
+.cursor-blink {
+    animation: blink 1s step-end infinite;
+    color: var(--color-ai);
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
 }
