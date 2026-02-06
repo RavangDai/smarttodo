@@ -354,7 +354,13 @@
 }
 
 /* Glow for Focused/Active tasks */
-.task-row:hover,
+.task-row:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
 .task-row.focused {
   border-color: var(--color-ai);
   box-shadow: var(--color-ai-glow);
@@ -386,10 +392,12 @@
   position: relative;
   z-index: 100;
   background: var(--color-surface);
-  /* Stronger glow for focused state */
-  box-shadow:
-    0 0 0 1px var(--color-ai),
-    0 0 30px rgba(255, 107, 0, 0.2);
+  /* Premium Active State: Left Accent + Depth */
+  border-color: var(--color-border);
+  border-left-color: var(--color-ai);
+  border-left-width: 2px;
+  /* Subtler glow/shadow */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 140, 66, 0.1);
 }
 
 .task-row:last-child {
@@ -545,56 +553,87 @@
 }
 
 /* refined ai pulse */
+/* refined ai pulse (Quantum Glitch) */
+/* refined ai pulse (Neural Core) */
 .action-btn.ai.loading {
-  animation: chip-processing 1s infinite alternate;
+  animation: none;
   cursor: wait;
-}
-
-@keyframes chip-processing {
-  from {
-    box-shadow: 0 0 5px var(--color-ai), inset 0 0 2px var(--color-ai);
-    filter: brightness(1);
-  }
-
-  to {
-    box-shadow: 0 0 15px var(--color-ai), inset 0 0 8px var(--color-ai);
-    filter: brightness(1.3);
-  }
+  position: relative;
+  background: #000 !important;
+  /* Dark core for contrast */
+  box-shadow: 0 0 15px rgba(255, 140, 66, 0.4);
+  border: 1px solid rgba(255, 140, 66, 0.5);
+  overflow: hidden;
 }
 
 .action-btn.ai.loading svg {
-  animation: chip-shake 0.2s infinite;
+  z-index: 2;
+  color: #FF8C42;
+  /* Bright Orange Icon */
+  filter: drop-shadow(0 0 5px rgba(255, 140, 66, 0.8));
+  animation: core-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes chip-shake {
+/* Rotating Gradient Border */
+.action-btn.ai.loading::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(transparent, transparent, transparent, #FF8C42);
+  animation: neural-spin 1.5s linear infinite;
+  z-index: 0;
+}
+
+/* Inner Mask to create the ring effect */
+.action-btn.ai.loading::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  /* Thickness of the border */
+  background: #18181B;
+  /* Match card bg */
+  border-radius: 6px;
+  z-index: 1;
+}
+
+@keyframes neural-spin {
   0% {
-    transform: translate(0, 0);
-  }
-
-  25% {
-    transform: translate(0.5px, 0.5px);
-  }
-
-  50% {
-    transform: translate(0, -0.5px);
-  }
-
-  75% {
-    transform: translate(-0.5px, 0);
+    transform: rotate(0deg);
   }
 
   100% {
-    transform: translate(0, 0);
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes core-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 0 5px rgba(255, 140, 66, 0.8));
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(0.92);
+    filter: drop-shadow(0 0 2px rgba(255, 140, 66, 0.5));
   }
 }
 
 /* ─── EXPANDED CONTENT ─── */
 .task-expanded {
   padding: var(--space-4);
-  padding-left: calc(18px + var(--space-4) + var(--space-4));
+  /* Align with new left border of parent */
+  padding-left: var(--space-4);
   background: var(--color-surface);
-  border-left: 3px solid var(--color-border);
-  margin-left: calc(18px / 2);
+  /* Remove internal left border as parent now has it */
+  border-top: 1px solid var(--color-border);
+  margin-left: 0;
 }
 
 .section-label {
@@ -701,7 +740,8 @@
 }
 
 .add-subtask-input:focus {
-  border-color: var(--color-ink);
+  border-color: var(--color-ai);
+  box-shadow: none;
 }
 
 .add-subtask-btn {

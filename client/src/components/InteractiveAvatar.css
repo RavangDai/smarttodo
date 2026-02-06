@@ -1,9 +1,7 @@
 /* ─── AVATAR CONTAINER ─── */
 .interactive-avatar {
     width: 200px;
-    /* Increased from 140px */
     height: 220px;
-    /* Increased from 160px */
     position: relative;
     perspective: 800px;
     transition: transform 0.3s ease;
@@ -16,33 +14,33 @@
     position: relative;
     transform-style: preserve-3d;
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    /* Orange glow "border" */
-    filter: drop-shadow(0 0 8px rgba(255, 107, 0, 0.35));
+    /* Orange glow "border" - Softer and more diffuse for white theme */
+    filter: drop-shadow(0 0 15px rgba(255, 107, 0, 0.25));
 }
 
-/* ─── HEAD ─── */
+/* ─── HEAD (Glossy White) ─── */
 .avatar-head {
     width: 120px;
-    /* Big head for cute factor */
     height: 80px;
-    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    /* Glossy White Gradient */
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%);
     border-radius: 24px;
-    /* Rounder */
     position: absolute;
     top: 30px;
     left: 40px;
-    /* Centered in 200px width */
     z-index: 5;
     transform-origin: center bottom;
+    /* Soft premium shadows */
     box-shadow:
-        inset 0 3px 8px rgba(255, 255, 255, 0.1),
-        inset 0 -3px 8px rgba(0, 0, 0, 0.5),
-        0 8px 20px rgba(0, 0, 0, 0.3);
+        inset 0 2px 5px rgba(255, 255, 255, 1),
+        inset 0 -2px 5px rgba(0, 0, 0, 0.05),
+        0 8px 25px rgba(0, 0, 0, 0.1),
+        0 2px 6px rgba(0, 0, 0, 0.05);
     transition: transform 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-/* ─── ANTENNA (Redesigned) ─── */
+/* ─── ANTENNA (Chrome/Silver) ─── */
 .avatar-antenna {
     position: absolute;
     top: -32px;
@@ -63,17 +61,17 @@
     content: '';
     width: 20px;
     height: 10px;
-    background: #333;
+    background: #e0e0e0;
     position: absolute;
     bottom: -8px;
     border-radius: 50% 50% 0 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .antenna-stem {
     width: 3px;
     height: 26px;
-    background: linear-gradient(to top, #666, #999);
+    background: linear-gradient(to right, #ccc, #fff, #999);
     position: relative;
 }
 
@@ -82,7 +80,7 @@
     height: 8px;
     background: var(--color-ai);
     border-radius: 50%;
-    box-shadow: 0 0 12px var(--color-ai), 0 0 6px #fff;
+    box-shadow: 0 0 12px var(--color-ai), 0 0 4px #fff;
     margin-bottom: -1px;
     animation: pulse-antenna 2s infinite;
 }
@@ -117,23 +115,29 @@
     }
 }
 
-/* ─── FACE ─── */
+/* ─── FACE (Dark Screen with Glass Bezel) ─── */
 .avatar-face {
     width: 100%;
     height: 100%;
     position: relative;
     overflow: hidden;
     border-radius: 22px;
-    background: radial-gradient(circle at 50% 30%, #333, #000);
-    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+    /* Dark screen */
+    background: radial-gradient(circle at 50% 30%, #444, #111);
+    /* Glassy reflection/bezel effect */
+    box-shadow:
+        inset 0 0 0 2px rgba(255, 255, 255, 0.2),
+        inset 0 0 10px rgba(0, 0, 0, 0.5);
+    border: 3px solid #fff;
+    /* White bezel */
 }
 
 .avatar-eyes {
     display: flex;
     justify-content: space-between;
     padding: 0 22px;
-    /* Adjusted spacing */
-    margin-top: 20px;
+    margin-top: 18px;
+    /* Slight adjustment for bezel */
     position: relative;
     align-items: center;
     height: 100%;
@@ -142,24 +146,22 @@
 
 .avatar-eye {
     width: 24px;
-    /* Bigger eyes = cuter */
     height: 32px;
     background: #000;
     border-radius: 12px;
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 1);
     transition: all 0.2s;
 }
 
 .avatar-pupil {
     width: 12px;
-    /* Bigger pupils */
     height: 12px;
     background: var(--color-ai);
     border-radius: 50%;
-    box-shadow: 0 0 8px var(--color-ai);
+    box-shadow: 0 0 10px var(--color-ai);
     position: absolute;
     top: 50%;
     left: 50%;
@@ -175,26 +177,23 @@
     z-index: 2;
 }
 
-/* ─── BODY ─── */
+/* ─── BODY (Glossy White) ─── */
 .avatar-body {
     width: 90px;
     height: 65px;
-    /* Stubby body */
-    background: linear-gradient(180deg, #252525 0%, #151515 100%);
+    background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
     border-radius: 18px 18px 30px 30px;
     position: absolute;
     top: 95px;
-    /* Positioned below larger head */
     left: 55px;
-    /* Centered relative to head/container */
     z-index: 4;
     box-shadow:
-        inset 0 1px 3px rgba(255, 255, 255, 0.1),
-        0 5px 15px rgba(0, 0, 0, 0.4);
+        inset 0 2px 5px rgba(255, 255, 255, 1),
+        0 5px 15px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 /* K POWER CORE */
@@ -203,15 +202,14 @@
     font-family: sans-serif;
     font-weight: 900;
     font-size: 32px;
-    /* Bigger Logo */
     color: transparent;
-    -webkit-text-stroke: 2px rgba(255, 255, 255, 0.8);
-    background: linear-gradient(180deg, #fff 0%, var(--color-ai) 100%);
+    /* Darker stroke for visibility on white, or just rely on gradient */
+    -webkit-text-stroke: 0px;
+    background: linear-gradient(180deg, #ff9e40 0%, var(--color-ai) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     text-shadow:
-        0 0 20px var(--color-ai),
-        0 0 40px var(--color-ai);
+        0 0 10px rgba(255, 107, 0, 0.3);
     animation: core-pulse 3s infinite ease-in-out;
 }
 
@@ -225,7 +223,7 @@
 
     50% {
         opacity: 1;
-        filter: brightness(1.3);
+        filter: brightness(1.2);
     }
 }
 
@@ -240,24 +238,24 @@
 .avatar-vents span {
     width: 10px;
     height: 4px;
-    background: #000;
+    background: #ccc;
+    /* Lighter vents */
     border-radius: 2px;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* ─── ARMS ─── */
+/* ─── ARMS (Glossy White) ─── */
 .avatar-arm {
     width: 24px;
     height: 45px;
-    /* Chonky arms */
-    background: #222;
+    background: linear-gradient(90deg, #f0f0f0, #ffffff, #e0e0e0);
     position: absolute;
     top: 6px;
     border-radius: 12px;
     z-index: 3;
     transform-origin: top center;
-    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .avatar-arm.left {
@@ -271,7 +269,7 @@
 .arm-joint {
     width: 100%;
     height: 3px;
-    background: #000;
+    background: #ccc;
     margin-top: 20px;
     opacity: 0.5;
 }
@@ -281,24 +279,24 @@
     content: '';
     width: 28px;
     height: 28px;
-    background: linear-gradient(135deg, #333, #151515);
+    background: radial-gradient(circle at 30% 30%, #fff, #d0d0d0);
     position: absolute;
     bottom: -14px;
     left: -2px;
     border-radius: 50%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 /* ─── EARS (Headphones/Sensors) ─── */
 .avatar-ear {
     width: 14px;
     height: 28px;
-    background: #2a2a2a;
+    background: #e0e0e0;
     position: absolute;
     top: 20px;
     border-radius: 6px;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .avatar-ear.left {
@@ -334,20 +332,16 @@
 /* LOOK AWAY (Password Privacy) - HANDS COVERING EYES */
 .interactive-avatar.looking-away .avatar-head {
     transform: rotateX(15deg);
-    /* Look down slightly */
     transition: transform 0.3s ease;
 }
 
-/* Move arms effectively to cover eyes */
 .interactive-avatar.looking-away .avatar-arm.left {
     transform: rotate(140deg) translate(25px, 0px) translateZ(30px);
-    /* Adjusted for wider body */
     z-index: 20;
 }
 
 .interactive-avatar.looking-away .avatar-arm.right {
     transform: rotate(-140deg) translate(-25px, 0px) translateZ(30px);
-    /* Adjusted for wider body */
     z-index: 20;
 }
 
@@ -417,7 +411,6 @@
 /* SUCCESS / CELEBRATING - Robotic Salute */
 .interactive-avatar.success .avatar-character {
     animation: none;
-    /* Remove jump */
 }
 
 .interactive-avatar.success .avatar-head {
@@ -433,12 +426,10 @@
         transform: rotateX(-15deg);
     }
 
-    /* Look up slightly */
     60% {
         transform: rotateX(10deg);
     }
 
-    /* Confident nod down */
     100% {
         transform: rotateX(0deg);
     }
@@ -452,7 +443,6 @@
 
 .interactive-avatar.success .avatar-arm.left {
     transform: rotate(10deg);
-    /* Relaxed left arm */
 }
 
 @keyframes salute {
@@ -468,22 +458,18 @@
         transform: rotate(-120deg) translate(-10px, 10px) translateZ(20px);
     }
 
-    /* Hold */
     100% {
         transform: rotate(0deg);
     }
 }
 
-/* Tech Success Eyes - Solid Glow instead of Sparkles */
+/* Tech Success Eyes */
 .interactive-avatar.success .avatar-pupil {
     background: #4ade80;
-    /* Success Green */
     box-shadow: 0 0 20px #4ade80, 0 0 40px #4ade80;
     transform: scale(1.2);
     border-radius: 2px;
-    /* Square/Tech look */
     animation: none;
-    /* No spinning */
     width: 14px;
     height: 14px;
 }
@@ -542,7 +528,7 @@
     font-size: 32px;
     animation: coffee-float 3s ease-in-out infinite reverse;
     z-index: 20;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 @keyframes coffee-float {
@@ -571,10 +557,8 @@
     left: 50%;
     transform: translate(-50%, -50%);
     width: 260px;
-    /* Slightly smaller */
     height: 260px;
-    background: radial-gradient(circle, rgba(255, 107, 0, 0.15) 0%, transparent 65%);
-    /* Much more subtle opacity (0.3 -> 0.15) */
+    background: radial-gradient(circle, rgba(255, 107, 0, 0.08) 0%, transparent 70%);
     z-index: -1;
     pointer-events: none;
     animation: glow-pulse 4s ease-in-out infinite;

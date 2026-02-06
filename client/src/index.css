@@ -9,48 +9,51 @@
    1. DESIGN TOKENS
    ───────────────────────────────────────────── */
 :root {
-  /* ── PALETTE (Master Theme) ── */
-  /* User Requirement: Dark bg (#0a0a0a-#1a1a1a), orange accent (#ff8c42) */
+  /* ── PALETTE (Premium Dark SaaS) ── */
+  /* User Requirement: Deep matte grey (#0F0F10), Subtle Separation */
 
   /* Backgrounds */
-  --color-bg: #0a0a0a;
-  /* Deepest Black */
-  --color-surface: #141414;
-  /* Card/Panel Background */
-  --color-surface-hover: #1a1a1a;
-  --color-surface-active: #222222;
+  --color-bg: #0F0F10;
+  /* Deep matte grey */
+  --color-surface: #18181B;
+  /* Slightly lighter for cards/panels */
+  --color-surface-hover: #27272A;
+  --color-surface-active: #3F3F46;
+  --color-sidebar: #0A0A0A;
+  /* Distinct sidebar bg */
 
   /* Text */
-  --color-ink: #EDEDED;
+  --color-ink: #FAFAFA;
   /* Primary Text (High Contrast) */
-  --color-secondary: #A1A1A1;
+  --color-secondary: #A1A1AA;
   /* Secondary Text */
-  --color-muted: #666666;
+  --color-muted: #52525B;
   /* Disabled/Placeholder */
-  --color-border: #333333;
-  /* Borders */
+  --color-border: #27272A;
+  /* Subtle borders */
 
   /* Accents */
-  --color-ai: #ff8c42;
-  /* The "Karya Orange" */
-  --color-ai-dim: rgba(255, 140, 66, 0.1);
-  --color-ai-glow: 0 0 20px rgba(255, 140, 66, 0.3);
-  --color-ai-gradient: linear-gradient(135deg, #ff8c42 0%, #ff6b00 100%);
+  --color-ai: #FF8C42;
+  /* Karya Orange */
+  --color-ai-dim: rgba(255, 140, 66, 0.15);
+  --color-ai-glow: 0 0 30px rgba(255, 140, 66, 0.2);
+  --color-ai-gradient: linear-gradient(135deg, #FF8C42 0%, #FF5A1F 100%);
 
   /* Semantic */
-  --color-success: #00D1B2;
-  --color-warning: #FD971F;
-  --color-error: #F92672;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
 
   /* ── GLASSMORPHISM ── */
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-blur: blur(12px);
+  --glass-bg: rgba(24, 24, 27, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-blur: blur(20px);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
   /* ── TYPOGRAPHY ── */
-  --font-display: 'Space Grotesk', 'Inter', -apple-system, sans-serif;
-  --font-sans: 'Inter', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --font-display: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
   /* ── SPACING ── */
   --space-1: 0.25rem;
@@ -63,18 +66,22 @@
   --space-16: 4rem;
 
   /* ── BORDERS ── */
-  --radius: 12px;
+  --radius: 16px;
+  /* Modern rounded corners */
   --radius-sm: 8px;
+  --radius-lg: 24px;
   --border: 1px solid var(--color-border);
 
+  /* ── SHADOWS ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.15);
+
   /* ── ANIMATIONS ── */
-  /* User Requirement: 200-300ms ease-in-out */
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  /* Standard Ease-in-out */
+  --ease: cubic-bezier(0.2, 0, 0, 1);
   --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --duration: 250ms;
-  --duration-fast: 150ms;
-  --duration-slow: 400ms;
+  --duration: 300ms;
 }
 
 /* Defaulting to dark mode vars implies we don't need a separate .dark-mode block 
@@ -310,13 +317,34 @@ button {
   background: var(--color-secondary);
 }
 
+/* ── Glassmorphism Utilities ── */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-left: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.card-subtle {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration) var(--ease);
+}
+
+.card-subtle:hover {
+  background: var(--color-surface-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
 /* ─────────────────────────────────────────────
    9. FOCUS STATES
    ───────────────────────────────────────────── */
-*:focus-visible {
-  outline: 2px solid var(--color-ai);
-  outline-offset: 2px;
-}
+/* removed duplicate focus-visible rule */
 
 /* ─────────────────────────────────────────────
    10. SELECTION
@@ -455,9 +483,19 @@ button {
 }
 
 /* Focus Rings (Accessibility) */
+/* Focus Rings (Accessibility) - Adjusted to prevent double borders on inputs */
 *:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-ai);
+  /* Use box-shadow for a softer ring if needed, but components handle their own focus */
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 2px var(--color-ai);
+}
+
+/* Remove focus ring from inputs that have their own styling */
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  box-shadow: none;
+  outline: none;
 }
 
 /* Scrollbar Polish */
