@@ -22,9 +22,7 @@
     background: transparent;
     border: none;
     padding: 0.5rem 0.75rem;
-    color: #888;
-    /* Fallback */
-    color: var(--color-text-dim);
+    color: var(--color-muted);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -58,7 +56,7 @@
     left: 0;
     width: 100%;
     height: 2px;
-    background: var(--color-primary);
+    background: var(--color-ai);
 }
 
 .panel-content {

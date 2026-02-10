@@ -3,8 +3,8 @@
 .smart-insights-panel {
     width: 300px;
     min-width: 300px;
-    background: #0D0D12;
-    border-left: 1px solid #1E1E28;
+    background: var(--color-bg);
+    border-left: 1px solid var(--color-border);
     padding: 28px 24px;
     display: flex;
     flex-direction: column;
@@ -21,18 +21,18 @@
     align-items: center;
     gap: 10px;
     padding-bottom: 16px;
-    border-bottom: 1px solid #2D2D3A;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .insights-header h3 {
     font-size: 16px;
     font-weight: 700;
-    color: #E5E7EB;
+    color: var(--color-ink);
     margin: 0;
 }
 
 .insights-icon {
-    color: #BB86FC;
+    color: var(--color-ai);
     font-size: 18px;
 }
 
@@ -57,11 +57,11 @@
 }
 
 .progress-ring-bg {
-    stroke: #2D2D3A;
+    stroke: var(--color-border);
 }
 
 .progress-ring-fill {
-    stroke: #BB86FC;
+    stroke: var(--color-ai);
     transition: stroke-dashoffset 0.5s ease;
 }
 
@@ -76,12 +76,12 @@
 .progress-value {
     font-size: 28px;
     font-weight: 800;
-    color: #E5E7EB;
+    color: var(--color-ink);
 }
 
 .progress-label {
     font-size: 12px;
-    color: #9CA3AF;
+    color: var(--color-secondary);
     text-align: center;
     margin: 0;
 }
@@ -89,7 +89,7 @@
 /* Section Styles */
 .insights-section {
     padding: 16px 0;
-    border-top: 1px solid #2D2D3A;
+    border-top: 1px solid var(--color-border);
 }
 
 .section-header {
@@ -102,19 +102,19 @@
 .section-header h4 {
     font-size: 13px;
     font-weight: 600;
-    color: #E5E7EB;
+    color: var(--color-ink);
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .section-icon {
-    color: #03DAC6;
+    color: var(--color-success);
     font-size: 14px;
 }
 
 .section-icon.urgent {
-    color: #CF6679;
+    color: var(--color-error);
 }
 
 /* Deadlines */
@@ -129,14 +129,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 12px;
-    background: rgba(45, 45, 58, 0.5);
+    background: rgba(39, 39, 42, 0.5);
     border-radius: 8px;
-    border-left: 3px solid #BB86FC;
+    border-left: 3px solid var(--color-ai);
 }
 
 .deadline-title {
     font-size: 13px;
-    color: #E5E7EB;
+    color: var(--color-ink);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -145,13 +145,13 @@
 
 .deadline-date {
     font-size: 11px;
-    color: #BB86FC;
+    color: var(--color-ai);
     font-weight: 600;
 }
 
 .no-deadlines {
     font-size: 13px;
-    color: #6B7280;
+    color: var(--color-muted);
     font-style: italic;
     margin: 0;
 }
@@ -168,23 +168,23 @@
     flex-direction: column;
     align-items: center;
     padding: 12px;
-    background: rgba(45, 45, 58, 0.5);
+    background: rgba(39, 39, 42, 0.5);
     border-radius: 10px;
 }
 
 .stat-number {
     font-size: 24px;
     font-weight: 800;
-    color: #03DAC6;
+    color: var(--color-success);
 }
 
 .stat-number.urgent {
-    color: #CF6679;
+    color: var(--color-error);
 }
 
 .stat-label {
     font-size: 11px;
-    color: #9CA3AF;
+    color: var(--color-secondary);
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
@@ -195,14 +195,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px 0;
-    border-top: 1px solid #2D2D3A;
+    border-top: 1px solid var(--color-border);
     margin-top: auto;
 }
 
 .focus-label {
     font-size: 14px;
     font-weight: 600;
-    color: #BB86FC;
+    color: var(--color-ai);
 }
 
 .focus-toggle {
@@ -212,14 +212,14 @@
 .toggle-track {
     width: 44px;
     height: 24px;
-    background: #2D2D3A;
+    background: var(--color-surface-active);
     border-radius: 12px;
     position: relative;
     transition: background 0.25s ease;
 }
 
 .toggle-track:hover {
-    background: #3D3D4A;
+    background: var(--color-surface-hover);
 }
 
 .toggle-thumb {
@@ -228,14 +228,14 @@
     left: 2px;
     width: 20px;
     height: 20px;
-    background: #03DAC6;
+    background: var(--color-success);
     border-radius: 50%;
     transition: transform 0.25s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .toggle-track.active {
-    background: rgba(3, 218, 198, 0.3);
+    background: rgba(16, 185, 129, 0.3);
 }
 
 .toggle-track.active .toggle-thumb {
