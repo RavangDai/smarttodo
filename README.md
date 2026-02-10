@@ -106,3 +106,7 @@ smart-todo-app/
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+© 2026 Bibek Pathak. All rights reserved.

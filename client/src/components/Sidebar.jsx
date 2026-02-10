@@ -57,6 +57,7 @@ const Sidebar = ({ activeView, onNavigate, onLogout, onOpenSettings }) => {
             </div>
 
             <div className="sidebar-footer">
+                <div className="copyright-text">© {new Date().getFullYear()} Bibek Pathak</div>
                 <button
                     className="collapse-btn"
                     onClick={() => setIsCollapsed(!isCollapsed)}
