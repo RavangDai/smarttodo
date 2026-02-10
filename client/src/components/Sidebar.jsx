@@ -18,7 +18,7 @@ const Sidebar = ({ activeView, onNavigate, onLogout, onOpenSettings }) => {
     return (
         <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
             <div className="sidebar-header">
-                <div className="brand-icon">⚡</div>
+                <img src="/karyalogo.png" alt="KaryaAI" className="brand-logo" />
                 <span className="brand-text">KaryaAI</span>
             </div>
 

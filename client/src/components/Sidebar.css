@@ -30,9 +30,11 @@
     justify-content: center;
 }
 
-.brand-icon {
-    font-size: 1.5rem;
-    color: var(--color-ai);
+.brand-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 
 .brand-text {
