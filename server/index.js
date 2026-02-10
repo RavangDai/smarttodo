@@ -19,6 +19,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Using separate route files for cleaner structure
 app.use('/api/users', require('./routes/users'));
 app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/projects', require('./routes/projects'));
 app.use('/api/ai', require('./routes/ai'));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

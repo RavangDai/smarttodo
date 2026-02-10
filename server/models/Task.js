@@ -6,6 +6,10 @@ const TaskSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  project: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project'
+  },
   // 👇 THIS PART IS CRITICAL. IF MISSING, TASKS ARE INVISIBLE 👇
   title: {
     type: String,

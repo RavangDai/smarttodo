@@ -113,12 +113,35 @@
 
 /* ─── EMPTY STATE ─── */
 .empty-state {
-  padding: var(--space-12) var(--space-8);
+  padding: var(--space-16) var(--space-8);
   text-align: center;
   border: 1px dashed var(--color-border);
-  /* Dashed legacy style */
   border-radius: var(--radius);
-  background: transparent;
+  background: linear-gradient(135deg, rgba(255, 140, 66, 0.02) 0%, transparent 60%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  animation: fadeIn 0.5s var(--ease) forwards;
+}
+
+.empty-state-icon {
+  font-size: 2.5rem;
+  opacity: 0.4;
+  color: var(--color-ai);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .empty-text {
@@ -126,6 +149,23 @@
   font-size: var(--text-sm);
   color: var(--color-muted);
   line-height: 1.6;
+}
+
+.empty-hint {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-secondary);
+  opacity: 0.6;
+  margin-top: var(--space-2);
+}
+
+.empty-hint kbd {
+  background: var(--color-surface-hover);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  font-size: 0.7rem;
+  color: var(--color-ink);
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -785,7 +825,7 @@
 
 /* ─── INSIGHTS SECTION ─── */
 .insights-section {
-  padding-top: var(--space-4);
+  padding: var(--space-6);
 }
 
 .insights-title {
@@ -793,6 +833,10 @@
   font-size: var(--text-3xl);
   font-weight: 700;
   margin-bottom: var(--space-8);
+  background: linear-gradient(to right, var(--color-ink), var(--color-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .stat-grid {
@@ -806,6 +850,8 @@
   padding: var(--space-6);
   border: var(--border);
   border-radius: var(--radius);
+  background: var(--color-surface);
+  border-left: 3px solid var(--color-ai);
 }
 
 .stat-value {
@@ -815,6 +861,7 @@
   display: block;
   line-height: 1;
   margin-bottom: var(--space-2);
+  color: var(--color-ink);
 }
 
 .stat-label {
@@ -826,7 +873,7 @@
 }
 
 .progress-bar {
-  height: 4px;
+  height: 6px;
   background: var(--color-border);
   margin-top: var(--space-4);
   border-radius: var(--radius);
@@ -835,8 +882,9 @@
 
 .progress-fill {
   height: 100%;
-  background: var(--color-ink);
-  transition: width 300ms var(--ease);
+  background: var(--color-ai-gradient);
+  transition: width 500ms var(--ease);
+  border-radius: var(--radius);
 }
 
 .stat-row {
@@ -850,6 +898,14 @@
   border: var(--border);
   border-radius: var(--radius);
   text-align: center;
+  background: var(--color-surface);
+  transition: all var(--duration) var(--ease);
+}
+
+.stat-item:hover {
+  background: var(--color-surface-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .stat-number {
@@ -857,6 +913,7 @@
   font-size: var(--text-2xl);
   font-weight: 700;
   display: block;
+  color: var(--color-success);
 }
 
 .stat-number.urgent {
@@ -1671,4 +1728,53 @@
   color: var(--color-ai);
   background: rgba(255, 107, 0, 0.1);
   box-shadow: 0 0 10px rgba(255, 107, 0, 0.2);
+}
+
+/* ─── LOADING SKELETON ─── */
+.skeleton-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.skeleton-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  animation: fadeIn 0.4s var(--ease) forwards;
+  opacity: 0;
+}
+
+.skeleton-line {
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+      var(--color-surface-hover) 25%,
+      var(--color-surface-active) 50%,
+      var(--color-surface-hover) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 16px;
+}
+
+.skeleton-subtitle {
+  width: 40%;
+  height: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }

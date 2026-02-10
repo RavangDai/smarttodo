@@ -12,6 +12,12 @@
     margin-bottom: 1.5rem;
 }
 
+.header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
 .timeline-title {
     font-size: 0.85rem;
     font-weight: 700;

@@ -19,6 +19,7 @@ import InteractiveAvatar from './components/InteractiveAvatar';
 import Sidebar from './components/Sidebar';
 import FocusBar from './components/FocusBar';
 import ContextPanel from './components/ContextPanel';
+import ProjectsView from './components/ProjectsView';
 import { generateSchedule } from './utils/aiScheduler';
 
 function App() {
@@ -30,6 +31,8 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [projects, setProjects] = useState([]);
 
   // URL State
   const [searchParams, setSearchParams] = useSearchParams();
@@ -98,6 +101,7 @@ function App() {
     if (token) {
       localStorage.setItem('token', token);
       fetchTasks();
+      fetchProjects();
     } else {
       localStorage.removeItem('token');
     }
@@ -114,7 +118,8 @@ function App() {
       const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
       const key = e.key.toLowerCase();
 
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (key === 'n' || e.code === 'KeyN')) {
+      // Slash to focus task input (only when not typing in an input/textarea)
+      if (key === '/' && !isTyping) {
         e.preventDefault();
         e.stopPropagation();
         document.querySelector('.task-input')?.focus();
@@ -144,8 +149,16 @@ function App() {
   const getHeaders = () => ({ headers: { 'x-auth-token': token } });
 
   const fetchTasks = () => {
+    setIsLoading(true);
     axios.get('/api/tasks', getHeaders())
       .then(res => setTasks(res.data))
+      .catch(err => console.error(err))
+      .finally(() => setIsLoading(false));
+  };
+
+  const fetchProjects = () => {
+    axios.get('/api/projects', getHeaders())
+      .then(res => setProjects(res.data))
       .catch(err => console.error(err));
   };
 
@@ -188,10 +201,29 @@ function App() {
     axios.post('/api/tasks', {
       title: taskData.title,
       priority: taskData.priority || 'medium',
-      dueDate: taskDate
+      dueDate: taskDate,
+      project: taskData.project || undefined
     }, getHeaders())
-      .then(res => setTasks([res.data, ...tasks]))
+      .then(res => {
+        setTasks([res.data, ...tasks]);
+        if (taskData.project) fetchProjects(); // refresh project counts
+      })
       .catch(err => console.error('Error adding task:', err));
+  };
+
+  const handleCreateProject = (projectData) => {
+    axios.post('/api/projects', projectData, getHeaders())
+      .then(res => setProjects([res.data, ...projects]))
+      .catch(err => console.error('Error creating project:', err));
+  };
+
+  const handleDeleteProject = (id) => {
+    axios.delete(`/api/projects/${id}`, getHeaders())
+      .then(() => {
+        setProjects(projects.filter(p => p._id !== id));
+        fetchTasks(); // refresh tasks to clear project ref
+      })
+      .catch(err => console.error('Error deleting project:', err));
   };
 
   const deleteTask = (id) => {
@@ -418,54 +450,81 @@ function App() {
           <div className="content-split">
 
             {/* ── LEFT: TASK LIST ── */}
-            <section className="task-list-container">
-
-              {/* ── INPUT AREA (Sticky Top) ── */}
-              <div style={{ padding: '1.5rem', paddingBottom: '0.5rem', background: 'var(--color-bg)', position: 'sticky', top: 0, zIndex: 10 }}>
-                <SmartTaskInput
-                  onAddTask={handleAddTask}
-                  getLocalDateString={getLocalDateString}
+            {activeView === 'projects' ? (
+              <section className="task-list-container" style={{ padding: 0 }}>
+                <ProjectsView
+                  projects={projects}
                   tasks={tasks}
+                  onCreateProject={handleCreateProject}
+                  onDeleteProject={handleDeleteProject}
+                  onUpdateTask={updateTask}
+                  onDeleteTask={deleteTask}
+                  onAddTask={handleAddTask}
+                  getHeaders={getHeaders}
+                  getLocalDateString={getLocalDateString}
                 />
-              </div>
+              </section>
+            ) : (
+              <section className="task-list-container">
 
-              {/* ── FILTER TABS ── */}
-              <div className="filter-bar" style={{ padding: '0 1.5rem', marginBottom: '1rem' }}>
-                <div className="filter-tabs">
-                  {['active', 'completed', 'all'].map(f => (
-                    <button
-                      key={f}
-                      className={`filter-tab ${filter === f ? 'active' : ''}`}
-                      onClick={() => setFilter(f)}
-                    >
-                      {f.toUpperCase()}
-                    </button>
-                  ))}
+                {/* ── INPUT AREA (Sticky Top) ── */}
+                <div style={{ padding: '1.5rem', paddingBottom: '0.5rem', background: 'var(--color-bg)', position: 'sticky', top: 0, zIndex: 10 }}>
+                  <SmartTaskInput
+                    onAddTask={handleAddTask}
+                    getLocalDateString={getLocalDateString}
+                    tasks={tasks}
+                  />
                 </div>
-              </div>
 
-              {/* ── TASKS ── */}
-              <div style={{ padding: '0 1.5rem 2rem 1.5rem' }}>
-                {filteredTasks.length === 0 ? (
-                  <div className="empty-state">
-                    <p className="empty-text">No tasks found.</p>
+                {/* ── FILTER TABS ── */}
+                <div className="filter-bar" style={{ padding: '0 1.5rem', marginBottom: '1rem' }}>
+                  <div className="filter-tabs">
+                    {['active', 'completed', 'all'].map(f => (
+                      <button
+                        key={f}
+                        className={`filter-tab ${filter === f ? 'active' : ''}`}
+                        onClick={() => setFilter(f)}
+                      >
+                        {f.toUpperCase()}
+                      </button>
+                    ))}
                   </div>
-                ) : (
-                  filteredTasks.map((task) => (
-                    <TaskAccordion
-                      key={task._id}
-                      task={task}
-                      viewMode="focus"
-                      onUpdate={updateTask}
-                      onDelete={deleteTask}
-                      headers={getHeaders().headers}
-                      isExpanded={activeTaskId === task._id}
-                      onToggle={() => handleToggleTask(task._id)}
-                    />
-                  ))
-                )}
-              </div>
-            </section>
+                </div>
+
+                {/* ── TASKS ── */}
+                <div style={{ padding: '0 1.5rem 2rem 1.5rem' }}>
+                  {isLoading ? (
+                    <div className="skeleton-container">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="skeleton-card" style={{ animationDelay: `${i * 100}ms` }}>
+                          <div className="skeleton-line skeleton-title" />
+                          <div className="skeleton-line skeleton-subtitle" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : filteredTasks.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-state-icon">📋</div>
+                      <p className="empty-text">No tasks found.</p>
+                      <p className="empty-hint">Press <kbd>/</kbd> to focus the input and start adding tasks</p>
+                    </div>
+                  ) : (
+                    filteredTasks.map((task) => (
+                      <TaskAccordion
+                        key={task._id}
+                        task={task}
+                        viewMode="focus"
+                        onUpdate={updateTask}
+                        onDelete={deleteTask}
+                        headers={getHeaders().headers}
+                        isExpanded={activeTaskId === task._id}
+                        onToggle={() => handleToggleTask(task._id)}
+                      />
+                    ))
+                  )}
+                </div>
+              </section>
+            )}
 
             {/* ── RIGHT: CONTEXT PANEL ── */}
             <section className="context-panel-container">

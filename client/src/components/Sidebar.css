@@ -81,8 +81,19 @@
 .nav-item.active {
     color: var(--color-ink);
     background-color: var(--color-surface-active);
-    border-left: 3px solid var(--color-ai);
-    /* Added active indicator */
+    position: relative;
+}
+
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: var(--color-ai);
+    border-radius: 0 4px 4px 0;
 }
 
 .nav-icon {
