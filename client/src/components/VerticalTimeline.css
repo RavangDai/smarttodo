@@ -1,130 +1,197 @@
+/* VerticalTimeline.css - Cyber Industrial Theme */
+
 .vertical-timeline {
-    padding: 1.5rem;
+    padding: 0;
     height: 100%;
     overflow-y: auto;
     box-sizing: border-box;
+    background: linear-gradient(180deg, rgba(15, 15, 15, 0.95) 0%, rgba(5, 5, 5, 0.98) 100%);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
+/* Header */
 .timeline-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
 }
 
 .header-left {
     display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .timeline-title {
-    font-size: 0.85rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
     font-weight: 700;
-    color: var(--color-secondary);
-    letter-spacing: 0.05em;
+    color: var(--color-primary, #FF6B35);
+    letter-spacing: 0.15em;
     text-transform: uppercase;
 }
 
-/* New Slot Based Layout */
+.timeline-date {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Timeline Content & Slots */
 .timeline-content {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    padding: 20px 0;
     position: relative;
-    border-left: 2px solid var(--color-border);
-    margin-left: 3rem;
-    /* Space for time labels */
-    padding-bottom: 2rem;
+}
+
+/* Vertical Line */
+.timeline-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 80px;
+    /* Aligned with time slots */
+    width: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    z-index: 0;
 }
 
 .timeline-slot {
     position: relative;
-    min-height: 80px;
-    border-bottom: 1px dashed var(--color-border);
-    padding: 0.5rem 0 0.5rem 1rem;
+    min-height: 90px;
+    display: flex;
+    padding-right: 20px;
     transition: background-color 0.2s ease;
 }
 
-.timeline-slot:last-child {
-    border-bottom: none;
+.timeline-slot:hover {
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .timeline-slot.drag-over {
-    background-color: var(--color-ai-dim);
-    /* AI Orange tint */
-    box-shadow: inset 0 0 0 2px var(--color-ai);
+    background: rgba(255, 107, 53, 0.05);
+    /* Orange tint */
 }
 
+/* Time Label */
 .slot-time {
-    position: absolute;
-    left: -3.5rem;
-    top: -0.6em;
-    /* Align to the line */
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    color: var(--color-secondary);
-    background: var(--color-surface);
-    /* Mask line if needed */
-    padding-right: 0.5rem;
+    width: 80px;
+    min-width: 80px;
+    text-align: right;
+    padding-right: 16px;
+    padding-top: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--color-secondary, #888);
+    position: relative;
 }
 
+/* Current Time Indicator logic could go here if implemented in JS to mark specific slot */
+
+/* Slot Content Area */
 .slot-content {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    min-height: 60px;
-    /* Clickable area */
+    gap: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Empty State / Ghost */
-.empty-slot-placeholder {
-    height: 100%;
+.timeline-slot:first-child .slot-content {
+    border-top: none;
+}
+
+/* Task Cards */
+.timeline-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-left: 2px solid var(--color-primary, #FF6B35);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    cursor: grab;
+    backdrop-filter: blur(5px);
+}
+
+.timeline-card:hover {
+    transform: translateX(4px);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-left-color: #FF9F1C;
+    /* Lighter orange */
+}
+
+.timeline-card:active {
+    cursor: grabbing;
+    transform: scale(0.98);
+}
+
+.timeline-card.completed {
+    border-left-color: var(--color-success, #10B981);
+    opacity: 0.6;
+    text-decoration: line-through;
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.timeline-task-title {
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.check-icon {
+    color: var(--color-success, #10B981);
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    color: var(--color-ai);
+}
+
+/* Empty State */
+.empty-slot-placeholder {
+    height: 100%;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.2);
+    font-family: 'Space Mono', monospace;
+    font-style: italic;
     opacity: 0;
-    pointer-events: none;
     transition: opacity 0.2s;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
 }
 
 .timeline-slot.drag-over .empty-slot-placeholder {
     opacity: 1;
+    background: rgba(255, 107, 53, 0.05);
+    border-color: var(--color-primary, #FF6B35);
+    color: var(--color-primary, #FF6B35);
 }
 
-/* Timeline Cards */
-.timeline-card {
-    background-color: var(--color-surface-hover);
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    border-left: 3px solid var(--color-ai);
-    font-size: 0.9rem;
-    color: var(--color-ink);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.timeline-card.completed {
-    opacity: 0.6;
-    border-left-color: var(--color-success);
-    text-decoration: line-through;
-}
-
-.check-icon {
-    color: var(--color-success);
-    font-size: 0.8rem;
-}
-
-.timeline-date {
-    font-size: 0.75rem;
-    color: var(--color-ai);
-    font-family: var(--font-mono);
-}
-
-.past .slot-content {
+/* Past Slots */
+.timeline-slot.past .slot-time {
     opacity: 0.5;
+}
+
+.timeline-slot.past .timeline-card {
+    opacity: 0.8;
+    filter: grayscale(0.2);
 }

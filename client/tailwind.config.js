@@ -17,6 +17,8 @@ export default {
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
                 display: ['Outfit', 'sans-serif'],
+                mono: ['"Space Mono"', 'monospace'],
+                body: ['"Crimson Pro"', 'serif'],
             },
             animation: {
                 'spin-slow': 'spin 3s linear infinite',

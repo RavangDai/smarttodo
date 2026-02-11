@@ -1,4 +1,5 @@
 import React from 'react';
+import './SmartInsightsPanel.css';
 
 const SmartInsightsPanel = ({ tasks = [], completedCount = 0, totalCount = 0, onAutoSchedule }) => {
     const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;

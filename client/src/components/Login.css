@@ -1,0 +1,272 @@
+/* Cyber-Industrial Login Styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --cyber-black: #050505;
+    --cyber-dark: #0a0a0a;
+    --cyber-orange: #FF9F1C;
+    /* Gradient Theme Variables */
+    --orange-gradient: linear-gradient(135deg, #FF6B35 0%, #FF9F1C 100%);
+    --orange-glow: rgba(255, 107, 53, 0.5);
+
+    --cyber-text: #e0e0e0;
+    --cyber-gray: #333;
+}
+
+.cyber-login-container {
+    background-color: var(--cyber-black);
+    color: var(--cyber-text);
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Background Grid */
+.cyber-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+    /* Fade out edges */
+}
+
+/* Split Layout */
+.cyber-split {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    z-index: 10;
+}
+
+/* Vertical Divider Line */
+.cyber-divider {
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, #FF6B35, #FF9F1C, transparent);
+    box-shadow:
+        0 0 15px rgba(255, 107, 53, 0.6),
+        0 0 30px rgba(255, 159, 28, 0.4);
+    position: relative;
+    z-index: 20;
+    opacity: 0.8;
+}
+
+/* Panels */
+.cyber-panel-left,
+.cyber-panel-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+.cyber-panel-left {
+    align-items: center;
+    padding: 4rem;
+    background: radial-gradient(circle at 60% 50%, rgba(255, 107, 53, 0.05), transparent 60%);
+}
+
+.cyber-panel-right {
+    align-items: center;
+    /* Centered form */
+    padding: 4rem;
+    background: radial-gradient(circle at 40% 50%, rgba(255, 159, 28, 0.03), transparent 60%);
+}
+
+/* Typography */
+.cyber-logo {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 0.5rem;
+
+    /* Strong Orange Gradient */
+    background: linear-gradient(135deg, #ffffff 0%, #FF6B35 50%, #FF9F1C 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    text-shadow: 0 0 30px rgba(255, 107, 53, 0.4);
+}
+
+.cyber-tagline {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 4rem;
+}
+
+/* Form Styles */
+.cyber-form-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.cyber-heading {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 2.5rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.cyber-subheading {
+    color: #888;
+    margin-bottom: 3rem;
+    font-size: 0.95rem;
+}
+
+.cyber-input-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.cyber-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.cyber-input {
+    width: 100%;
+    background: #0f0f0f;
+    border: 1px solid #222;
+    color: #fff;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.cyber-input:focus {
+    outline: none;
+    border-color: #FF6B35;
+    background: #141414;
+    box-shadow:
+        0 0 0 1px rgba(255, 107, 53, 0.2),
+        0 0 15px rgba(255, 107, 53, 0.1);
+}
+
+.cyber-input::placeholder {
+    color: #333;
+}
+
+.cyber-btn {
+    width: 100%;
+    /* Gradient Background */
+    background: var(--orange-gradient);
+    color: #fff;
+    /* White text looks better on orange gradient */
+    border: none;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.cyber-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
+    filter: brightness(1.1);
+}
+
+.cyber-link {
+    color: #666;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.cyber-link:hover {
+    color: #FF9F1C;
+}
+
+/* Terminal Box (Left Panel Footer) */
+.cyber-terminal {
+    width: 100%;
+    max-width: 320px;
+    margin-top: 4rem;
+    /* Gradient Border */
+    border-left: 2px solid;
+    border-image: linear-gradient(to bottom, #FF6B35, #FF9F1C) 1;
+    padding-left: 1rem;
+    font-family: 'Space Mono', monospace;
+    position: relative;
+}
+
+.cyber-terminal::before {
+    content: '///';
+    position: absolute;
+    top: -1.5rem;
+    left: 0;
+    color: #FF6B35;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+}
+
+.cyber-terminal-header {
+    font-size: 0.65rem;
+    color: #FF9F1C;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.cyber-terminal-text {
+    font-size: 0.85rem;
+    color: #aaa;
+    line-height: 1.6;
+}
+
+.cursor-blink {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: #FF6B35;
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+/* Corner Graphic */
+.corner-bracket {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    width: 20px;
+    height: 20px;
+    border-top: 2px solid #333;
+    border-right: 2px solid #333;
+    pointer-events: none;
+}

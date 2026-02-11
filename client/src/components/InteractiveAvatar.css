@@ -1,514 +1,27 @@
-/* ─── AVATAR CONTAINER ─── */
+/* Cyber-Industrial Boxy Avatar Styles */
+
 .interactive-avatar {
-    width: 200px;
-    height: 220px;
     position: relative;
-    perspective: 800px;
-    transition: transform 0.3s ease;
-    z-index: 10;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    perspective: 1000px;
+    /* Enable 3D rotation perspective */
 }
 
-.avatar-character {
-    width: 100%;
-    height: 100%;
+/* Root container for the robot structure */
+.robot-root {
     position: relative;
     transform-style: preserve-3d;
-    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    /* Orange glow "border" - Softer and more diffuse for white theme */
-    filter: drop-shadow(0 0 15px rgba(255, 107, 0, 0.25));
+    /* Essential for 3D head rotation */
+    transition: transform 0.1s cubic-bezier(0.2, 0, 0.2, 1);
+    /* Smooth transform updates */
+    animation: boxyHover 6s ease-in-out infinite;
 }
 
-/* ─── HEAD (Glossy White) ─── */
-.avatar-head {
-    width: 120px;
-    height: 80px;
-    /* Glossy White Gradient */
-    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%);
-    border-radius: 24px;
-    position: absolute;
-    top: 30px;
-    left: 40px;
-    z-index: 5;
-    transform-origin: center bottom;
-    /* Soft premium shadows */
-    box-shadow:
-        inset 0 2px 5px rgba(255, 255, 255, 1),
-        inset 0 -2px 5px rgba(0, 0, 0, 0.05),
-        0 8px 25px rgba(0, 0, 0, 0.1),
-        0 2px 6px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-}
-
-/* ─── ANTENNA (Chrome/Silver) ─── */
-.avatar-antenna {
-    position: absolute;
-    top: -32px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 16px;
-    height: 32px;
-    z-index: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transform-origin: bottom center;
-    animation: antenna-sway 4s ease-in-out infinite;
-}
-
-/* Connection Base */
-.avatar-antenna::after {
-    content: '';
-    width: 20px;
-    height: 10px;
-    background: #e0e0e0;
-    position: absolute;
-    bottom: -8px;
-    border-radius: 50% 50% 0 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.antenna-stem {
-    width: 3px;
-    height: 26px;
-    background: linear-gradient(to right, #ccc, #fff, #999);
-    position: relative;
-}
-
-.antenna-tip {
-    width: 8px;
-    height: 8px;
-    background: var(--color-ai);
-    border-radius: 50%;
-    box-shadow: 0 0 12px var(--color-ai), 0 0 4px #fff;
-    margin-bottom: -1px;
-    animation: pulse-antenna 2s infinite;
-}
-
-@keyframes antenna-sway {
-
-    0%,
-    100% {
-        transform: translateX(-50%) rotate(0deg);
-    }
-
-    25% {
-        transform: translateX(-50%) rotate(3deg);
-    }
-
-    75% {
-        transform: translateX(-50%) rotate(-3deg);
-    }
-}
-
-@keyframes pulse-antenna {
-
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 0.8;
-    }
-
-    50% {
-        transform: scale(1.2);
-        opacity: 1;
-    }
-}
-
-/* ─── FACE (Dark Screen with Glass Bezel) ─── */
-.avatar-face {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-    border-radius: 22px;
-    /* Dark screen */
-    background: radial-gradient(circle at 50% 30%, #444, #111);
-    /* Glassy reflection/bezel effect */
-    box-shadow:
-        inset 0 0 0 2px rgba(255, 255, 255, 0.2),
-        inset 0 0 10px rgba(0, 0, 0, 0.5);
-    border: 3px solid #fff;
-    /* White bezel */
-}
-
-.avatar-eyes {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 22px;
-    margin-top: 18px;
-    /* Slight adjustment for bezel */
-    position: relative;
-    align-items: center;
-    height: 100%;
-    max-height: 40px;
-}
-
-.avatar-eye {
-    width: 24px;
-    height: 32px;
-    background: #000;
-    border-radius: 12px;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 1);
-    transition: all 0.2s;
-}
-
-.avatar-pupil {
-    width: 12px;
-    height: 12px;
-    background: var(--color-ai);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--color-ai);
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    margin-top: -6px;
-    margin-left: -6px;
-    transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #000;
-    font-weight: bold;
-    font-size: 10px;
-    z-index: 2;
-}
-
-/* ─── BODY (Glossy White) ─── */
-.avatar-body {
-    width: 90px;
-    height: 65px;
-    background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
-    border-radius: 18px 18px 30px 30px;
-    position: absolute;
-    top: 95px;
-    left: 55px;
-    z-index: 4;
-    box-shadow:
-        inset 0 2px 5px rgba(255, 255, 255, 1),
-        0 5px 15px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-}
-
-/* K POWER CORE */
-.avatar-body::before {
-    content: 'K';
-    font-family: sans-serif;
-    font-weight: 900;
-    font-size: 32px;
-    color: transparent;
-    /* Darker stroke for visibility on white, or just rely on gradient */
-    -webkit-text-stroke: 0px;
-    background: linear-gradient(180deg, #ff9e40 0%, var(--color-ai) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    text-shadow:
-        0 0 10px rgba(255, 107, 0, 0.3);
-    animation: core-pulse 3s infinite ease-in-out;
-}
-
-@keyframes core-pulse {
-
-    0%,
-    100% {
-        opacity: 0.9;
-        filter: brightness(1);
-    }
-
-    50% {
-        opacity: 1;
-        filter: brightness(1.2);
-    }
-}
-
-/* Vents */
-.avatar-vents {
-    position: absolute;
-    bottom: 8px;
-    display: flex;
-    gap: 5px;
-}
-
-.avatar-vents span {
-    width: 10px;
-    height: 4px;
-    background: #ccc;
-    /* Lighter vents */
-    border-radius: 2px;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-/* ─── ARMS (Glossy White) ─── */
-.avatar-arm {
-    width: 24px;
-    height: 45px;
-    background: linear-gradient(90deg, #f0f0f0, #ffffff, #e0e0e0);
-    position: absolute;
-    top: 6px;
-    border-radius: 12px;
-    z-index: 3;
-    transform-origin: top center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-.avatar-arm.left {
-    left: -16px;
-}
-
-.avatar-arm.right {
-    right: -16px;
-}
-
-.arm-joint {
-    width: 100%;
-    height: 3px;
-    background: #ccc;
-    margin-top: 20px;
-    opacity: 0.5;
-}
-
-/* Hands */
-.avatar-arm::after {
-    content: '';
-    width: 28px;
-    height: 28px;
-    background: radial-gradient(circle at 30% 30%, #fff, #d0d0d0);
-    position: absolute;
-    bottom: -14px;
-    left: -2px;
-    border-radius: 50%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-/* ─── EARS (Headphones/Sensors) ─── */
-.avatar-ear {
-    width: 14px;
-    height: 28px;
-    background: #e0e0e0;
-    position: absolute;
-    top: 20px;
-    border-radius: 6px;
-    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-}
-
-.avatar-ear.left {
-    left: -10px;
-    border-radius: 10px 6px 6px 10px;
-}
-
-.avatar-ear.right {
-    right: -10px;
-    border-radius: 6px 10px 10px 6px;
-}
-
-/* ─── ANIMATION STATES ─── */
-
-/* WELCOME */
-.interactive-avatar.welcome .avatar-arm.right {
-    animation: wave-friendly 1s ease-in-out infinite;
-    transform-origin: top center;
-}
-
-@keyframes wave-friendly {
-
-    0%,
-    100% {
-        transform: rotate(-10deg);
-    }
-
-    50% {
-        transform: rotate(-40deg);
-    }
-}
-
-/* LOOK AWAY (Password Privacy) - HANDS COVERING EYES */
-.interactive-avatar.looking-away .avatar-head {
-    transform: rotateX(15deg);
-    transition: transform 0.3s ease;
-}
-
-.interactive-avatar.looking-away .avatar-arm.left {
-    transform: rotate(140deg) translate(25px, 0px) translateZ(30px);
-    z-index: 20;
-}
-
-.interactive-avatar.looking-away .avatar-arm.right {
-    transform: rotate(-140deg) translate(-25px, 0px) translateZ(30px);
-    z-index: 20;
-}
-
-/* PEEKING (Typing Password) - One eye visible, one hand down */
-.interactive-avatar.peeking .avatar-head {
-    transform: rotateX(5deg) rotateY(10deg);
-    transition: transform 0.2s ease;
-}
-
-.interactive-avatar.peeking .avatar-arm.left {
-    transform: rotate(140deg) translate(25px, 0px) translateZ(30px);
-}
-
-.interactive-avatar.peeking .avatar-arm.right {
-    transform: rotate(0deg);
-}
-
-.interactive-avatar.peeking .avatar-pupil {
-    transform: translateX(4px);
-}
-
-/* SCANNING (Show Password) */
-.interactive-avatar.scanning .avatar-head {
-    transform: rotateY(0deg);
-}
-
-.interactive-avatar.scanning .avatar-face::after {
-    content: '';
-    background: linear-gradient(to bottom, transparent, var(--color-ai), transparent);
-    width: 100%;
-    height: 10%;
-    top: 0;
-    opacity: 0.8;
-    animation: scan-visor 1.5s linear infinite;
-    mix-blend-mode: hard-light;
-    box-shadow: 0 0 15px var(--color-ai);
-}
-
-.interactive-avatar.scanning .avatar-pupil {
-    width: 100%;
-    border-radius: 1px;
-    height: 2px;
-    background: #fff;
-    box-shadow: 0 0 15px var(--color-ai);
-}
-
-@keyframes scan-visor {
-    0% {
-        top: -10%;
-        opacity: 0;
-    }
-
-    10% {
-        opacity: 0.8;
-    }
-
-    90% {
-        opacity: 0.8;
-    }
-
-    100% {
-        top: 110%;
-        opacity: 0;
-    }
-}
-
-/* SUCCESS / CELEBRATING - Robotic Salute */
-.interactive-avatar.success .avatar-character {
-    animation: none;
-}
-
-.interactive-avatar.success .avatar-head {
-    animation: success-nod 0.6s ease-out forwards;
-}
-
-@keyframes success-nod {
-    0% {
-        transform: rotateX(0deg);
-    }
-
-    30% {
-        transform: rotateX(-15deg);
-    }
-
-    60% {
-        transform: rotateX(10deg);
-    }
-
-    100% {
-        transform: rotateX(0deg);
-    }
-}
-
-/* Salute Animation */
-.interactive-avatar.success .avatar-arm.right {
-    transform-origin: top center;
-    animation: salute 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-.interactive-avatar.success .avatar-arm.left {
-    transform: rotate(10deg);
-}
-
-@keyframes salute {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    40% {
-        transform: rotate(-120deg) translate(-10px, 10px) translateZ(20px);
-    }
-
-    70% {
-        transform: rotate(-120deg) translate(-10px, 10px) translateZ(20px);
-    }
-
-    100% {
-        transform: rotate(0deg);
-    }
-}
-
-/* Tech Success Eyes */
-.interactive-avatar.success .avatar-pupil {
-    background: #4ade80;
-    box-shadow: 0 0 20px #4ade80, 0 0 40px #4ade80;
-    transform: scale(1.2);
-    border-radius: 2px;
-    animation: none;
-    width: 14px;
-    height: 14px;
-}
-
-/* ACTIVE */
-.interactive-avatar.active .avatar-head {
-    transform: rotateX(-5deg) translateY(-2px);
-}
-
-.interactive-avatar.active .avatar-pupil {
-    transform: scale(1.15);
-}
-
-/* CONFUSED */
-.interactive-avatar.confused .avatar-head {
-    transform: rotateZ(-15deg);
-}
-
-.interactive-avatar.confused .avatar-pupil {
-    background: var(--color-error, #ff3b30);
-    box-shadow: 0 0 15px var(--color-error);
-}
-
-/* WATCHING / TYPING */
-.interactive-avatar.watching .avatar-head {
-    transform: rotateY(15deg);
-}
-
-/* Blink Animation */
-.avatar-eye.blink {
-    transform: scaleY(0.1);
-}
-
-/* Zen Mode Float */
-.interactive-avatar.zen .avatar-character {
-    animation: zen-float 3s ease-in-out infinite;
-}
-
-@keyframes zen-float {
+@keyframes boxyHover {
 
     0%,
     100% {
@@ -516,64 +29,103 @@
     }
 
     50% {
-        transform: translateY(-8px);
+        transform: translateY(-10px);
     }
 }
 
-/* Coffee Cup Float */
-.avatar-coffee {
-    position: absolute;
-    top: 40px;
-    right: -30px;
-    font-size: 32px;
-    animation: coffee-float 3s ease-in-out infinite reverse;
-    z-index: 20;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-}
-
-@keyframes coffee-float {
-
-    0%,
-    100% {
-        transform: translateY(0) rotate(0deg);
-    }
-
-    50% {
-        transform: translateY(-5px) rotate(5deg);
-    }
-}
-
-/* Fix for nested eye container if present in JSX */
-.eye-glow-container {
-    width: 100%;
-    height: 100%;
+/* Head */
+.robot-head {
+    width: 160px;
+    height: 110px;
+    background: #1a1a1a;
+    border: 2px solid #333;
+    border-radius: 20px;
     position: relative;
+    z-index: 10;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 2px 5px rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform-style: preserve-3d;
 }
 
-/* ─── BACK GLOW ─── */
-.avatar-glow {
+/* Eyes Container */
+.robot-face-screen {
+    width: 140px;
+    height: 90px;
+    background: #000;
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9);
+    overflow: hidden;
+    /* Keep eyes inside screen */
+}
+
+/* Glowing Eyes */
+.robot-eye {
+    width: 35px;
+    height: 25px;
+    /* Gradient Eyes */
+    background: linear-gradient(135deg, #FF6B35 0%, #FF9F1C 100%);
+    border-radius: 4px;
+    box-shadow: 0 0 15px rgba(255, 107, 53, 0.6);
+    transition: transform 0.05s linear, height 0.1s ease;
+    /* Ultra fast for tracking */
+}
+
+/* Blinking is handled via inline styles/classes in JS now for reaction time */
+
+/* Body */
+.robot-body {
+    width: 100px;
+    height: 60px;
+    background: #151515;
+    border: 2px solid #333;
+    border-radius: 0 0 16px 16px;
     position: absolute;
-    top: 50%;
+    top: 105px;
+    /* connects to head */
     left: 50%;
-    transform: translate(-50%, -50%);
-    width: 260px;
-    height: 260px;
-    background: radial-gradient(circle, rgba(255, 107, 0, 0.08) 0%, transparent 70%);
-    z-index: -1;
-    pointer-events: none;
-    animation: glow-pulse 4s ease-in-out infinite;
+    transform: translateX(-50%);
+    /* Center horizontally */
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-@keyframes glow-pulse {
+/* "K" Logo on Chest */
+.robot-chest-logo {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 2rem;
+    background: linear-gradient(135deg, #FF6B35 0%, #FF9F1C 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px rgba(255, 107, 53, 0.4);
+}
 
-    0%,
-    100% {
-        opacity: 0.3;
-        transform: translate(-50%, -50%) scale(1);
-    }
+/* Arms */
+.robot-arm {
+    width: 20px;
+    height: 50px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 6px;
+    top: 115px;
+    /* transition handled in JS/inline styles for smoothness */
+}
 
-    50% {
-        opacity: 0.6;
-        transform: translate(-50%, -50%) scale(1.05);
-    }
+.robot-arm.left {
+    left: 10px;
+}
+
+.robot-arm.right {
+    right: 10px;
 }

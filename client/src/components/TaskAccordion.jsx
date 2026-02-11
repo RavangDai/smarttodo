@@ -1,11 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Calendar, Edit2, Trash2, ChevronDown, ChevronUp, Plus, Sparkles, X, Check, FileText, Command } from 'lucide-react';
+import { Clock, Calendar, Edit2, Trash2, ChevronDown, ChevronUp, Plus, Sparkles, X, Check, FileText } from 'lucide-react';
 import axios from 'axios';
 import Checkbox from './ui/Checkbox';
 import PriorityIcon from './ui/PriorityIcon';
-import { PrimaryButton, SecondaryButton } from './ui/Buttons';
-import NeoInput from './ui/NeoInput';
 import confetti from 'canvas-confetti';
 
 const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers }) => {
@@ -55,23 +53,9 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
         // Optimistic local update via parent
         onUpdate({ ...task, ...updates });
 
-        // Server update (parent usually handles this via onUpdate -> API, but subtasks might need direct patch if parent is "dumb")
-        // Assuming onUpdate calls the PUT endpoint in App.jsx.
-        // If not, we might need to call axios directly here for partial updates to ensure sync?
-        // Let's assume onUpdate handles API calls.
-        // CHECK: App.jsx `updateTask` just sets local state? 
-        // App.jsx: `const updateTask = (updatedTask) => { setTasks(...); }`
-        // It DOES NOT seem to call API in App.jsx `updateTask` function snippet I saw?
-        // WAIT. I need to verify if `onUpdate` persists to backend in App.jsx.
-        // I checked App.jsx in step 195. 
-        // `updateTask` only does `setTasks`. It does NOT call axios.
-        // `handleDragEnd` calls axios. 
-        // `deleteTask` calls axios.
-        // I need to fix `updateTask` in App.jsx or do it here.
-        // Doing it here is safer for granular components.
-
         try {
-            await axios.put(`/api/tasks/${task._id}`, updates, headers);
+            // FIX: Pass headers in the config object correctly
+            await axios.put(`/api/tasks/${task._id}`, updates, { headers: headers });
         } catch (err) {
             console.error("Failed to update task", err);
         }
@@ -107,10 +91,9 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
         setAiStreaming(true);
         try {
             // Using the streaming endpoint structure from ai.js
-            // But fetch might be easier for streaming than axios
             const response = await fetch(`/api/ai/breakdown/${task._id}`, {
                 method: 'POST',
-                headers: headers?.headers || {}
+                headers: headers || {}
             });
 
             const reader = response.body.getReader();
@@ -139,7 +122,8 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
                                     title: newSubtaskData.title,
                                     isCompleted: false
                                 });
-                                setSubtasks([...accumulatedSubtasks]); // Trigger rerender
+                                // Update state incrementally for "streaming" effect
+                                setSubtasks([...accumulatedSubtasks]);
                             }
                         } catch (e) {
                             // ignore json errors
@@ -180,25 +164,24 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
 
         setIsAiLoading(true);
         try {
+            // FIX: Pass headers in the config object
             const res = await axios.post('/api/ai/nlp', {
                 taskId: task._id,
                 command: aiCommand
-            }, headers);
+            }, { headers: headers });
 
             const { action, subtask, updates, message } = res.data;
 
             if (action === 'update' && updates) {
                 onUpdate({ ...task, ...updates }); // Local
-                // Server was already updated by the API!
-                confetti({ cursor: { x: 0.5, y: 0.5 } }); // Celebrate
+                confetti({ cursor: { x: 0.5, y: 0.5 }, particleCount: 50, spread: 60 });
             } else if (action === 'add_subtask' && subtask) {
                 const newSubtasks = [...subtasks, { title: subtask, isCompleted: false }];
                 setSubtasks(newSubtasks);
-                // Server updated
             }
 
             setAiCommand('');
-            // Show toast/message? 
+            // Optional: Add toast notification call here if available
 
         } catch (err) {
             console.error(err);
@@ -351,33 +334,37 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
                                     </div>
                                 )}
 
-                                {/* Subtask List */}
+                                {/* Subtask List - IMPROVED ANIMATION */}
                                 <div className="space-y-2">
-                                    {subtasks.map((sub, idx) => (
-                                        <motion.div
-                                            key={idx}
-                                            layout
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            className="flex items-center gap-3 group/sub"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={sub.isCompleted}
-                                                onChange={() => toggleSubtask(idx)}
-                                                className="w-4 h-4 rounded border-white/20 bg-white/5 checked:bg-primary checked:border-primary transition-all cursor-pointer appearance-none border checked:after:content-['✓'] checked:after:text-white checked:after:text-[10px] checked:after:flex checked:after:justify-center"
-                                            />
-                                            <span className={`text-sm flex-1 transition-colors ${sub.isCompleted ? 'text-secondary line-through' : 'text-white/80'}`}>
-                                                {sub.title}
-                                            </span>
-                                            <button
-                                                onClick={() => deleteSubtask(idx)}
-                                                className="opacity-0 group-hover/sub:opacity-100 p-1 text-secondary hover:text-red-400 transition-opacity"
+                                    <AnimatePresence mode="popLayout">
+                                        {subtasks.map((sub, idx) => (
+                                            <motion.div
+                                                key={idx} // ideally use a unique ID if available, using idx is risky for reordering but okay for simple append/delete
+                                                layout
+                                                initial={{ opacity: 0, x: -20, filter: 'blur(10px)' }}
+                                                animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                                                exit={{ opacity: 0, x: 20, height: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="flex items-center gap-3 group/sub"
                                             >
-                                                <X size={12} />
-                                            </button>
-                                        </motion.div>
-                                    ))}
+                                                <input
+                                                    type="checkbox"
+                                                    checked={sub.isCompleted}
+                                                    onChange={() => toggleSubtask(idx)}
+                                                    className="w-4 h-4 rounded border-white/20 bg-white/5 checked:bg-primary checked:border-primary transition-all cursor-pointer appearance-none border checked:after:content-['✓'] checked:after:text-white checked:after:text-[10px] checked:after:flex checked:after:justify-center"
+                                                />
+                                                <span className={`text-sm flex-1 transition-colors ${sub.isCompleted ? 'text-secondary line-through' : 'text-white/80'}`}>
+                                                    {sub.title}
+                                                </span>
+                                                <button
+                                                    onClick={() => deleteSubtask(idx)}
+                                                    className="opacity-0 group-hover/sub:opacity-100 p-1 text-secondary hover:text-red-400 transition-opacity"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
                                 </div>
 
                                 {/* Add Subtask Input */}
@@ -393,22 +380,33 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
                                 </form>
                             </div>
 
-                            {/* 3. AI COMMAND SECTION */}
+                            {/* 3. AI COMMAND SECTION - IMPROVED ANIMATION */}
                             <div className="pt-2 border-t border-white/5">
-                                <form onSubmit={handleAiCommand} className="relative">
-                                    <div className="absolute left-3 top-3 text-primary animate-pulse-slow">
+                                <form onSubmit={handleAiCommand} className="relative overflow-hidden rounded-xl">
+                                    <div className="absolute left-3 top-3 text-primary animate-pulse-slow z-10">
                                         <Sparkles size={14} />
                                     </div>
                                     <input
                                         type="text"
                                         value={aiCommand}
                                         onChange={(e) => setAiCommand(e.target.value)}
-                                        placeholder="Ask AI to edit this task... (e.g., 'Move to tomorrow', 'Make high priority')"
-                                        className="w-full bg-gradient-to-r from-primary/5 to-transparent rounded-xl border border-primary/20 py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder:text-primary/30"
+                                        placeholder="Ask AI to edit this task... (e.g., 'Move to tomorrow')"
+                                        className="w-full bg-gradient-to-r from-primary/5 to-transparent border border-primary/20 py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder:text-primary/30 relative z-10 bg-transparent"
                                         disabled={isAiLoading}
                                     />
+
+                                    {/* AI Processing Animation - Scanning Beam */}
                                     {isAiLoading && (
-                                        <div className="absolute right-3 top-3">
+                                        <motion.div
+                                            className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent z-0"
+                                            initial={{ x: '-100%' }}
+                                            animate={{ x: '100%' }}
+                                            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                                        />
+                                    )}
+
+                                    {isAiLoading && (
+                                        <div className="absolute right-3 top-3 z-10">
                                             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                         </div>
                                     )}

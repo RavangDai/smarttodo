@@ -1,218 +1,128 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './InteractiveAvatar.css';
 
-/**
- * Interactive Avatar Component
- * Reacts to user input and cursor movement with delightful animations
- */
-const InteractiveAvatar = ({
-    state = 'idle', // 'idle', 'looking-away', 'peeking', 'scanning', 'active', 'celebrating', 'confused', 'success', 'watching', 'whistling'
-    email = '',
-    mode = 'auth' // 'auth' | 'zen'
-}) => {
-    const [blinkState, setBlinkState] = useState(false);
-    const [eyePosition, setEyePosition] = useState({ x: 0, y: 0 });
-    const [isTrackingMouse, setIsTrackingMouse] = useState(true);
-    const [isWelcoming, setIsWelcoming] = useState(true);
-    const [isHovered, setIsHovered] = useState(false);
-    const avatarRef = useRef(null);
+const InteractiveAvatar = ({ mode = 'idle' }) => {
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [eyePos, setEyePos] = useState({ x: 0, y: 0 });
+    const [headRot, setHeadRot] = useState({ x: 0, y: 0 });
+    const [isBlinking, setIsBlinking] = useState(false);
 
-    // Initial Welcome Animation
-    useEffect(() => {
-        if (mode === 'auth') {
-            const timer = setTimeout(() => setIsWelcoming(false), 2000);
-            return () => clearTimeout(timer);
-        } else {
-            setIsWelcoming(false);
-        }
-    }, [mode]);
+    // Refs for smoothing
+    const requestRef = useRef();
+    const targetEyePos = useRef({ x: 0, y: 0 });
+    const currentEyePos = useRef({ x: 0, y: 0 });
+    const targetHeadRot = useRef({ x: 0, y: 0 });
+    const currentHeadRot = useRef({ x: 0, y: 0 });
 
-    // Random blink effect
+    // Track Mouse
     useEffect(() => {
-        const blink = () => {
-            setBlinkState(true);
-            setTimeout(() => setBlinkState(false), 150);
+        const handleMouseMove = (e) => {
+            // Normalize mouse position (-1 to 1) based on window center
+            const x = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
+            const y = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
+            setMousePos({ x, y });
         };
-
-        const interval = setInterval(() => {
-            if (Math.random() > 0.7) blink();
-        }, 2000);
-
-        return () => clearInterval(interval);
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
-    // Mouse tracking for eye movement when idle
-    const handleMouseMove = useCallback((e) => {
-        if (!isTrackingMouse || !avatarRef.current) return;
-
-        const avatar = avatarRef.current;
-        const rect = avatar.getBoundingClientRect();
-        const avatarCenterX = rect.left + rect.width / 2;
-        const avatarCenterY = rect.top + rect.height / 2;
-
-        // Calculate direction from avatar to mouse
-        const deltaX = e.clientX - avatarCenterX;
-        const deltaY = e.clientY - avatarCenterY;
-
-        // Normalize and limit eye movement range
-        const maxMove = 8;
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        const normalizedX = distance > 0 ? (deltaX / distance) * Math.min(distance / 50, 1) * maxMove : 0;
-        const normalizedY = distance > 0 ? (deltaY / distance) * Math.min(distance / 50, 1) * maxMove : 0;
-
-        // Clamp values
-        const clampedX = Math.max(-maxMove, Math.min(maxMove, normalizedX));
-        const clampedY = Math.max(-maxMove, Math.min(maxMove, normalizedY));
-
-        setEyePosition({ x: clampedX, y: clampedY });
-    }, [isTrackingMouse]);
-
-    // Set up mouse tracking logic
+    // Animation Loop for Smoothing
     useEffect(() => {
-        // Track mouse in zen mode OR when idle/active/welcoming in auth mode
-        const shouldTrack = mode === 'zen' || ['idle', 'active', 'welcome'].includes(state);
-        setIsTrackingMouse(shouldTrack);
+        const animate = () => {
+            // Determine Target Positions based on Mode
+            if (mode === 'email') {
+                // Look down at input
+                targetEyePos.current = { x: 0, y: 12 };
+                targetHeadRot.current = { x: 15, y: 0 };
+            } else if (mode === 'password') {
+                // Look away / Squint (Handled via CSS class, but reset position)
+                targetEyePos.current = { x: 0, y: 0 };
+                targetHeadRot.current = { x: -5, y: 0 };
+            } else {
+                // Idle: Follow Mouse
+                // Restrict eye movement range
+                targetEyePos.current = { x: mousePos.x * 12, y: mousePos.y * 8 };
+                // Restrict head rotation
+                targetHeadRot.current = { x: mousePos.y * 10, y: mousePos.x * 15 };
+            }
 
-        if (shouldTrack) {
-            window.addEventListener('mousemove', handleMouseMove);
-            return () => window.removeEventListener('mousemove', handleMouseMove);
-        }
-    }, [state, handleMouseMove, mode]);
+            // Smooth Interpolation (Lerp)
+            currentEyePos.current.x += (targetEyePos.current.x - currentEyePos.current.x) * 0.1;
+            currentEyePos.current.y += (targetEyePos.current.y - currentEyePos.current.y) * 0.1;
 
-    // Eye direction logic based on State
+            currentHeadRot.current.x += (targetHeadRot.current.x - currentHeadRot.current.x) * 0.05;
+            currentHeadRot.current.y += (targetHeadRot.current.y - currentHeadRot.current.y) * 0.05;
+
+            setEyePos({ ...currentEyePos.current });
+            setHeadRot({ ...currentHeadRot.current });
+
+            requestRef.current = requestAnimationFrame(animate);
+        };
+
+        requestRef.current = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(requestRef.current);
+    }, [mode, mousePos]);
+
+    // Random Blinking
     useEffect(() => {
-        if (mode === 'zen') return;
-
-        if (state === 'watching' && email.length > 0) {
-            // Follow typing
-            const progress = Math.min(email.length / 30, 1);
-            setEyePosition({ x: 6 + (progress * 2), y: 0 });
-        } else if (state === 'watching') {
-            setEyePosition({ x: 6, y: 0 });
-        } else if (state === 'looking-away') {
-            setEyePosition({ x: 15, y: -5 }); // Hard look right/up
-        } else if (state === 'peeking') {
-            setEyePosition({ x: 8, y: 0 }); // Sly look
-        } else if (state === 'scanning') {
-            setEyePosition({ x: 0, y: 0 }); // Center
-        }
-        // For 'idle', 'active', etc., let mouse tracking handle it or default to 0,0
-    }, [state, email, mode]);
-
-    const finalState = isWelcoming ? 'welcome' : state;
+        const blinkInterval = setInterval(() => {
+            if (mode !== 'password') { // Don't blink if eyes are closed/squinting for privacy
+                setIsBlinking(true);
+                setTimeout(() => setIsBlinking(false), 150);
+            }
+        }, 4000 + Math.random() * 2000); // 4-6 seconds random
+        return () => clearInterval(blinkInterval);
+    }, [mode]);
 
     return (
-        <div
-            className={`interactive-avatar ${finalState} ${isHovered ? 'hover' : ''}`}
-            ref={avatarRef}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            style={{ cursor: mode === 'zen' ? 'pointer' : 'default' }}
-        >
-            {/* Avatar Container */}
-            <div className="avatar-character">
-                {/* Floating Coffee Cup (Zen Mode) */}
-                {mode === 'zen' && (
-                    <div className="avatar-coffee">☕</div>
-                )}
-
-                {/* Glow Effect */}
-                <div className="avatar-glow"></div>
-
+        <div className="interactive-avatar perspective-[1000px]">
+            <div
+                className="robot-root"
+                style={{
+                    transform: `rotateX(${-headRot.x}deg) rotateY(${headRot.y}deg)` // Invert X for natural feel
+                }}
+            >
                 {/* Head */}
-                <div className="avatar-head">
-                    {/* Antenna */}
-                    <div className="avatar-antenna">
-                        <div className="antenna-stem"></div>
-                        <div className="antenna-tip"></div>
-                    </div>
-
-                    {/* Ears */}
-                    <div className="avatar-ear left"></div>
-                    <div className="avatar-ear right"></div>
-
-                    {/* Face */}
-                    <div className="avatar-face">
-                        {/* Eyebrows */}
-                        <div className="avatar-eyebrows">
-                            <div className={`avatar-eyebrow left ${finalState === 'confused' || finalState === 'sad' ? 'worried' : ''}`}></div>
-                            <div className={`avatar-eyebrow right ${finalState === 'confused' || finalState === 'sad' ? 'worried' : ''}`}></div>
-                        </div>
-
+                <div className="robot-head">
+                    <div className="robot-face-screen">
                         {/* Eyes */}
-                        <div className="avatar-eyes">
-                            {/* Searchlight - Disable during scan/success/lookaway */}
-                            {finalState !== 'scanning' && finalState !== 'success' && finalState !== 'looking-away' && (
+                        {mode === 'password' ? (
+                            // Privacy Eyes (Squint line)
+                            <div className="flex gap-4">
+                                <div className="w-8 h-1 bg-amber-500 rounded-full shadow-[0_0_10px_orange]"></div>
+                                <div className="w-8 h-1 bg-amber-500 rounded-full shadow-[0_0_10px_orange]"></div>
+                            </div>
+                        ) : (
+                            // Normal Eyes
+                            <>
                                 <div
-                                    className="avatar-searchlight"
-                                    style={{
-                                        transform: `rotate(${Math.atan2(eyePosition.y, eyePosition.x) * (180 / Math.PI)}deg)`,
-                                        opacity: Math.sqrt(eyePosition.x * eyePosition.x + eyePosition.y * eyePosition.y) / 10
-                                    }}
+                                    className={`robot-eye left ${isBlinking ? 'scale-y-[0.1]' : ''}`}
+                                    style={{ transform: `translate(${eyePos.x}px, ${eyePos.y}px)` }}
                                 ></div>
-                            )}
-
-                            <div className={`avatar-eye left ${blinkState ? 'blink' : ''} ${finalState === 'active' || finalState === 'success' ? 'happy' : ''} ${finalState === 'confused' ? 'question' : ''}`}>
                                 <div
-                                    className="avatar-pupil"
-                                    style={{
-                                        transform: `translate(${eyePosition.x}px, ${eyePosition.y}px)`
-                                    }}
-                                >
-                                    {/* Text symbols */}
-                                    {finalState === 'confused' && '?'}
-                                    {finalState === 'active' && '^'}
-                                    {mode === 'zen' && '-'}
-                                    <div className="pupil-highlight"></div>
-                                </div>
-                            </div>
-                            <div className={`avatar-eye right ${blinkState ? 'blink' : ''} ${finalState === 'active' || finalState === 'success' ? 'happy' : ''} ${finalState === 'confused' ? 'question' : ''}`}>
-                                <div
-                                    className="avatar-pupil"
-                                    style={{
-                                        transform: `translate(${eyePosition.x}px, ${eyePosition.y}px)`
-                                    }}
-                                >
-                                    {finalState === 'confused' && '?'}
-                                    {finalState === 'active' && '^'}
-                                    {mode === 'zen' && '-'}
-                                    <div className="pupil-highlight"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Cheeks */}
-                        <div className="avatar-cheeks">
-                            <div className={`avatar-cheek left ${finalState === 'celebrating' || finalState === 'success' ? 'blush' : ''}`}></div>
-                            <div className={`avatar-cheek right ${finalState === 'celebrating' || finalState === 'success' ? 'blush' : ''}`}></div>
-                        </div>
-
-                        {/* Mouth */}
-                        <div className={`avatar-mouth ${finalState}`}>
-                            {finalState === 'whistling' && (
-                                <div className="avatar-whistle-note">♪</div>
-                            )}
-                        </div>
+                                    className={`robot-eye right ${isBlinking ? 'scale-y-[0.1]' : ''}`}
+                                    style={{ transform: `translate(${eyePos.x}px, ${eyePos.y}px)` }}
+                                ></div>
+                            </>
+                        )}
                     </div>
                 </div>
+
+                {/* Arms with slight parallax or sway */}
+                <div
+                    className="robot-arm left absolute transition-transform duration-300"
+                    style={{ transform: `translateY(${headRot.y * 0.5}px) rotate(${10 + headRot.y * 0.2}deg)` }}
+                ></div>
+                <div
+                    className="robot-arm right absolute transition-transform duration-300"
+                    style={{ transform: `translateY(${-headRot.y * 0.5}px) rotate(${-10 + headRot.y * 0.2}deg)` }}
+                ></div>
 
                 {/* Body */}
-                <div className="avatar-body">
-                    <div className="avatar-vents">
-                        <span></span><span></span><span></span>
-                    </div>
-
-                    <div className="avatar-arm left">
-                        <div className="arm-joint"></div>
-                    </div>
-                    <div className="avatar-arm right">
-                        <div className="arm-joint"></div>
-                    </div>
+                <div className="robot-body">
+                    <div className="robot-chest-logo">K</div>
                 </div>
             </div>
-
-            {/* Reaction bubbles */}
-
         </div>
     );
 };

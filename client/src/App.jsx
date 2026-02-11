@@ -19,6 +19,7 @@ import AITypewriter from './components/AITypewriter';
 import InteractiveAvatar from './components/InteractiveAvatar';
 import { PrimaryButton } from './components/ui/Buttons';
 import NeoInput from './components/ui/NeoInput';
+import Login from './components/Login'; // Restored Login Component
 
 function App() {
   // ─── STATE ───
@@ -151,15 +152,23 @@ function App() {
   };
 
   // ─── AUTH ───
-  const handleAuth = async (e) => {
-    e.preventDefault();
+  // ─── AUTH ───
+  const handleAuth = async (e, emailArg = null, passwordArg = null, isRegisteringOverride = null) => {
+    if (e && e.preventDefault) e.preventDefault();
+
+    // Use arguments if provided (from Login component), otherwise fall back to state
+    const currentEmail = emailArg || email;
+    const currentPassword = passwordArg || password;
+    const currentIsRegistering = isRegisteringOverride !== null ? isRegisteringOverride : isRegistering;
+
     setAuthError('');
     setAuthResult('idle');
-    const endpoint = isRegistering ? '/register' : '/login';
+    const endpoint = currentIsRegistering ? '/register' : '/login';
+
     try {
-      const res = await axios.post(`/api/users${endpoint}`, { email, password });
-      if (isRegistering) {
-        setIsRegistering(false);
+      const res = await axios.post(`/api/users${endpoint}`, { email: currentEmail, password: currentPassword });
+      if (currentIsRegistering) {
+        setIsRegistering(false); // Reset global state just in case
         setAuthError('Account created. Please sign in.');
         setAuthResult('success');
       } else {
@@ -295,116 +304,16 @@ function App() {
   });
 
   // ─── AUTH VIEW ───
+  // ─── AUTH VIEW ───
   if (!token) {
     return (
-      <div className="flex h-screen w-full bg-background text-white overflow-hidden font-sans">
-        {/* Left Panel - Avatar */}
-        <div className="hidden lg:flex flex-1 flex-col justify-between p-12 relative overflow-hidden bg-black/40">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,107,53,0.15),transparent_50%)]" />
-
-          <header className="relative z-10">
-            <h1 className="font-display font-bold text-4xl mb-2">Karya<span className="text-primary">AI</span></h1>
-            <p className="text-secondary text-lg">Intelligent simplicity. AI that gets out of your way.</p>
-          </header>
-
-          <div className="relative z-10 flex flex-col items-center">
-            <InteractiveAvatar
-              state={(() => {
-                if (authResult === 'success') return 'success';
-                if (authResult === 'error') return 'confused';
-                if (isFocusedPassword) return showPassword ? 'scanning' : (isTyping ? 'peeking' : 'looking-away');
-                if (isFocusedEmail) return isTyping ? 'watching' : 'active';
-                return 'idle';
-              })()}
-              email={email}
-              mode="auth"
-            />
-            <AITypewriter />
-          </div>
-
-          <div className="relative z-10 text-xs text-secondary/50 font-mono">
-            SYSTEM STATUS: OPERATIONAL
-          </div>
-        </div>
-
-        {/* Right Panel - Form */}
-        <div className="flex-1 flex items-center justify-center p-6 bg-surface/50 backdrop-blur-md">
-          <div className="w-full max-w-md p-8 rounded-3xl bg-white/5 border border-white/10 shadow-glass">
-            <h2 className="text-3xl font-display font-bold mb-2">
-              {isRegistering ? 'Create Account' : 'Welcome Back'}
-            </h2>
-            <p className="text-secondary mb-8">
-              {isRegistering ? 'Join the productivity revolution.' : 'Sign in to access your workspace.'}
-            </p>
-
-            {authError && (
-              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                {authError}
-              </div>
-            )}
-
-            <form onSubmit={handleAuth} className="space-y-4">
-              <NeoInput
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={e => {
-                  setEmail(e.target.value);
-                  setIsTyping(true);
-                  clearTimeout(window.typingTimeout);
-                  window.typingTimeout = setTimeout(() => setIsTyping(false), 500);
-                }}
-                onFocus={() => { setIsFocusedEmail(true); setAuthResult('idle'); }}
-                onBlur={() => setIsFocusedEmail(false)}
-                required
-                className="w-full"
-              />
-
-              <div className="relative">
-                <NeoInput
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={e => {
-                    setPassword(e.target.value);
-                    setIsTyping(true);
-                    clearTimeout(window.typingTimeout);
-                    window.typingTimeout = setTimeout(() => setIsTyping(false), 500);
-                  }}
-                  onFocus={() => { setIsFocusedPassword(true); setAuthResult('idle'); }}
-                  onBlur={() => setIsFocusedPassword(false)}
-                  required
-                  className="w-full"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-secondary hover:text-white transition-colors uppercase tracking-wider font-medium"
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-
-              <PrimaryButton type="submit" className="w-full justify-between">
-                {isRegistering ? 'INITIALIZE' : 'AUTHENTICATE'}
-                <FaArrowRight size={14} />
-              </PrimaryButton>
-            </form>
-
-            <div className="mt-8 flex justify-center gap-2 text-sm">
-              <span className="text-secondary">
-                {isRegistering ? 'Already contain data?' : 'New sequence?'}
-              </span>
-              <button
-                className="text-white hover:text-primary transition-colors font-medium"
-                onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }}
-              >
-                {isRegistering ? 'Sign In' : 'Create Account'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Login
+        onLogin={(e, p) => handleAuth({ preventDefault: () => { }, target: { value: '' } }, e, p)}
+        onRegister={(e, p) => handleAuth({ preventDefault: () => { }, target: { value: '' } }, e, p, true)}
+      // Note: The original handleAuth was designed for a form event. 
+      // We need to adapt it or the Login component to pass data correctly.
+      // Let's refactor handleAuth slightly or wrap it here.
+      />
     );
   }
 

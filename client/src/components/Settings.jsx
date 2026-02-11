@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './Settings.css';
 
 const Settings = ({ onClose, onLogout }) => {
     const [settings, setSettings] = useState({
