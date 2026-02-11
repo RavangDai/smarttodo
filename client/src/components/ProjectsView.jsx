@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
-import { FaPlus, FaArrowLeft, FaTrash, FaEdit } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, X } from 'lucide-react';
+import GlassCard from './ui/GlassCard';
+import ProjectIcon from './ui/ProjectIcons';
 import TaskAccordion from './TaskAccordion';
-import SmartTaskInput from './SmartTaskInput';
-import './ProjectsView.css';
-
-const PROJECT_COLORS = [
-    '#ff6b00', '#3b82f6', '#10b981', '#f59e0b',
-    '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4',
-];
-
-const PROJECT_ICONS = ['📁', '🚀', '💡', '🎯', '📊', '🔧', '📱', '🎨', '📚', '🏠'];
+import NeoInput from './ui/NeoInput';
+import { PrimaryButton } from './ui/Buttons';
+import IconPicker from './ui/IconPicker';
 
 const ProjectsView = ({
     projects,
@@ -20,234 +17,214 @@ const ProjectsView = ({
     onDeleteTask,
     onAddTask,
     getHeaders,
-    getLocalDateString,
+    getLocalDateString
 }) => {
-    const [showCreate, setShowCreate] = useState(false);
     const [selectedProject, setSelectedProject] = useState(null);
-    const [newName, setNewName] = useState('');
-    const [newDesc, setNewDesc] = useState('');
-    const [newColor, setNewColor] = useState(PROJECT_COLORS[0]);
-    const [newIcon, setNewIcon] = useState(PROJECT_ICONS[0]);
+    const [isCreating, setIsCreating] = useState(false);
+    const [newProjectName, setNewProjectName] = useState('');
+    const [newProjectCategory, setNewProjectCategory] = useState('coding');
+    const [expandedTaskId, setExpandedTaskId] = useState(null);
 
-    const handleCreate = () => {
-        if (!newName.trim()) return;
+    // Get tasks for a specific project
+    const getProjectTasks = (projectId) => tasks.filter(t => t.project && t.project._id === projectId);
+
+    // Calculate progress
+    const getProgress = (projectId) => {
+        const pTasks = getProjectTasks(projectId);
+        if (pTasks.length === 0) return 0;
+        const completed = pTasks.filter(t => t.isCompleted).length;
+        return Math.round((completed / pTasks.length) * 100);
+    };
+
+    const handleCreate = (e) => {
+        e.preventDefault();
+        if (!newProjectName.trim()) return;
         onCreateProject({
-            name: newName.trim(),
-            description: newDesc.trim(),
-            color: newColor,
-            icon: newIcon,
+            name: newProjectName,
+            category: newProjectCategory,
+            description: `A ${newProjectCategory} project`
         });
-        setNewName('');
-        setNewDesc('');
-        setNewColor(PROJECT_COLORS[0]);
-        setNewIcon(PROJECT_ICONS[0]);
-        setShowCreate(false);
+        setNewProjectName('');
+        setNewProjectCategory('coding'); // Reset
+        setIsCreating(false);
     };
 
-    const handleAddTaskToProject = (taskData) => {
-        onAddTask({ ...taskData, project: selectedProject._id });
-    };
-
-    // ─── DETAIL VIEW ───
-    if (selectedProject) {
-        const projectTasks = tasks.filter(t => t.project === selectedProject._id);
-        const completedCount = projectTasks.filter(t => t.isCompleted).length;
-
-        return (
-            <div className="projects-view">
-                <div className="project-detail-header">
-                    <button className="btn-back" onClick={() => setSelectedProject(null)}>
-                        <FaArrowLeft /> Back
-                    </button>
-                    <div className="project-detail-info">
-                        <div className="project-icon" style={{ background: `${selectedProject.color}20` }}>
-                            {selectedProject.icon}
-                        </div>
-                        <h2>{selectedProject.name}</h2>
-                    </div>
-                    <span className="projects-count">
-                        {completedCount}/{projectTasks.length} done
-                    </span>
-                </div>
-
-                {/* Task input scoped to project */}
-                <div style={{ marginBottom: '1.5rem' }}>
-                    <SmartTaskInput
-                        onAddTask={handleAddTaskToProject}
-                        getLocalDateString={getLocalDateString}
-                        tasks={projectTasks}
-                    />
-                </div>
-
-                <div className="project-detail-tasks">
-                    {projectTasks.length === 0 ? (
-                        <div className="project-task-empty">
-                            No tasks in this project yet. Add one above!
-                        </div>
-                    ) : (
-                        projectTasks.map(task => (
-                            <TaskAccordion
-                                key={task._id}
-                                task={task}
-                                viewMode="focus"
-                                onUpdate={onUpdateTask}
-                                onDelete={onDeleteTask}
-                                headers={getHeaders().headers}
-                                isExpanded={false}
-                                onToggle={() => { }}
-                            />
-                        ))
-                    )}
-                </div>
-            </div>
-        );
-    }
-
-    // ─── GRID VIEW ───
     return (
-        <div className="projects-view">
-            <div className="projects-header">
-                <h2>
-                    Projects
-                    {projects.length > 0 && (
-                        <span className="projects-count">{projects.length}</span>
-                    )}
-                </h2>
-                <button className="btn-new-project" onClick={() => setShowCreate(!showCreate)}>
-                    <FaPlus /> New Project
-                </button>
-            </div>
+        <div className="p-6 pb-20 max-w-7xl mx-auto dark:text-white">
+            {!selectedProject ? (
+                /* ── PROJECT GRID ── */
+                <>
+                    <div className="flex items-center justify-between mb-8">
+                        <h2 className="text-3xl font-display font-bold text-gradient">Your Projects</h2>
+                        <PrimaryButton onClick={() => setIsCreating(true)}>
+                            <Plus size={18} /> New Project
+                        </PrimaryButton>
+                    </div>
 
-            {/* CREATE FORM */}
-            {showCreate && (
-                <div className="create-project-card">
-                    <h3>Create a new project</h3>
-                    <div className="create-field">
-                        <label>Project Name</label>
-                        <input
-                            type="text"
-                            placeholder="e.g. Website Redesign"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-                            autoFocus
-                        />
-                    </div>
-                    <div className="create-field">
-                        <label>Description (optional)</label>
-                        <textarea
-                            placeholder="What's this project about?"
-                            value={newDesc}
-                            onChange={(e) => setNewDesc(e.target.value)}
-                            rows={2}
-                        />
-                    </div>
-                    <div className="color-icon-row">
-                        <div className="create-field">
-                            <label>Color</label>
-                            <div className="color-picker-group">
-                                {PROJECT_COLORS.map(c => (
-                                    <div
-                                        key={c}
-                                        className={`color-swatch ${newColor === c ? 'selected' : ''}`}
-                                        style={{ background: c }}
-                                        onClick={() => setNewColor(c)}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                        <div className="create-field">
-                            <label>Icon</label>
-                            <div className="icon-picker-group">
-                                {PROJECT_ICONS.map(ic => (
-                                    <div
-                                        key={ic}
-                                        className={`icon-option ${newIcon === ic ? 'selected' : ''}`}
-                                        onClick={() => setNewIcon(ic)}
-                                    >
-                                        {ic}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="create-actions">
-                        <button className="btn-cancel" onClick={() => setShowCreate(false)}>Cancel</button>
-                        <button className="btn-create" disabled={!newName.trim()} onClick={handleCreate}>
-                            Create Project
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {/* GRID OR EMPTY */}
-            {projects.length === 0 && !showCreate ? (
-                <div className="projects-empty">
-                    <div className="projects-empty-icon">📂</div>
-                    <h3>No projects yet</h3>
-                    <p>Organize your tasks into projects to track progress & stay focused.</p>
-                    <button className="btn-new-project" onClick={() => setShowCreate(true)}>
-                        <FaPlus /> Create your first project
-                    </button>
-                </div>
-            ) : (
-                <div className="projects-grid">
-                    {projects.map(project => {
-                        const percent = project.totalTasks > 0
-                            ? Math.round((project.completedTasks / project.totalTasks) * 100)
-                            : 0;
-                        return (
-                            <div
-                                key={project._id}
-                                className="project-card"
-                                style={{ '--project-color': project.color }}
-                                onClick={() => setSelectedProject(project)}
+                    {/* Create Modal/Inline */}
+                    <AnimatePresence>
+                        {isCreating && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="mb-8 overflow-hidden"
                             >
-                                <div className="project-card-header">
-                                    <div className="project-icon-name">
-                                        <div className="project-icon" style={{ background: `${project.color}15` }}>
-                                            {project.icon}
+                                <GlassCard className="mb-2 border-primary/30 relative">
+                                    <button
+                                        onClick={() => setIsCreating(false)}
+                                        className="absolute top-4 right-4 p-2 text-secondary hover:text-white transition-colors"
+                                    >
+                                        <X size={20} />
+                                    </button>
+
+                                    <form onSubmit={handleCreate} className="space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-xs uppercase text-secondary mb-2">Project Name</label>
+                                                <NeoInput
+                                                    value={newProjectName}
+                                                    onChange={e => setNewProjectName(e.target.value)}
+                                                    placeholder="e.g., Website Redesign"
+                                                    autoFocus
+                                                />
+                                            </div>
+
+                                            {/* Preview */}
+                                            <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5">
+                                                <ProjectIcon category={newProjectCategory} size={40} />
+                                                <div>
+                                                    <div className="text-lg font-bold text-white">{newProjectName || 'Project Name'}</div>
+                                                    <div className="text-sm text-secondary capitalize">{newProjectCategory} Project</div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <span className="project-name">{project.name}</span>
-                                    </div>
-                                    <div className="project-actions">
-                                        <button
-                                            className="project-action-btn delete"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (window.confirm(`Delete "${project.name}"? Tasks will be preserved.`)) {
-                                                    onDeleteProject(project._id);
-                                                }
-                                            }}
-                                            title="Delete project"
-                                        >
-                                            <FaTrash />
-                                        </button>
-                                    </div>
-                                </div>
 
-                                {project.description && (
-                                    <p className="project-description">{project.description}</p>
-                                )}
+                                        <div>
+                                            <label className="block text-xs uppercase text-secondary mb-3">Select Icon / Category</label>
+                                            <IconPicker
+                                                selectedIcon={newProjectCategory}
+                                                onChange={setNewProjectCategory}
+                                            />
+                                        </div>
 
-                                <div className="project-progress-section">
-                                    <div className="project-progress-header">
-                                        <span className="project-task-count">
-                                            {project.completedTasks}/{project.totalTasks} tasks
-                                        </span>
-                                        <span className="project-percent">{percent}%</span>
-                                    </div>
-                                    <div className="project-progress-bar">
-                                        <div
-                                            className="project-progress-fill"
-                                            style={{ width: `${percent}%`, background: project.color }}
-                                        />
-                                    </div>
+                                        <div className="flex justify-end pt-2">
+                                            <PrimaryButton type="submit" disabled={!newProjectName.trim()}>
+                                                Create Project
+                                            </PrimaryButton>
+                                        </div>
+                                    </form>
+                                </GlassCard>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <AnimatePresence>
+                            {projects.map((project, i) => {
+                                const progress = getProgress(project._id);
+                                const taskCount = getProjectTasks(project._id).length;
+
+                                return (
+                                    <motion.div
+                                        key={project._id}
+                                        layout
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        onClick={() => setSelectedProject(project)}
+                                    >
+                                        <GlassCard className="h-full hover:border-primary/40 hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden">
+                                            {/* Glow Background */}
+                                            <div className="absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:bg-primary/20 transition-all" />
+
+                                            <div className="flex justify-between items-start mb-6 relative">
+                                                <ProjectIcon category={project.category} size={28} />
+
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); onDeleteProject(project._id); }}
+                                                    className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-400 text-secondary transition-all"
+                                                    title="Delete Project"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+
+                                            <h3 className="text-xl font-bold text-white mb-2">{project.name}</h3>
+                                            <p className="text-sm text-secondary mb-6 line-clamp-2">
+                                                {project.description || `A ${project.category} project`}
+                                            </p>
+
+                                            <div className="mt-auto">
+                                                <div className="flex justify-between text-xs text-secondary mb-2 uppercase tracking-wider font-mono">
+                                                    <span>{taskCount} Tasks</span>
+                                                    <span>{progress}%</span>
+                                                </div>
+                                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-gradient-to-r from-primary to-orange-400 rounded-full transition-all duration-500"
+                                                        style={{ width: `${progress}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </GlassCard>
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
+                    </div>
+                </>
+            ) : (
+                /* ── SINGLE PROJECT VIEW ── */
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                    >
+                        <button
+                            onClick={() => setSelectedProject(null)}
+                            className="mb-6 flex items-center gap-2 text-secondary hover:text-white transition-colors"
+                        >
+                            <X size={16} /> Back to Projects
+                        </button>
+
+                        <div className="flex items-start justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                                <ProjectIcon category={selectedProject.category} size={40} className="p-3 bg-white/5 rounded-2xl" />
+                                <div>
+                                    <h1 className="text-3xl font-bold text-white">{selectedProject.name}</h1>
+                                    <p className="text-secondary opacity-70 capitalize">{selectedProject.category} • {getProgress(selectedProject._id)}% Complete</p>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
+                            <PrimaryButton onClick={() => setSelectedProject(null)}>
+                                <Plus size={18} /> Add Task
+                            </PrimaryButton>
+                        </div>
+
+                        {/* Task List for Project */}
+                        <div className="space-y-4">
+                            {getProjectTasks(selectedProject._id).length === 0 ? (
+                                <div className="text-center py-20 text-secondary border border-dashed border-white/10 rounded-2xl">
+                                    <p>No tasks yet.</p>
+                                </div>
+                            ) : (
+                                getProjectTasks(selectedProject._id).map(task => (
+                                    <TaskAccordion
+                                        key={task._id}
+                                        task={task}
+                                        onUpdate={onUpdateTask}
+                                        onDelete={onDeleteTask}
+                                        headers={getHeaders().headers}
+                                        isExpanded={expandedTaskId === task._id}
+                                        onToggle={() => setExpandedTaskId(expandedTaskId === task._id ? null : task._id)}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
             )}
         </div>
     );

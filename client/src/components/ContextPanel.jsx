@@ -1,37 +1,59 @@
 import React, { useState } from 'react';
 import VerticalTimeline from './VerticalTimeline';
+// import ChatPanel from './ChatPanel'; // Will refactor this later, simple placeholder for now or keep existing
+import { Waves, MessageSquare } from 'lucide-react';
+
+
+// Placeholder for ChatPanel to avoid breaking if not refactored yet, or I can import the old one.
+// The old one is likely using CSS too. I'll just import it for now and maybe wrap it.
 import ChatPanel from './ChatPanel';
-import './ContextPanel.css';
-import { FaStream, FaComments } from 'react-icons/fa';
 
 const ContextPanel = ({ tasks, onAutoSchedule }) => {
     const [activeTab, setActiveTab] = useState('timeline');
 
     return (
-        <aside className="context-panel">
-            <div className="panel-header-tabs">
+        <aside className="h-full flex flex-col bg-transparent">
+            {/* Tabs */}
+            <div className="flex items-center p-2 gap-1 border-b border-white/5">
                 <button
-                    className={`panel-tab ${activeTab === 'timeline' ? 'active' : ''}`}
                     onClick={() => setActiveTab('timeline')}
+                    className={`
+                        flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
+                        ${activeTab === 'timeline'
+                            ? 'bg-white/10 text-white shadow-sm'
+                            : 'text-secondary hover:text-white hover:bg-white/5'
+                        }
+                    `}
                 >
-                    <FaStream size={12} /> Timeline
+                    <Waves size={14} /> Timeline
                 </button>
                 <button
-                    className={`panel-tab ${activeTab === 'chat' ? 'active' : ''}`}
                     onClick={() => setActiveTab('chat')}
+                    className={`
+                        flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all
+                        ${activeTab === 'chat'
+                            ? 'bg-white/10 text-white shadow-sm'
+                            : 'text-secondary hover:text-white hover:bg-white/5'
+                        }
+                    `}
                 >
-                    <FaComments size={12} /> Chat
+                    <MessageSquare size={14} /> Chat
                 </button>
             </div>
 
-            <div className="panel-content">
+            {/* Content */}
+            <div className="flex-1 overflow-hidden relative">
                 {activeTab === 'timeline' ? (
-                    <VerticalTimeline
-                        tasks={tasks}
-                        onAutoSchedule={onAutoSchedule}
-                    />
+                    <div className="h-full overflow-y-auto custom-scrollbar p-4">
+                        <VerticalTimeline
+                            tasks={tasks}
+                            onAutoSchedule={onAutoSchedule}
+                        />
+                    </div>
                 ) : (
-                    <ChatPanel tasks={tasks} user={{ name: 'User' }} />
+                    <div className="h-full flex flex-col">
+                        <ChatPanel tasks={tasks} user={{ name: 'User' }} />
+                    </div>
                 )}
             </div>
         </aside>

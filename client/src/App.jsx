@@ -2,25 +2,23 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaArrowRight } from 'react-icons/fa';
 import confetti from 'canvas-confetti';
-
 import { DndContext } from '@dnd-kit/core';
 import { useSearchParams } from 'react-router-dom';
-
-import './App.css';
-import './Dashboard.css'; // Might need to cull this later
-import TaskAccordion from './components/TaskAccordion';
-import SmartTaskInput from './components/SmartTaskInput';
-import SmartInsightsPanel from './components/SmartInsightsPanel';
-import Settings from './components/Settings';
-import AITypewriter from './components/AITypewriter';
-import InteractiveAvatar from './components/InteractiveAvatar';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // New Components
 import Sidebar from './components/Sidebar';
 import FocusBar from './components/FocusBar';
 import ContextPanel from './components/ContextPanel';
 import ProjectsView from './components/ProjectsView';
-import { generateSchedule } from './utils/aiScheduler';
+import TaskAccordion from './components/TaskAccordion';
+import SmartTaskInput from './components/SmartTaskInput'; // Refactored version
+import SmartInsightsPanel from './components/SmartInsightsPanel';
+import Settings from './components/Settings';
+import AITypewriter from './components/AITypewriter';
+import InteractiveAvatar from './components/InteractiveAvatar';
+import { PrimaryButton } from './components/ui/Buttons';
+import NeoInput from './components/ui/NeoInput';
 
 function App() {
   // ─── STATE ───
@@ -60,20 +58,15 @@ function App() {
     if (!over) return;
 
     if (over.id.startsWith('hour-')) {
-      // Task dropped on timeline hour
       const taskId = active.id;
       const hour = parseInt(over.id.split('-')[1]);
-
-      // Formats time as HH:00
       const timeString = `${String(hour).padStart(2, '0')}:00`;
 
-      // Update task data locally first for instant feedback (optimistic)
       const updatedTask = tasks.find(t => t._id === taskId);
       if (updatedTask) {
         const newTask = { ...updatedTask, dueTime: timeString };
         setTasks(tasks.map(t => t._id === taskId ? newTask : t));
 
-        // Persist to server
         axios.put(`/api/tasks/${taskId}`, { dueTime: timeString }, getHeaders())
           .catch(err => console.error(err));
 
@@ -93,7 +86,6 @@ function App() {
   const [isFocusedEmail, setIsFocusedEmail] = useState(false);
   const [isFocusedPassword, setIsFocusedPassword] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [isHoveringSubmit, setIsHoveringSubmit] = useState(false);
   const [authResult, setAuthResult] = useState('idle');
 
   // ─── EFFECTS ───
@@ -107,29 +99,25 @@ function App() {
     }
   }, [token]);
 
-  // Apply dark mode on mount (force enabled for HUD look for now or respect persist)
-  useEffect(() => {
-    document.body.classList.add('dark-mode');
-  }, []);
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
       const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
       const key = e.key.toLowerCase();
 
-      // Slash to focus task input (only when not typing in an input/textarea)
       if (key === '/' && !isTyping) {
         e.preventDefault();
         e.stopPropagation();
-        document.querySelector('.task-input')?.focus();
+        // document.querySelector('.task-input')?.focus(); // Old selector
+        // NeoInput uses generic input, but we can rely on autoFocus prop or ref if needed. 
+        // For now, let's just create a generic data-attribute or class if we really need to focus it from outside.
+        // Or simply set activeView to tasks.
         setActiveView('tasks');
         return;
       }
 
       if (e.key === 'Escape') {
         setShowSettings(false);
-        // Also close task detail
         if (activeTaskId) {
           setSearchParams(prev => {
             const next = new URLSearchParams(prev);
@@ -190,7 +178,6 @@ function App() {
   // ─── TASK ACTIONS ───
   const handleAddTask = (taskData) => {
     if (!taskData.title) return;
-
     let taskDate = null;
     if (taskData.dueDate && taskData.dueTime) {
       taskDate = `${taskData.dueDate}T${taskData.dueTime}`;
@@ -202,11 +189,12 @@ function App() {
       title: taskData.title,
       priority: taskData.priority || 'medium',
       dueDate: taskDate,
+      dueTime: taskData.dueTime, // Ensure dueTime is passed if separate
       project: taskData.project || undefined
     }, getHeaders())
       .then(res => {
         setTasks([res.data, ...tasks]);
-        if (taskData.project) fetchProjects(); // refresh project counts
+        if (taskData.project) fetchProjects();
       })
       .catch(err => console.error('Error adding task:', err));
   };
@@ -221,7 +209,7 @@ function App() {
     axios.delete(`/api/projects/${id}`, getHeaders())
       .then(() => {
         setProjects(projects.filter(p => p._id !== id));
-        fetchTasks(); // refresh tasks to clear project ref
+        fetchTasks();
       })
       .catch(err => console.error('Error deleting project:', err));
   };
@@ -240,7 +228,6 @@ function App() {
   };
 
   const handleAutoSchedule = async () => {
-    // Call AI Scheduler API
     try {
       const res = await axios.post('/api/ai/plan', {
         tasks: tasks.filter(t => !t.isCompleted),
@@ -250,16 +237,12 @@ function App() {
       const plan = res.data;
       if (!plan.schedule) return;
 
-      // Apply schedule to tasks (Optimistic + Server)
       const updates = [];
       plan.schedule.forEach(slot => {
         if (slot.taskId) {
           const task = tasks.find(t => t._id === slot.taskId);
           if (task) {
-            // Start time from slot "09:00 - ..."
-            const startTime = slot.time.split('-')[0].trim(); // "09:00"
-
-            // Construct Date
+            const startTime = slot.time.split('-')[0].trim();
             const [hours, minutes] = startTime.split(':');
             const newDate = new Date();
             newDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
@@ -273,7 +256,6 @@ function App() {
         }
       });
 
-      // Batch update
       const newTasks = tasks.map(t => {
         const update = updates.find(u => u._id === t._id);
         return update ? update : t;
@@ -299,7 +281,6 @@ function App() {
     return d.toISOString().split('T')[0];
   };
 
-  // ─── COMPUTED ───
   const pendingCount = tasks.filter(t => !t.isCompleted).length;
   const completedCount = tasks.filter(t => t.isCompleted).length;
   const totalCount = tasks.length;
@@ -313,59 +294,58 @@ function App() {
     return true;
   });
 
-  // ════════════════════════════════════════════════════════════════
-  // LOGIN VIEW
-  // ════════════════════════════════════════════════════════════════
+  // ─── AUTH VIEW ───
   if (!token) {
     return (
-      <div className="auth-page">
-        <div className="auth-left-panel">
-          <header className="auth-header">
-            <h1 className="wordmark">KaryaAI</h1>
-            <p className="tagline">Intelligent simplicity.<br />AI that gets out of your way.</p>
+      <div className="flex h-screen w-full bg-background text-white overflow-hidden font-sans">
+        {/* Left Panel - Avatar */}
+        <div className="hidden lg:flex flex-1 flex-col justify-between p-12 relative overflow-hidden bg-black/40">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,107,53,0.15),transparent_50%)]" />
+
+          <header className="relative z-10">
+            <h1 className="font-display font-bold text-4xl mb-2">Karya<span className="text-primary">AI</span></h1>
+            <p className="text-secondary text-lg">Intelligent simplicity. AI that gets out of your way.</p>
           </header>
 
-          <div className="sanskrit-overlay">
-            <span className="sanskrit-symbol chakra"></span>
+          <div className="relative z-10 flex flex-col items-center">
+            <InteractiveAvatar
+              state={(() => {
+                if (authResult === 'success') return 'success';
+                if (authResult === 'error') return 'confused';
+                if (isFocusedPassword) return showPassword ? 'scanning' : (isTyping ? 'peeking' : 'looking-away');
+                if (isFocusedEmail) return isTyping ? 'watching' : 'active';
+                return 'idle';
+              })()}
+              email={email}
+              mode="auth"
+            />
+            <AITypewriter />
           </div>
 
-          {/* Avatar State Logic */}
-          <InteractiveAvatar
-            state={(() => {
-              if (authResult === 'success') return 'success';
-              if (authResult === 'error') return 'confused';
-
-              if (isFocusedPassword) {
-                if (showPassword) return 'scanning'; // Scan when password visible
-                if (isTyping) return 'peeking'; // Peek when typing
-                return 'looking-away'; // Avert eyes by default on password
-              }
-
-              if (isFocusedEmail) {
-                if (isTyping) return 'watching';
-                return 'active'; // Look attentive
-              }
-
-              return 'idle';
-            })()}
-            email={email}
-            mode="auth"
-          />
-          <AITypewriter />
+          <div className="relative z-10 text-xs text-secondary/50 font-mono">
+            SYSTEM STATUS: OPERATIONAL
+          </div>
         </div>
-        <div className="auth-right-panel">
-          <div className="auth-container">
-            <h2 className="auth-form-title slide-up-stagger" style={{ animationDelay: '0.1s' }}>
-              {isRegistering ? 'Create your account' : 'Welcome back'}
+
+        {/* Right Panel - Form */}
+        <div className="flex-1 flex items-center justify-center p-6 bg-surface/50 backdrop-blur-md">
+          <div className="w-full max-w-md p-8 rounded-3xl bg-white/5 border border-white/10 shadow-glass">
+            <h2 className="text-3xl font-display font-bold mb-2">
+              {isRegistering ? 'Create Account' : 'Welcome Back'}
             </h2>
-            <p className="auth-form-subtitle slide-up-stagger" style={{ animationDelay: '0.2s' }}>
-              {isRegistering ? 'Start your productivity journey with AI' : 'Sign in to continue to your tasks'}
+            <p className="text-secondary mb-8">
+              {isRegistering ? 'Join the productivity revolution.' : 'Sign in to access your workspace.'}
             </p>
-            {authError && <div className="auth-error slide-up-stagger" style={{ animationDelay: '0.25s' }}>{authError}</div>}
-            <form onSubmit={handleAuth} className="auth-form slide-up-stagger" style={{ animationDelay: '0.3s' }}>
-              <input
+
+            {authError && (
+              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                {authError}
+              </div>
+            )}
+
+            <form onSubmit={handleAuth} className="space-y-4">
+              <NeoInput
                 type="email"
-                className="input-field"
                 placeholder="Email"
                 value={email}
                 onChange={e => {
@@ -377,11 +357,12 @@ function App() {
                 onFocus={() => { setIsFocusedEmail(true); setAuthResult('idle'); }}
                 onBlur={() => setIsFocusedEmail(false)}
                 required
+                className="w-full"
               />
-              <div className="password-input-group" style={{ position: 'relative' }}>
-                <input
+
+              <div className="relative">
+                <NeoInput
                   type={showPassword ? "text" : "password"}
-                  className="input-field"
                   placeholder="Password"
                   value={password}
                   onChange={e => {
@@ -393,39 +374,43 @@ function App() {
                   onFocus={() => { setIsFocusedPassword(true); setAuthResult('idle'); }}
                   onBlur={() => setIsFocusedPassword(false)}
                   required
+                  className="w-full"
                 />
                 <button
                   type="button"
-                  className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-secondary)', fontSize: '14px' }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-secondary hover:text-white transition-colors uppercase tracking-wider font-medium"
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
-              <button type="submit" className="btn-primary">
-                {isRegistering ? 'CREATE ACCOUNT' : 'SIGN IN'} <FaArrowRight size={12} />
-              </button>
+
+              <PrimaryButton type="submit" className="w-full justify-between">
+                {isRegistering ? 'INITIALIZE' : 'AUTHENTICATE'}
+                <FaArrowRight size={14} />
+              </PrimaryButton>
             </form>
-            <div className="auth-switch slide-up-stagger" style={{ animationDelay: '0.4s' }}>
+
+            <div className="mt-8 flex justify-center gap-2 text-sm">
               <span className="text-secondary">
-                {isRegistering ? 'Already have an account?' : 'New to KaryaAI?'}
+                {isRegistering ? 'Already contain data?' : 'New sequence?'}
               </span>
-              <button className="btn-ghost" onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }}>
+              <button
+                className="text-white hover:text-primary transition-colors font-medium"
+                onClick={() => { setIsRegistering(!isRegistering); setAuthError(''); }}
+              >
                 {isRegistering ? 'Sign In' : 'Create Account'}
               </button>
             </div>
           </div>
-        </div >
-      </div >
+        </div>
+      </div>
     );
   }
 
-  // ════════════════════════════════════════════════════════════════
-  // DASHBOARD VIEW (Pilot's HUD)
-  // ════════════════════════════════════════════════════════════════
+  // ─── APP VIEW ───
   return (
-    <div className={`app-container ${isFocusMode ? 'focus-mode-active' : ''}`}>
+    <div className={`flex h-screen w-full bg-background text-white overflow-hidden font-sans ${isFocusMode ? 'focus-mode-active' : ''}`}>
       {/* ── SIDEBAR ── */}
       <Sidebar
         activeView={activeView}
@@ -436,112 +421,148 @@ function App() {
 
       {/* ── MAIN CONTENT ── */}
       <DndContext onDragEnd={handleDragEnd}>
-        <main className="main-content">
+        <main className="flex-1 flex flex-col relative w-full overflow-hidden">
 
           {/* ── FOCUS BAR ── */}
-          <FocusBar
-            taskCount={pendingCount}
-            tasks={tasks}
-            isFocusMode={isFocusMode}
-            onToggleFocus={() => setIsFocusMode(!isFocusMode)}
-          />
+          <div className="z-20 w-full glass-panel border-b border-white/5 sticky top-0">
+            <FocusBar
+              taskCount={pendingCount}
+              tasks={tasks}
+              isFocusMode={isFocusMode}
+              onToggleFocus={() => setIsFocusMode(!isFocusMode)}
+            />
+          </div>
 
           {/* ── CONTENT SPLIT ── */}
-          <div className="content-split">
+          <div className="flex-1 flex overflow-hidden">
 
-            {/* ── LEFT: TASK LIST ── */}
-            {activeView === 'projects' ? (
-              <section className="task-list-container" style={{ padding: 0 }}>
-                <ProjectsView
-                  projects={projects}
-                  tasks={tasks}
-                  onCreateProject={handleCreateProject}
-                  onDeleteProject={handleDeleteProject}
-                  onUpdateTask={updateTask}
-                  onDeleteTask={deleteTask}
-                  onAddTask={handleAddTask}
-                  getHeaders={getHeaders}
-                  getLocalDateString={getLocalDateString}
-                />
-              </section>
-            ) : (
-              <section className="task-list-container">
+            {/* ── LEFT: TASK LIST / PROJECTS ── */}
+            <section className="flex-1 overflow-y-auto custom-scrollbar relative">
+              <AnimatePresence mode="wait">
+                {activeView === 'projects' ? (
+                  <motion.div
+                    key="projects"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.2 }}
+                    className="h-full"
+                  >
+                    <ProjectsView
+                      projects={projects}
+                      tasks={tasks}
+                      onCreateProject={handleCreateProject}
+                      onDeleteProject={handleDeleteProject}
+                      onUpdateTask={updateTask}
+                      onDeleteTask={deleteTask}
+                      onAddTask={handleAddTask}
+                      getHeaders={getHeaders}
+                      getLocalDateString={getLocalDateString}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="tasks"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.2 }}
+                    className="h-full"
+                  >
+                    {/* INPUT AREA */}
+                    <div className="p-6 pb-2 md:max-w-3xl mx-auto sticky top-0 z-10 bg-background/95 backdrop-blur-xl transition-all">
+                      <SmartTaskInput
+                        onAddTask={handleAddTask}
+                        getLocalDateString={getLocalDateString}
+                        tasks={tasks}
+                      />
+                    </div>
 
-                {/* ── INPUT AREA (Sticky Top) ── */}
-                <div style={{ padding: '1.5rem', paddingBottom: '0.5rem', background: 'var(--color-bg)', position: 'sticky', top: 0, zIndex: 10 }}>
-                  <SmartTaskInput
-                    onAddTask={handleAddTask}
-                    getLocalDateString={getLocalDateString}
-                    tasks={tasks}
-                  />
-                </div>
-
-                {/* ── FILTER TABS ── */}
-                <div className="filter-bar" style={{ padding: '0 1.5rem', marginBottom: '1rem' }}>
-                  <div className="filter-tabs">
-                    {['active', 'completed', 'all'].map(f => (
-                      <button
-                        key={f}
-                        className={`filter-tab ${filter === f ? 'active' : ''}`}
-                        onClick={() => setFilter(f)}
-                      >
-                        {f.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ── TASKS ── */}
-                <div style={{ padding: '0 1.5rem 2rem 1.5rem' }}>
-                  {isLoading ? (
-                    <div className="skeleton-container">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="skeleton-card" style={{ animationDelay: `${i * 100}ms` }}>
-                          <div className="skeleton-line skeleton-title" />
-                          <div className="skeleton-line skeleton-subtitle" />
-                        </div>
+                    {/* FILTER TABS */}
+                    <div className="px-6 mb-4 md:max-w-3xl mx-auto flex gap-1">
+                      {['active', 'completed', 'all'].map(f => (
+                        <button
+                          key={f}
+                          onClick={() => setFilter(f)}
+                          className={`
+                                            px-4 py-2 rounded-lg text-sm font-medium transition-all
+                                            ${filter === f ? 'bg-primary/10 text-primary' : 'text-secondary hover:text-white hover:bg-white/5'}
+                                        `}
+                        >
+                          {f.toUpperCase()}
+                        </button>
                       ))}
                     </div>
-                  ) : filteredTasks.length === 0 ? (
-                    <div className="empty-state">
-                      <div className="empty-state-icon">📋</div>
-                      <p className="empty-text">No tasks found.</p>
-                      <p className="empty-hint">Press <kbd>/</kbd> to focus the input and start adding tasks</p>
+
+                    {/* TASKS */}
+                    <div className="px-6 pb-12 md:max-w-3xl mx-auto space-y-3 min-h-[50vh]">
+                      {isLoading ? (
+                        <div className="space-y-4">
+                          {[1, 2, 3].map(i => (
+                            <div key={i} className="h-20 bg-white/5 rounded-2xl animate-pulse" />
+                          ))}
+                        </div>
+                      ) : filteredTasks.length === 0 ? (
+                        <div className="text-center py-20 text-secondary">
+                          <div className="text-4xl mb-4 opacity-50">📋</div>
+                          <p>No tasks found.</p>
+                          <p className="text-xs mt-2 text-secondary/50">Type above to add new tasks.</p>
+                        </div>
+                      ) : (
+                        <AnimatePresence>
+                          {filteredTasks.map((task, i) => (
+                            <TaskAccordion
+                              key={task._id}
+                              task={task}
+                              viewMode="focus"
+                              onUpdate={updateTask}
+                              onDelete={deleteTask}
+                              headers={getHeaders().headers}
+                              isExpanded={activeTaskId === task._id}
+                              onToggle={() => handleToggleTask(task._id)}
+                            />
+                          ))}
+                        </AnimatePresence>
+                      )}
                     </div>
-                  ) : (
-                    filteredTasks.map((task) => (
-                      <TaskAccordion
-                        key={task._id}
-                        task={task}
-                        viewMode="focus"
-                        onUpdate={updateTask}
-                        onDelete={deleteTask}
-                        headers={getHeaders().headers}
-                        isExpanded={activeTaskId === task._id}
-                        onToggle={() => handleToggleTask(task._id)}
-                      />
-                    ))
-                  )}
-                </div>
-              </section>
-            )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </section>
 
             {/* ── RIGHT: CONTEXT PANEL ── */}
-            <section className="context-panel-container">
-              {activeView === 'insights' ? (
-                <SmartInsightsPanel
-                  tasks={tasks}
-                  completedCount={completedCount}
-                  totalCount={totalCount}
-                  onAutoSchedule={() => handleAutoSchedule()}
-                />
-              ) : (
-                /* Default to Timeline for 'tasks' or 'projects' for now */
-                <ContextPanel
-                  tasks={tasks}
-                  onAutoSchedule={handleAutoSchedule}
-                />
-              )}
+            <section className="hidden xl:block w-80 border-l border-white/5 bg-black/20 backdrop-blur-sm overflow-y-auto">
+              <AnimatePresence mode="wait">
+                {activeView === 'insights' ? (
+                  <motion.div
+                    key="insights"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="h-full"
+                  >
+                    <SmartInsightsPanel
+                      tasks={tasks}
+                      completedCount={completedCount}
+                      totalCount={totalCount}
+                      onAutoSchedule={() => handleAutoSchedule()}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="context"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="h-full"
+                  >
+                    <ContextPanel
+                      tasks={tasks}
+                      onAutoSchedule={handleAutoSchedule}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </section>
 
           </div>

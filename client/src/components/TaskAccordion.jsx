@@ -1,372 +1,425 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, Calendar, Edit2, Trash2, ChevronDown, ChevronUp, Plus, Sparkles, X, Check, FileText, Command } from 'lucide-react';
 import axios from 'axios';
-import { FaCheck, FaChevronDown, FaTrash, FaGripVertical, FaTerminal, FaPlus, FaListUl } from 'react-icons/fa';
-import AIChip from './AIChip';
-import ProgressMandala from './ProgressMandala';
-import './ProgressMandala.css';
+import Checkbox from './ui/Checkbox';
+import PriorityIcon from './ui/PriorityIcon';
+import { PrimaryButton, SecondaryButton } from './ui/Buttons';
+import NeoInput from './ui/NeoInput';
+import confetti from 'canvas-confetti';
 
-import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
+const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedTitle, setEditedTitle] = useState(task.title);
 
-const TaskAccordion = ({ task, viewMode = 'focus', onUpdate, onDelete, headers, isExpanded: propIsExpanded, onToggle }) => {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id: task._id,
-    });
-
-    const style = {
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.5 : 1,
-        touchAction: 'none',
-    };
-
-    // Use prop if controlled, otherwise local state (though we are moving to fully controlled)
-    const [localIsExpanded, setLocalIsExpanded] = useState(false);
-
-    const isExpanded = propIsExpanded !== undefined ? propIsExpanded : localIsExpanded;
-
-    const toggleExpanded = (e) => {
-        if (e) e.stopPropagation();
-        if (onToggle) {
-            onToggle();
-        } else {
-            setLocalIsExpanded(!localIsExpanded);
-        }
-    };
-
-    const [localNotes, setLocalNotes] = useState(task.notes || '');
-    const [localSubtasks, setLocalSubtasks] = useState(task.subtasks || []);
+    // Subtasks State
+    const [subtasks, setSubtasks] = useState(task.subtasks || []);
     const [newSubtask, setNewSubtask] = useState('');
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [nlpCommand, setNlpCommand] = useState('');
-    const [nlpMessage, setNlpMessage] = useState('');
-    const [isNlpLoading, setIsNlpLoading] = useState(false);
-    const [showNlpInput, setShowNlpInput] = useState(false);
-    const [isAddingSubtask, setIsAddingSubtask] = useState(false);
-    const [aiError, setAiError] = useState('');
 
+    // Notes State
+    const [notes, setNotes] = useState(task.notes || '');
+    const [isSavingNotes, setIsSavingNotes] = useState(false);
+
+    // AI State
+    const [aiCommand, setAiCommand] = useState('');
+    const [isAiLoading, setIsAiLoading] = useState(false);
+    const [aiStreaming, setAiStreaming] = useState(false);
+
+    // Sync state with props when expanding (or just init)
     useEffect(() => {
-        setLocalSubtasks(task.subtasks || []);
-    }, [task.subtasks]);
+        setSubtasks(task.subtasks || []);
+        setNotes(task.notes || '');
+        setEditedTitle(task.title);
+    }, [task, isExpanded]);
 
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            if (localNotes !== task.notes) {
-                saveChanges({ notes: localNotes });
-            }
-        }, 1000);
-        return () => clearTimeout(timeout);
-    }, [localNotes]);
-
-    const saveChanges = (updates) => {
-        axios.put(`http://localhost:5000/api/tasks/${task._id}`, updates, { headers })
-            .then(res => onUpdate(res.data))
-            .catch(err => console.error('Error saving task:', err));
+    // ─── HELPERS ───
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
     };
 
-    const toggleComplete = (e) => {
-        e.stopPropagation();
-        saveChanges({ isCompleted: !task.isCompleted });
-    };
-
-    const toggleSubtask = (index) => {
-        const updated = localSubtasks.map((st, i) =>
-            i === index ? { ...st, isCompleted: !st.isCompleted } : st
-        );
-        setLocalSubtasks(updated);
-        saveChanges({ subtasks: updated });
-    };
-
-    const addSubtask = () => {
-        if (!newSubtask.trim()) return;
-        const updated = [...localSubtasks, { title: newSubtask, isCompleted: false }];
-        setLocalSubtasks(updated);
-        setNewSubtask('');
-        setIsAddingSubtask(false);
-        saveChanges({ subtasks: updated });
-    };
-
-    // AI Breakdown
-    const handleAIBreakdown = async (e) => {
-        e.stopPropagation();
-        if (isGenerating) return;
-
-        setIsGenerating(true);
-        setAiError('');
-        if (onToggle) {
-            if (!isExpanded) onToggle();
-        } else {
-            setLocalIsExpanded(true);
+    // ─── HANDLERS ───
+    const handleSaveTitle = () => {
+        if (editedTitle !== task.title) {
+            onUpdate({ ...task, title: editedTitle });
         }
+        setIsEditing(false);
+    };
+
+    const handleCheckboxChange = (checked) => {
+        onUpdate({ ...task, isCompleted: checked });
+    };
+
+    const updateTaskFn = async (updates) => {
+        // Optimistic local update via parent
+        onUpdate({ ...task, ...updates });
+
+        // Server update (parent usually handles this via onUpdate -> API, but subtasks might need direct patch if parent is "dumb")
+        // Assuming onUpdate calls the PUT endpoint in App.jsx.
+        // If not, we might need to call axios directly here for partial updates to ensure sync?
+        // Let's assume onUpdate handles API calls.
+        // CHECK: App.jsx `updateTask` just sets local state? 
+        // App.jsx: `const updateTask = (updatedTask) => { setTasks(...); }`
+        // It DOES NOT seem to call API in App.jsx `updateTask` function snippet I saw?
+        // WAIT. I need to verify if `onUpdate` persists to backend in App.jsx.
+        // I checked App.jsx in step 195. 
+        // `updateTask` only does `setTasks`. It does NOT call axios.
+        // `handleDragEnd` calls axios. 
+        // `deleteTask` calls axios.
+        // I need to fix `updateTask` in App.jsx or do it here.
+        // Doing it here is safer for granular components.
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/ai/breakdown/${task._id}`, {
+            await axios.put(`/api/tasks/${task._id}`, updates, headers);
+        } catch (err) {
+            console.error("Failed to update task", err);
+        }
+    };
+
+    // ─── SUBTASKS ───
+    const addSubtask = async (e) => {
+        e.preventDefault();
+        if (!newSubtask.trim()) return;
+
+        const newSubtasks = [...subtasks, { title: newSubtask, isCompleted: false }];
+        setSubtasks(newSubtasks);
+        setNewSubtask('');
+
+        await updateTaskFn({ subtasks: newSubtasks });
+    };
+
+    const toggleSubtask = async (index) => {
+        const newSubtasks = [...subtasks];
+        newSubtasks[index].isCompleted = !newSubtasks[index].isCompleted;
+        setSubtasks(newSubtasks);
+        await updateTaskFn({ subtasks: newSubtasks });
+    };
+
+    const deleteSubtask = async (index) => {
+        const newSubtasks = subtasks.filter((_, i) => i !== index);
+        setSubtasks(newSubtasks);
+        await updateTaskFn({ subtasks: newSubtasks });
+    };
+
+    const generateSubtasks = async () => {
+        setIsAiLoading(true);
+        setAiStreaming(true);
+        try {
+            // Using the streaming endpoint structure from ai.js
+            // But fetch might be easier for streaming than axios
+            const response = await fetch(`/api/ai/breakdown/${task._id}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-auth-token': token }
+                headers: headers?.headers || {}
             });
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            let buffer = '';
+
+            let accumulatedSubtasks = [...subtasks];
 
             while (true) {
-                const { value, done } = await reader.read();
+                const { done, value } = await reader.read();
                 if (done) break;
-                buffer += decoder.decode(value, { stream: true });
 
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
 
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
+                        const dataStr = line.replace('data: ', '').trim();
+                        if (dataStr === '{"done": true}') continue;
                         try {
-                            const data = JSON.parse(line.slice(6));
-                            if (data.error) {
-                                setAiError(data.error);
-                                setIsGenerating(false);
-                                break;
+                            const newSubtaskData = JSON.parse(dataStr);
+                            if (newSubtaskData.error) throw new Error(newSubtaskData.error);
+
+                            // Add strictly unique
+                            if (!accumulatedSubtasks.find(s => s.title === newSubtaskData.title)) {
+                                accumulatedSubtasks.push({
+                                    title: newSubtaskData.title,
+                                    isCompleted: false
+                                });
+                                setSubtasks([...accumulatedSubtasks]); // Trigger rerender
                             }
-                            if (data.done) {
-                                const res = await axios.get('http://localhost:5000/api/tasks', { headers });
-                                const refreshed = res.data.find(t => t._id === task._id);
-                                if (refreshed) onUpdate(refreshed);
-                                setIsGenerating(false);
-                            }
-                        } catch (e) { }
+                        } catch (e) {
+                            // ignore json errors
+                        }
                     }
                 }
             }
+
+            // Final sync
+            await updateTaskFn({ subtasks: accumulatedSubtasks });
+
         } catch (err) {
-            console.error('AI Error:', err);
-            setAiError('Connection failed.');
-            setIsGenerating(false);
-        }
-    };
-
-    // Natural Language Command Handler
-    const [isFadingOut, setIsFadingOut] = useState(false);
-
-    const handleNlpCommand = async (e) => {
-        e.preventDefault();
-        if (!nlpCommand.trim() || isNlpLoading) return;
-
-        setIsNlpLoading(true);
-        setNlpMessage('');
-        setIsFadingOut(false);
-
-        try {
-            const token = localStorage.getItem('token');
-            const response = await axios.post(
-                'http://localhost:5000/api/ai/nlp',
-                { taskId: task._id, command: nlpCommand },
-                { headers: { 'x-auth-token': token } }
-            );
-
-            if (response.data.success) {
-                setNlpMessage(response.data.message);
-                onUpdate(response.data.task);
-                setNlpCommand('');
-
-                // Keep message visible for 3 seconds, then fade out
-                setTimeout(() => {
-                    setIsFadingOut(true);
-                }, 3000);
-
-                // After fade animation, hide and close
-                setTimeout(() => {
-                    setNlpMessage('');
-                    setShowNlpInput(false);
-                    setIsFadingOut(false);
-                }, 3500);
-            }
-        } catch (err) {
-            setNlpMessage('Failed to process command');
-            console.error('NLP Error:', err);
+            console.error(err);
         } finally {
-            setIsNlpLoading(false);
+            setIsAiLoading(false);
+            setAiStreaming(false);
         }
     };
 
-    const formatDueDate = (dueDate) => {
-        if (!dueDate) return null;
-        const date = new Date(dueDate);
-        const today = new Date();
-        if (date.toDateString() === today.toDateString()) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-        }
-        return date.toLocaleDateString([], { month: 'short', day: 'numeric' }).toUpperCase();
+    // ─── NOTES ───
+    const timeoutRef = useRef(null);
+    const handleNotesChange = (e) => {
+        const val = e.target.value;
+        setNotes(val);
+        setIsSavingNotes(true);
+
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(async () => {
+            await updateTaskFn({ notes: val });
+            setIsSavingNotes(false);
+        }, 1000);
     };
 
-    const isOverdue = !task.isCompleted && task.dueDate && new Date(task.dueDate) < new Date();
-    const completedSubtasks = localSubtasks.filter(st => st.isCompleted).length;
+    // ─── AI COMMAND ───
+    const handleAiCommand = async (e) => {
+        e.preventDefault();
+        if (!aiCommand.trim()) return;
+
+        setIsAiLoading(true);
+        try {
+            const res = await axios.post('/api/ai/nlp', {
+                taskId: task._id,
+                command: aiCommand
+            }, headers);
+
+            const { action, subtask, updates, message } = res.data;
+
+            if (action === 'update' && updates) {
+                onUpdate({ ...task, ...updates }); // Local
+                // Server was already updated by the API!
+                confetti({ cursor: { x: 0.5, y: 0.5 } }); // Celebrate
+            } else if (action === 'add_subtask' && subtask) {
+                const newSubtasks = [...subtasks, { title: subtask, isCompleted: false }];
+                setSubtasks(newSubtasks);
+                // Server updated
+            }
+
+            setAiCommand('');
+            // Show toast/message? 
+
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsAiLoading(false);
+        }
+    };
+
+    const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.isCompleted;
 
     return (
-        <>
-            {/* Focus Mode Overlay */}
-            {isExpanded && <div className="focus-mode-overlay" onClick={toggleExpanded} />}
+        <motion.div
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, height: 0 }}
+            className={`
+                group relative mb-3 rounded-2xl border transition-all duration-300
+                ${task.isCompleted
+                    ? 'bg-transparent border-white/5 opacity-60'
+                    : 'bg-white/5 border-white/10 hover:border-primary/30 hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
+                }
+                ${isExpanded ? 'bg-white/10 border-primary/20 shadow-lg' : ''}
+            `}
+        >
+            <div className="flex items-center gap-4 p-4 pr-5">
+                {/* ── CHECKBOX ── */}
+                <Checkbox
+                    checked={task.isCompleted}
+                    onChange={(checked) => {
+                        handleCheckboxChange(checked);
+                        updateTaskFn({ isCompleted: checked });
+                    }}
+                    priority={task.priority}
+                />
 
-            <div
-                ref={setNodeRef}
-                style={style}
-                {...attributes}
-                className={`task-row ${task.isCompleted ? 'completed' : ''} ${isOverdue ? 'overdue' : ''} ${isExpanded ? 'focused' : ''} ${(isGenerating || isNlpLoading) ? 'ai-active' : ''}`}
-            >
-                {/* Main Row */}
-                <div className="task-row-main" onClick={toggleExpanded}>
-                    {/* Drag Handle */}
-                    <div className="drag-handle" {...listeners} onMouseDown={e => e.stopPropagation()}>
-                        <FaGripVertical />
-                    </div>
-
-                    {/* Checkbox */}
-                    <button
-                        className={`task-checkbox ${task.isCompleted ? 'checked' : ''}`}
-                        onClick={toggleComplete}
-                        aria-label={task.isCompleted ? 'Mark incomplete' : 'Mark complete'}
-                    >
-                        {task.isCompleted && <FaCheck size={10} className="animate-scale-in" />}
-                    </button>
-
-                    {/* Title */}
-                    <span className={`task-title ${task.isCompleted ? 'done' : ''}`}>
-                        {task.title}
-                    </span>
-
-                    {/* Meta */}
-                    <div className="task-meta">
-                        {localSubtasks.length > 0 && (
-                            <ProgressMandala
-                                completed={completedSubtasks}
-                                total={localSubtasks.length}
-                                isComplete={task.isCompleted}
-                            />
-                        )}
-
-                        {task.dueDate && (
-                            <span className={`meta-due ${isOverdue ? 'overdue' : ''}`}>
-                                {formatDueDate(task.dueDate)}
-                            </span>
-                        )}
-
-                        <span className={`meta-priority priority-${task.priority}`}>
-                            {task.priority.toUpperCase()}
-                        </span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="task-actions">
-                        {/* NLP Command Button */}
-                        <button
-                            className={`action-btn nlp ${showNlpInput ? 'active' : ''}`}
-                            onClick={(e) => { e.stopPropagation(); setShowNlpInput(!showNlpInput); }}
-                            title="AI Command (e.g., 'move to tomorrow')"
-                        >
-                            <FaTerminal size={12} />
-                        </button>
-
-                        {!task.isCompleted && (
-                            <button
-                                className={`action-btn ai ${isGenerating ? 'loading' : ''}`}
-                                onClick={handleAIBreakdown}
-                                disabled={isGenerating}
-                                title="AI Breakdown"
-                            >
-                                <AIChip size={28} />
-                            </button>
-                        )}
-
-                        <button
-                            className="action-btn expand"
-                            onClick={toggleExpanded}
-                        >
-                            <FaChevronDown size={12} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} />
-                        </button>
-
-                        <button
-                            className="action-btn delete"
-                            onClick={(e) => { e.stopPropagation(); onDelete(task._id); }}
-                        >
-                            <FaTrash size={12} />
-                        </button>
-                    </div>
-                </div>
-
-                {/* NLP Command Input */}
-                {showNlpInput && (
-                    <form className="nlp-input-row fade-in" onSubmit={handleNlpCommand}>
+                {/* ── TITLE ── */}
+                <div className="flex-1 min-w-0" onClick={onToggle}>
+                    {isEditing ? (
                         <input
                             type="text"
-                            className="nlp-input"
-                            placeholder="Try: 'move to tomorrow', 'high priority', 'add subtask...'"
-                            value={nlpCommand}
-                            onChange={(e) => setNlpCommand(e.target.value)}
+                            value={editedTitle}
+                            onChange={(e) => setEditedTitle(e.target.value)}
+                            onBlur={handleSaveTitle}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveTitle();
+                                if (e.key === 'Escape') setIsEditing(false);
+                            }}
+                            className="w-full bg-black/20 text-white rounded px-2 py-1 outline-none border border-primary/50"
                             autoFocus
+                            onClick={(e) => e.stopPropagation()}
                         />
-                        <button type="submit" className="nlp-submit" disabled={isNlpLoading}>
-                            {isNlpLoading ? '...' : 'Go'}
+                    ) : (
+                        <div className="flex flex-col gap-0.5 cursor-pointer">
+                            <span className={`text-[15px] font-medium transition-all ${task.isCompleted ? 'line-through text-secondary' : 'text-white'}`}>
+                                {task.title}
+                            </span>
+                            <div className="flex items-center gap-3 text-xs text-secondary">
+                                {task.dueDate && (
+                                    <span className={`flex items-center gap-1 ${isOverdue ? 'text-red-400' : ''}`}>
+                                        <Calendar size={10} />
+                                        {formatDate(task.dueDate)}
+                                    </span>
+                                )}
+                                {task.dueTime && (
+                                    <span className="flex items-center gap-1">
+                                        <Clock size={10} />
+                                        {task.dueTime}
+                                    </span>
+                                )}
+                                {subtasks.length > 0 && (
+                                    <span className="flex items-center gap-1 text-primary/80">
+                                        <Check size={10} />
+                                        {subtasks.filter(s => s.isCompleted).length}/{subtasks.length}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* ── ACTIONS ── */}
+                <div className="flex items-center gap-2">
+                    <PriorityIcon priority={task.priority} />
+                    <div className={`flex items-center gap-1 transition-opacity duration-200 ${isExpanded || 'group-hover:opacity-100 opacity-0'}`}>
+                        <button onClick={() => setIsEditing(!isEditing)} className="p-1.5 rounded-lg hover:bg-white/10 text-secondary hover:text-primary transition-colors">
+                            <Edit2 size={14} />
                         </button>
-                        {nlpMessage && <span className={`nlp-message ${isFadingOut ? 'fading-out' : ''}`}>{nlpMessage}</span>}
-                    </form>
-                )}
-
-                {/* Expanded Content */}
-                {isExpanded && (
-                    <div className="task-expanded fade-in">
-                        {/* Subtasks */}
-                        <div className="subtasks-section">
-                            <span className="section-label"><FaListUl /> SUBTASKS</span>
-                            {localSubtasks.map((st, i) => (
-                                <div key={i} className="subtask-row">
-                                    <button
-                                        className={`subtask-check ${st.isCompleted ? 'checked' : ''}`}
-                                        onClick={() => toggleSubtask(i)}
-                                    >
-                                        {st.isCompleted && <FaCheck size={8} className="animate-scale-in" />}
-                                    </button>
-                                    <span className={st.isCompleted ? 'done' : ''}>{st.title}</span>
-                                </div>
-                            ))}
-
-                            {isGenerating && (
-                                <div className="generating-indicator"></div>
-                            )}
-
-                            {aiError && (
-                                <div className="generating-indicator error">{aiError}</div>
-                            )}
-
-                            {isAddingSubtask ? (
-                                <input
-                                    type="text"
-                                    className="add-subtask-input"
-                                    placeholder="Enter subtask..."
-                                    value={newSubtask}
-                                    autoFocus
-                                    onBlur={() => !newSubtask && setIsAddingSubtask(false)}
-                                    onChange={e => setNewSubtask(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && addSubtask()}
-                                />
-                            ) : (
-                                <button className="add-subtask-btn" onClick={() => setIsAddingSubtask(true)}>
-                                    <FaPlus size={10} /> Add subtask
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Notes */}
-                        <div className="notes-section">
-                            <span className="section-label">NOTES</span>
-                            <textarea
-                                className="notes-textarea"
-                                placeholder="Add notes..."
-                                value={localNotes}
-                                onChange={e => setLocalNotes(e.target.value)}
-                            />
-                        </div>
+                        <button onClick={() => { onDelete(task._id); deleteSubtask(); }} className="p-1.5 rounded-lg hover:bg-red-500/10 text-secondary hover:text-red-400 transition-colors">
+                            <Trash2 size={14} />
+                        </button>
                     </div>
-                )}
+                    <button onClick={onToggle} className="p-1 text-secondary hover:text-white transition-colors">
+                        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
+                </div>
             </div>
-        </>
+
+            {/* ── EXPANDED CONTENT ── */}
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden border-t border-white/5"
+                    >
+                        <div className="p-4 bg-black/20 rounded-b-2xl space-y-6">
+
+                            {/* 1. NOTES SECTION */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs uppercase tracking-wider text-secondary flex items-center gap-2">
+                                        <FileText size={12} /> Notes
+                                    </label>
+                                    {isSavingNotes && <span className="text-[10px] text-primary animate-pulse">Saving...</span>}
+                                </div>
+                                <textarea
+                                    value={notes}
+                                    onChange={handleNotesChange}
+                                    placeholder="Add details, links, or thoughts here..."
+                                    className="w-full bg-white/5 rounded-xl border border-white/10 p-3 text-sm text-white/90 focus:outline-none focus:border-primary/40 min-h-[80px] resize-none"
+                                />
+                            </div>
+
+                            {/* 2. SUBTASKS SECTION */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs uppercase tracking-wider text-secondary flex items-center gap-2">
+                                        <Check size={12} /> Subtasks
+                                    </label>
+                                    <button
+                                        onClick={generateSubtasks}
+                                        disabled={isAiLoading}
+                                        className="text-[10px] flex items-center gap-1 text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                                    >
+                                        <Sparkles size={10} />
+                                        {isAiLoading ? 'Generating...' : 'AI Breakdown'}
+                                    </button>
+                                </div>
+
+                                {/* Progress Bar */}
+                                {subtasks.length > 0 && (
+                                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                                        <motion.div
+                                            className="h-full bg-primary"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${(subtasks.filter(s => s.isCompleted).length / subtasks.length) * 100}%` }}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Subtask List */}
+                                <div className="space-y-2">
+                                    {subtasks.map((sub, idx) => (
+                                        <motion.div
+                                            key={idx}
+                                            layout
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            className="flex items-center gap-3 group/sub"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={sub.isCompleted}
+                                                onChange={() => toggleSubtask(idx)}
+                                                className="w-4 h-4 rounded border-white/20 bg-white/5 checked:bg-primary checked:border-primary transition-all cursor-pointer appearance-none border checked:after:content-['✓'] checked:after:text-white checked:after:text-[10px] checked:after:flex checked:after:justify-center"
+                                            />
+                                            <span className={`text-sm flex-1 transition-colors ${sub.isCompleted ? 'text-secondary line-through' : 'text-white/80'}`}>
+                                                {sub.title}
+                                            </span>
+                                            <button
+                                                onClick={() => deleteSubtask(idx)}
+                                                className="opacity-0 group-hover/sub:opacity-100 p-1 text-secondary hover:text-red-400 transition-opacity"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                {/* Add Subtask Input */}
+                                <form onSubmit={addSubtask} className="relative">
+                                    <input
+                                        type="text"
+                                        value={newSubtask}
+                                        onChange={(e) => setNewSubtask(e.target.value)}
+                                        placeholder="Add a subtask..."
+                                        className="w-full bg-transparent border-b border-white/10 py-2 pl-6 pr-2 text-sm text-white focus:outline-none focus:border-primary/50 transition-colors"
+                                    />
+                                    <Plus size={14} className="absolute left-0 top-2.5 text-secondary" />
+                                </form>
+                            </div>
+
+                            {/* 3. AI COMMAND SECTION */}
+                            <div className="pt-2 border-t border-white/5">
+                                <form onSubmit={handleAiCommand} className="relative">
+                                    <div className="absolute left-3 top-3 text-primary animate-pulse-slow">
+                                        <Sparkles size={14} />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={aiCommand}
+                                        onChange={(e) => setAiCommand(e.target.value)}
+                                        placeholder="Ask AI to edit this task... (e.g., 'Move to tomorrow', 'Make high priority')"
+                                        className="w-full bg-gradient-to-r from-primary/5 to-transparent rounded-xl border border-primary/20 py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-all placeholder:text-primary/30"
+                                        disabled={isAiLoading}
+                                    />
+                                    {isAiLoading && (
+                                        <div className="absolute right-3 top-3">
+                                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                        </div>
+                                    )}
+                                </form>
+                            </div>
+
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 };
 
