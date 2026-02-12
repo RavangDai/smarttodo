@@ -91,6 +91,7 @@ const NeuralChatInterface = ({ tasks, user }) => {
     const [isTyping, setIsTyping] = useState(false);
     const [isVoiceMode, setIsVoiceMode] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const [interimTranscript, setInterimTranscript] = useState('');
 
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -103,17 +104,36 @@ const NeuralChatInterface = ({ tasks, user }) => {
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.continuous = false; // Stop after one sentence/command
-            recognition.interimResults = false;
+            recognition.interimResults = true; // Enable real-time feedback
             recognition.lang = 'en-US';
 
-            recognition.onstart = () => setIsListening(true);
-            recognition.onend = () => setIsListening(false);
+            recognition.onstart = () => {
+                setIsListening(true);
+                setInterimTranscript('');
+            };
+            recognition.onend = () => {
+                setIsListening(false);
+                setInterimTranscript('');
+            };
 
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                if (transcript) {
+                let finalTranscript = '';
+                let interim = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interim += event.results[i][0].transcript;
+                    }
+                }
+
+                if (finalTranscript) {
                     // Send immediately as voice command
-                    sendMessage(`[ACTION: VOICE] ${transcript}`, `"${transcript}"`);
+                    sendMessage(`[ACTION: VOICE] ${finalTranscript}`, `"${finalTranscript}"`);
+                    setInterimTranscript('');
+                } else {
+                    setInterimTranscript(interim);
                 }
             };
 
@@ -277,17 +297,28 @@ const NeuralChatInterface = ({ tasks, user }) => {
                             </div>
                         </div>
                         <div className="voice-transcript-preview">
-                            <AnimatePresence>
-                                {messages.slice(-1).map(msg => (
+                            <AnimatePresence mode="wait">
+                                {interimTranscript ? (
                                     <motion.div
-                                        key={msg.id}
-                                        initial={{ y: 20, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        className="audio-msg"
+                                        key="interim"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className="interim-text"
                                     >
-                                        {msg.content}
+                                        "{interimTranscript}"
                                     </motion.div>
-                                ))}
+                                ) : (
+                                    <motion.div
+                                        key="placeholder"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 0.5 }}
+                                        exit={{ opacity: 0 }}
+                                        className="voice-placeholder"
+                                    >
+                                        Listening for command...
+                                    </motion.div>
+                                )}
                             </AnimatePresence>
                         </div>
                         <button onClick={toggleVoiceMode} className="exit-voice-btn">Exit Voice Mode</button>
@@ -298,20 +329,9 @@ const NeuralChatInterface = ({ tasks, user }) => {
             {/* Header */}
             <div className="top-bar">
                 <div className="session-info">
-                    <div className="logo-neural session-title" style={{ display: 'flex', alignItems: 'center', gap: '0px' }}>
-                        <span>Karya</span>
-                        <span style={{ color: 'var(--accent-orange)' }}>AI</span>
-                    </div>
-                    <div className="session-meta">Organic Intelligence Layer</div>
-                </div>
-                <div className="neural-stats actions-cluster">
-                    <div className="action-btn">
-                        <span style={{ opacity: 0.7 }}>Synapses</span>
-                        <span style={{ color: 'var(--accent-orange)' }}>4.2M</span>
-                    </div>
-                    <div className="action-btn">
-                        <div className="pulse-ring" style={{ width: '6px', height: '6px', background: 'var(--accent-blue)', borderRadius: '50%' }}></div>
-                        <span style={{ color: 'var(--accent-blue)' }}>98%</span>
+                    <div className="logo-neural session-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img src="/karyalogo.png" alt="Logo" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
+                        <span>Neural Chat</span>
                     </div>
                 </div>
             </div>
@@ -329,12 +349,12 @@ const NeuralChatInterface = ({ tasks, user }) => {
                         >
                             <div className="message-header">
                                 <div className="avatar-frame">
-                                    {msg.role === 'ai' ? '✨' : '👤'}
+                                    {msg.role === 'ai' ? <img src="/karyalogo.png" alt="AI" style={{ width: '70%', height: '70%', objectFit: 'contain' }} /> : '👤'}
                                 </div>
                                 <div className="sender-data">
-                                    <span className="sender-name">{msg.role === 'ai' ? 'KaryaAI' : 'You'}</span>
+                                    <span className="sender-name">{msg.role === 'ai' ? 'Karya' : 'You'}</span>
                                     <span className="message-timestamp">
-                                        {msg.role === 'ai' ? 'Spatial Reasoning' : 'Direct Intent'} • Now
+                                        {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 </div>
                             </div>
@@ -385,7 +405,7 @@ const NeuralChatInterface = ({ tasks, user }) => {
                                 <div className="thinking-dot"></div>
                                 <div className="thinking-dot"></div>
                             </div>
-                            <span className="thinking-text">Resolving spatial context...</span>
+                            <span className="thinking-text">Processing...</span>
                         </div>
                     </motion.div>
                 )}

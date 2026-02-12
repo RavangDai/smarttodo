@@ -39,8 +39,8 @@ const Sidebar = ({ activeView, onNavigate, onLogout, onOpenSettings }) => {
             `}>
                 <div className="relative group cursor-pointer">
                     {/* Logo Placeholder with Glow */}
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-orange-600 shadow-[0_0_15px_rgba(255,107,53,0.3)] flex items-center justify-center text-white font-bold text-lg">
-                        K
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                        <img src="/karyalogo.png" alt="Karya Logo" className="w-full h-full object-contain drop-shadow-[0_0_10px_rgba(253,151,31,0.5)] transition-transform group-hover:scale-110" />
                     </div>
                 </div>
 

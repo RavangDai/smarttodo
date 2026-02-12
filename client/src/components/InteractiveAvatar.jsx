@@ -120,7 +120,9 @@ const InteractiveAvatar = ({ mode = 'idle' }) => {
 
                 {/* Body */}
                 <div className="robot-body">
-                    <div className="robot-chest-logo">K</div>
+                    <div className="robot-chest-logo">
+                        <img src="/karyalogo.png" alt="K" className="w-full h-full object-contain opacity-90" />
+                    </div>
                 </div>
             </div>
         </div>

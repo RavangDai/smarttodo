@@ -23,6 +23,9 @@ const TaskSchema = new mongoose.Schema({
   dueDate: {
     type: Date
   },
+  dueTime: {
+    type: String
+  },
   // New Fields for Accordion
   notes: {
     type: String,

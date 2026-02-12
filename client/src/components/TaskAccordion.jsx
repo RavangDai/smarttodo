@@ -240,15 +240,11 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
                                 {task.title}
                             </span>
                             <div className="flex items-center gap-3 text-xs text-secondary">
-                                {task.dueDate && (
+                                {(task.dueDate || task.dueTime) && (
                                     <span className={`flex items-center gap-1 ${isOverdue ? 'text-red-400' : ''}`}>
                                         <Calendar size={10} />
                                         {formatDate(task.dueDate)}
-                                    </span>
-                                )}
-                                {task.dueTime && (
-                                    <span className="flex items-center gap-1">
-                                        <Clock size={10} />
+                                        {task.dueDate && task.dueTime && <span>•</span>}
                                         {task.dueTime}
                                     </span>
                                 )}

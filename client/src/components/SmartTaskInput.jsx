@@ -53,11 +53,23 @@ const SmartTaskInput = ({ onAddTask, getLocalDateString, tasks = [], projects = 
         let finalTime = selectedDate ? selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : null;
         let title = inputValue;
 
-        if (parsedData && !selectedDate) {
-            finalDate = getLocalDateString(parsedData.date);
-            if (parsedData.hasTime) {
-                finalTime = parsedData.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        // Final Parse (Fresh parse to avoid state race conditions)
+        const results = chrono.parse(inputValue);
+        const freshParsedData = results.length > 0 ? {
+            date: results[0].start.date(),
+            hasTime: results[0].start.knownValues.hour !== undefined,
+            text: results[0].text
+        } : null;
+
+        if (freshParsedData && !selectedDate) {
+            finalDate = getLocalDateString(freshParsedData.date);
+            if (freshParsedData.hasTime) {
+                finalTime = freshParsedData.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
             }
+            // Remove the parsed date/time text from the title
+            title = title.replace(freshParsedData.text, '').trim();
+            // Clean up any double spaces or trailing punctuation often left behind (like 'Meeting at')
+            title = title.replace(/\s+at\s*$/, '').trim();
         }
 
         onAddTask({

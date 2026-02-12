@@ -19,7 +19,7 @@ router.post('/', auth, async (req, res) => {
     // 👇 LOGGING: This will print to your Black Terminal when you add a task
     console.log("📥 RECEIVED DATA:", req.body);
 
-    const { title, priority, dueDate, project } = req.body;
+    const { title, priority, dueDate, dueTime, project } = req.body;
 
     // validation
     if (!title) {
@@ -31,6 +31,7 @@ router.post('/', auth, async (req, res) => {
       title,
       priority,
       dueDate,
+      dueTime,
       project: project || undefined,
       user: req.user.id,
       lastInteraction: Date.now()
@@ -67,13 +68,14 @@ router.put('/:id', auth, async (req, res) => {
     if (task.user.toString() !== req.user.id) return res.status(401).json({ msg: 'Not authorized' });
 
     // Destructure all possible fields
-    const { title, isCompleted, priority, dueDate, notes, subtasks, project } = req.body;
+    const { title, isCompleted, priority, dueDate, dueTime, notes, subtasks, project } = req.body;
 
     // Update fields if they exist in request
     if (title) task.title = title;
     if (isCompleted !== undefined) task.isCompleted = isCompleted;
     if (priority) task.priority = priority;
     if (dueDate) task.dueDate = dueDate;
+    if (dueTime) task.dueTime = dueTime;
     if (notes !== undefined) task.notes = notes;
     if (subtasks) task.subtasks = subtasks;
     if (project !== undefined) task.project = project || undefined;
