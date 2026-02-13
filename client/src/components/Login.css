@@ -80,19 +80,49 @@
 }
 
 /* Typography */
+/* Richer, continuous gradient animation */
 .cyber-logo {
     font-family: 'Space Mono', monospace;
     font-weight: 700;
-    letter-spacing: -1px;
+    letter-spacing: -2px;
     margin-bottom: 0.5rem;
+    font-size: 3.5rem;
 
-    /* Strong Orange Gradient */
-    background: linear-gradient(135deg, #ffffff 0%, #FF6B35 50%, #FF9F1C 100%);
+    /* Enriched Gradient: Deep Red -> Bright Orange -> Gold -> White -> Gold -> Bright Orange -> Deep Red */
+    background: linear-gradient(to right,
+            #FF4500 0%,
+            /* OrangeRed */
+            #FF8C00 20%,
+            /* DarkOrange */
+            #FFD700 40%,
+            /* Gold */
+            #ffffff 50%,
+            /* White Shine */
+            #FFD700 60%,
+            /* Gold */
+            #FF8C00 80%,
+            /* DarkOrange */
+            #FF4500 100%
+            /* OrangeRed */
+        );
+    background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
 
-    text-shadow: 0 0 30px rgba(255, 107, 53, 0.4);
+    animation: shine-flow 4s linear infinite;
+    text-shadow: 0 0 30px rgba(255, 69, 0, 0.4);
+    filter: drop-shadow(0 0 5px rgba(255, 140, 0, 0.3));
+}
+
+@keyframes shine-flow {
+    0% {
+        background-position: 200% center;
+    }
+
+    100% {
+        background-position: 0% center;
+    }
 }
 
 .cyber-tagline {

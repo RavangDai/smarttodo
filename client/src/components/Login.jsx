@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import InteractiveAvatar from './InteractiveAvatar';
+import LoginBackground3D from './LoginBackground3D';
 import './Login.css';
 
 const Login = ({ onLogin, onRegister, error, isLoading }) => {
@@ -12,23 +13,30 @@ const Login = ({ onLogin, onRegister, error, isLoading }) => {
     // Interaction State
     const [avatarMode, setAvatarMode] = useState('idle'); // 'idle', 'email', 'password'
     const [terminalText, setTerminalText] = useState('');
-    const [typingIndex, setTypingIndex] = useState(0);
     const [targetText, setTargetText] = useState("System optimized. Ready for input.");
 
-    // Typing effect logic
+    // Simple, robust typing effect
     useEffect(() => {
-        const timeout = setTimeout(() => {
-            if (typingIndex < targetText.length) {
-                setTerminalText(targetText.substring(0, typingIndex + 1));
-                setTypingIndex(prev => prev + 1);
+        let currentText = '';
+        let currentIndex = 0;
+
+        const typeChar = () => {
+            if (currentIndex < targetText.length) {
+                currentText += targetText[currentIndex];
+                setTerminalText(currentText);
+                currentIndex++;
+                setTimeout(typeChar, 30 + Math.random() * 20); // Slight random variation for realism
             }
-        }, 30);
-        return () => clearTimeout(timeout);
-    }, [typingIndex, targetText]);
+        };
+
+        setTerminalText(''); // Clear on new target
+        const timeoutId = setTimeout(typeChar, 100); // Start after slight delay
+
+        return () => clearTimeout(timeoutId);
+    }, [targetText]);
 
     // Update text based on mode
     useEffect(() => {
-        setTypingIndex(0);
         switch (avatarMode) {
             case 'email':
                 setTargetText("Monitoring identity input...");
@@ -53,6 +61,7 @@ const Login = ({ onLogin, onRegister, error, isLoading }) => {
     return (
         <div className="cyber-login-container">
             <div className="cyber-grid-bg" />
+            <LoginBackground3D />
 
             <div className="cyber-split">
                 {/* LEFT PANEL */}
