@@ -1,146 +1,178 @@
 import React from 'react';
 import {
-    Code2, PenTool, BookOpen, Briefcase, Heart, Search, Megaphone, Hexagon
+    Code2, PenTool, BookOpen, Briefcase, Heart, Search, Megaphone, Hexagon,
+    Cpu, Music, Coffee, Globe
 } from 'lucide-react';
 
-const ProjectIcon = ({ category, className = '', size = 20 }) => {
-    const getIcon = () => {
-        switch (category?.toLowerCase()) {
-            case 'coding':
-            case 'code':
-            case 'development':
-                return {
-                    icon: Code2,
-                    gradient: 'from-cyan-400 to-purple-500',
-                    bg: 'bg-cyan-500/10'
-                };
-            case 'design':
-            case 'art':
-                return {
-                    icon: PenTool,
-                    gradient: 'from-orange-400 to-pink-500',
-                    bg: 'bg-orange-500/10'
-                };
-            case 'writing':
-                return {
-                    icon: BookOpen,
-                    gradient: 'from-emerald-400 to-cyan-500',
-                    bg: 'bg-emerald-500/10'
-                };
-            case 'business':
-            case 'work':
-                return {
-                    icon: Briefcase,
-                    gradient: 'from-blue-400 to-indigo-500',
-                    bg: 'bg-blue-500/10'
-                };
-            case 'personal':
-            case 'health':
-                return {
-                    icon: Heart,
-                    gradient: 'from-red-400 to-rose-500',
-                    bg: 'bg-red-500/10'
-                };
-            case 'research':
-                return {
-                    icon: Search,
-                    gradient: 'from-violet-400 to-fuchsia-500',
-                    bg: 'bg-violet-500/10'
-                };
-            case 'marketing':
-                return {
-                    icon: Megaphone,
-                    gradient: 'from-yellow-400 to-orange-500', // Changed to standard Tailwind colors
-                    bg: 'bg-yellow-500/10'
-                };
-            default:
-                return {
-                    icon: Hexagon,
-                    gradient: 'from-gray-400 to-gray-500',
-                    bg: 'bg-gray-500/10'
-                };
-        }
-    };
+// ── Color configs using HEX values for inline styles ──
+// This bypasses Tailwind purging completely — colors are guaranteed to render.
+const COLORS = {
+    sky: {
+        hex: '#38bdf8',       // sky-400
+        hexLight: '#7dd3fc',  // sky-300
+        hexDark: '#0284c7',   // sky-600
+        rgb: '56, 189, 248',
+    },
+    pink: {
+        hex: '#f472b6',       // pink-400
+        hexLight: '#f9a8d4',  // pink-300
+        hexDark: '#db2777',   // pink-600
+        rgb: '244, 114, 182',
+    },
+    emerald: {
+        hex: '#34d399',       // emerald-400
+        hexLight: '#6ee7b7',  // emerald-300
+        hexDark: '#059669',   // emerald-600
+        rgb: '52, 211, 153',
+    },
+    slate: {
+        hex: '#94a3b8',       // slate-400
+        hexLight: '#cbd5e1',  // slate-300
+        hexDark: '#475569',   // slate-600
+        rgb: '148, 163, 184',
+    },
+    rose: {
+        hex: '#fb7185',       // rose-400
+        hexLight: '#fda4af',  // rose-300
+        hexDark: '#e11d48',   // rose-600
+        rgb: '251, 113, 133',
+    },
+    violet: {
+        hex: '#a78bfa',       // violet-400
+        hexLight: '#c4b5fd',  // violet-300
+        hexDark: '#7c3aed',   // violet-600
+        rgb: '167, 139, 250',
+    },
+    orange: {
+        hex: '#fb923c',       // orange-400
+        hexLight: '#fdba74',  // orange-300
+        hexDark: '#ea580c',   // orange-600
+        rgb: '251, 146, 60',
+    },
+    cyan: {
+        hex: '#22d3ee',       // cyan-400
+        hexLight: '#67e8f9',  // cyan-300
+        hexDark: '#0891b2',   // cyan-600
+        rgb: '34, 211, 238',
+    },
+    amber: {
+        hex: '#fbbf24',       // amber-400
+        hexLight: '#fcd34d',  // amber-300
+        hexDark: '#d97706',   // amber-600
+        rgb: '251, 191, 36',
+    },
+    indigo: {
+        hex: '#818cf8',       // indigo-400
+        hexLight: '#a5b4fc',  // indigo-300
+        hexDark: '#4f46e5',   // indigo-600
+        rgb: '129, 140, 248',
+    },
+    zinc: {
+        hex: '#a1a1aa',       // zinc-400
+        hexLight: '#d4d4d8',  // zinc-300
+        hexDark: '#52525b',   // zinc-600
+        rgb: '161, 161, 170',
+    },
+};
 
-    const { icon: Icon, gradient, bg } = getIcon();
+// ── Category → Icon + Color resolver ──
+const resolveConfig = (category) => {
+    const cat = category?.toLowerCase() || 'other';
+    switch (cat) {
+        case 'coding':
+        case 'code':
+        case 'dev': return { Icon: Code2, c: COLORS.sky };
+        case 'design':
+        case 'art': return { Icon: PenTool, c: COLORS.pink };
+        case 'writing':
+        case 'content': return { Icon: BookOpen, c: COLORS.emerald };
+        case 'business':
+        case 'work': return { Icon: Briefcase, c: COLORS.slate };
+        case 'personal':
+        case 'health': return { Icon: Heart, c: COLORS.rose };
+        case 'research': return { Icon: Search, c: COLORS.violet };
+        case 'marketing': return { Icon: Megaphone, c: COLORS.orange };
+        case 'tech': return { Icon: Cpu, c: COLORS.cyan };
+        case 'creative':
+        case 'music': return { Icon: Music, c: COLORS.violet };
+        case 'lifestyle':
+        case 'coffee': return { Icon: Coffee, c: COLORS.amber };
+        case 'web': return { Icon: Globe, c: COLORS.indigo };
+        default: return { Icon: Hexagon, c: COLORS.zinc };
+    }
+};
 
+// ── Exported helper for other components ──
+export const getCategoryColors = (category) => resolveConfig(category).c;
+
+const ProjectIcon = ({ category, className = '', size = 20, variant = 'default' }) => {
+    const { Icon, c } = resolveConfig(category);
+
+    // ─── GLASS: translucent icon for Hero / Preview ───
+    if (variant === 'glass') {
+        return (
+            <div
+                className={`relative flex items-center justify-center rounded-xl p-3 backdrop-blur-xl overflow-hidden ${className}`}
+                style={{
+                    backgroundColor: `rgba(${c.rgb}, 0.15)`,
+                    border: `1px solid rgba(${c.rgb}, 0.35)`,
+                    boxShadow: `0 0 20px -4px rgba(${c.rgb}, 0.5)`,
+                }}
+            >
+                <Icon size={size} style={{ color: c.hex }} className="relative z-10" strokeWidth={1.5} />
+            </div>
+        );
+    }
+
+    // ─── CARD: inside project grid cards ───
+    if (variant === 'card') {
+        return (
+            <div
+                className={`relative flex items-center justify-center rounded-2xl p-3.5 ${className}`}
+                style={{
+                    backgroundColor: `rgba(${c.rgb}, 0.1)`,
+                    border: `1px solid rgba(${c.rgb}, 0.2)`,
+                    boxShadow: `0 0 18px -4px rgba(${c.rgb}, 0.4)`,
+                }}
+            >
+                <Icon size={size} style={{ color: c.hex }} strokeWidth={2} />
+            </div>
+        );
+    }
+
+    // ─── GLOW: selected state in IconPicker ───
+    if (variant === 'glow') {
+        return (
+            <div
+                className={`relative flex items-center justify-center rounded-xl p-3 ${className}`}
+                style={{
+                    backgroundColor: `rgba(${c.rgb}, 0.12)`,
+                    border: `1px solid rgba(${c.rgb}, 0.4)`,
+                    boxShadow: `0 0 20px -4px rgba(${c.rgb}, 0.6)`,
+                }}
+            >
+                <Icon size={size} style={{ color: c.hex }} strokeWidth={2.5} />
+            </div>
+        );
+    }
+
+    // ─── COLORFUL: bare icon, no container ───
+    if (variant === 'colorful') {
+        return <Icon size={size} style={{ color: c.hex }} className={className} strokeWidth={2} />;
+    }
+
+    // ─── DEFAULT: subtle muted container ───
     return (
-        <div className={`
-      relative flex items-center justify-center 
-      rounded-lg p-2 
-      ${bg} 
-      group-hover:bg-opacity-20 transition-all 
-      ${className}
-    `}>
-            <Icon
-                size={size}
-                className={`bg-gradient-to-br ${gradient} bg-clip-text text-transparent`}
-                strokeWidth={2.5}
-                // Lucide doesn't support gradient text directly on SVG stroke easily without a mask or ID.
-                // For now, we use a solid color fallback or detailed SVG if needed.
-                // Actually, let's just color the stroke.
-                color="currentColor"
-                style={{ stroke: "url(#gradient-" + category + ")" }}
-            />
-
-            {/* 
-         To actually support gradient strokes in SVGs, we need a defs block. 
-         Accessing the ID might be tricky. 
-         Alternative: Use the 'text-transparent bg-clip-text' on a wrapper? No, that affects fill (usually text).
-         For stroke, we need generic colors. Let's stick to solid vibrant colors for now 
-         OR inject a localized SVG def.
-      */}
-            <svg width="0" height="0">
-                <linearGradient id={"gradient-" + category} x1="100%" y1="100%" x2="0%" y2="0%">
-                    <stop stopColor="currentColor" offset="0%" />
-                    <stop stopColor="currentColor" offset="100%" />
-                    {/* simplified, real gradient needs distinct colors */}
-                </linearGradient>
-            </svg>
-            {/* 
-         Let's retry: just use the specific colored classes for the stroke itself 
-         by passing className with text-color.
-      */}
+        <div
+            className={`flex items-center justify-center rounded-xl p-2.5 ${className}`}
+            style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+            }}
+        >
+            <Icon size={size} style={{ color: c.hex, opacity: 0.7 }} strokeWidth={2} />
         </div>
     );
 };
 
-// Simplified version for reliability
-const SimpleProjectIcon = ({ category, className = '', size = 20 }) => {
-    const getColors = () => {
-        switch (category?.toLowerCase()) {
-            case 'coding': return 'text-cyan-400';
-            case 'design': return 'text-orange-400';
-            case 'writing': return 'text-emerald-400';
-            case 'business': return 'text-blue-400';
-            case 'personal': return 'text-red-400';
-            case 'research': return 'text-violet-400';
-            case 'marketing': return 'text-yellow-400';
-            default: return 'text-gray-400';
-        }
-    };
-
-    const getIcon = () => {
-        switch (category?.toLowerCase()) {
-            case 'coding': return Code2;
-            case 'design': return PenTool;
-            case 'writing': return BookOpen;
-            case 'business': return Briefcase;
-            case 'personal': return Heart;
-            case 'research': return Search;
-            case 'marketing': return Megaphone;
-            default: return Hexagon;
-        }
-    };
-
-    const Icon = getIcon();
-    const colorClass = getColors();
-
-    return (
-        <div className={`p-2 rounded-lg bg-white/5 ${className}`}>
-            <Icon size={size} className={`${colorClass} drop-shadow-md`} />
-        </div>
-    );
-}
-
-export default SimpleProjectIcon;
+export default ProjectIcon;

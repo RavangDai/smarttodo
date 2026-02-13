@@ -14,8 +14,10 @@ router.get('/', auth, async (req, res) => {
             projects.map(async (project) => {
                 const totalTasks = await Task.countDocuments({ user: req.user.id, project: project._id });
                 const completedTasks = await Task.countDocuments({ user: req.user.id, project: project._id, isCompleted: true });
+                const obj = project.toObject();
                 return {
-                    ...project.toObject(),
+                    ...obj,
+                    category: obj.category || 'other', // fallback for old projects without category
                     totalTasks,
                     completedTasks
                 };
@@ -32,7 +34,7 @@ router.get('/', auth, async (req, res) => {
 // POST create project
 router.post('/', auth, async (req, res) => {
     try {
-        const { name, description, color, icon } = req.body;
+        const { name, description, color, icon, category } = req.body;
 
         if (!name) {
             return res.status(400).json({ msg: 'Project name is required' });
@@ -43,6 +45,7 @@ router.post('/', auth, async (req, res) => {
             description: description || '',
             color: color || '#ff6b00',
             icon: icon || '📁',
+            category: category || 'other',
             user: req.user.id
         });
 
@@ -61,11 +64,12 @@ router.put('/:id', auth, async (req, res) => {
         if (!project) return res.status(404).json({ msg: 'Project not found' });
         if (project.user.toString() !== req.user.id) return res.status(401).json({ msg: 'Not authorized' });
 
-        const { name, description, color, icon } = req.body;
+        const { name, description, color, icon, category } = req.body;
         if (name) project.name = name;
         if (description !== undefined) project.description = description;
         if (color) project.color = color;
         if (icon) project.icon = icon;
+        if (category) project.category = category;
 
         await project.save();
         res.json(project);

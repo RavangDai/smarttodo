@@ -23,6 +23,12 @@ const ProjectSchema = new mongoose.Schema({
         type: String,
         default: '📁'
     },
+    category: {
+        type: String,
+        default: 'other',
+        lowercase: true,
+        trim: true
+    },
     createdAt: {
         type: Date,
         default: Date.now

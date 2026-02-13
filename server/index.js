@@ -26,5 +26,6 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/migrate', require('./routes/migrate'));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

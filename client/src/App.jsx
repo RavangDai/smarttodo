@@ -199,7 +199,7 @@ function App() {
       priority: taskData.priority || 'medium',
       dueDate: taskDate,
       dueTime: taskData.dueTime, // Ensure dueTime is passed if separate
-      project: taskData.project || undefined
+      project: taskData.project ? (taskData.project._id || taskData.project) : undefined
     }, getHeaders())
       .then(res => {
         setTasks([res.data, ...tasks]);
@@ -298,6 +298,10 @@ function App() {
     if (filter === 'active' && task.isCompleted) return false;
     if (filter === 'completed' && !task.isCompleted) return false;
     if (searchQuery && !task.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    // Hide project tasks from main view (Inbox)
+    if (activeView === 'tasks' && task.project) {
       return false;
     }
     return true;

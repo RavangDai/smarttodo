@@ -6,7 +6,7 @@ import Checkbox from './ui/Checkbox';
 import PriorityIcon from './ui/PriorityIcon';
 import confetti from 'canvas-confetti';
 
-const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers }) => {
+const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers, variant = 'default', color = 'primary' }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editedTitle, setEditedTitle] = useState(task.title);
 
@@ -192,6 +192,21 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
 
     const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && !task.isCompleted;
 
+    // Color mapping for safe Tailwind classes
+    const colorStyles = {
+        cyan: { border: 'border-cyan-400', bg: 'hover:bg-cyan-400/5', text: 'text-cyan-400', glow: 'shadow-[0_0_15px_-3px_rgba(34,211,238,0.3)]' },
+        orange: { border: 'border-orange-400', bg: 'hover:bg-orange-400/5', text: 'text-orange-400', glow: 'shadow-[0_0_15px_-3px_rgba(251,146,60,0.3)]' },
+        emerald: { border: 'border-emerald-400', bg: 'hover:bg-emerald-400/5', text: 'text-emerald-400', glow: 'shadow-[0_0_15px_-3px_rgba(52,211,153,0.3)]' },
+        blue: { border: 'border-blue-400', bg: 'hover:bg-blue-400/5', text: 'text-blue-400', glow: 'shadow-[0_0_15px_-3px_rgba(96,165,250,0.3)]' },
+        red: { border: 'border-red-400', bg: 'hover:bg-red-400/5', text: 'text-red-400', glow: 'shadow-[0_0_15px_-3px_rgba(248,113,113,0.3)]' },
+        violet: { border: 'border-violet-400', bg: 'hover:bg-violet-400/5', text: 'text-violet-400', glow: 'shadow-[0_0_15px_-3px_rgba(167,139,250,0.3)]' },
+        yellow: { border: 'border-yellow-400', bg: 'hover:bg-yellow-400/5', text: 'text-yellow-400', glow: 'shadow-[0_0_15px_-3px_rgba(250,204,21,0.3)]' },
+        gray: { border: 'border-gray-400', bg: 'hover:bg-gray-400/5', text: 'text-gray-400', glow: 'shadow-[0_0_15px_-3px_rgba(156,163,175,0.3)]' },
+        primary: { border: 'border-primary', bg: 'hover:bg-primary/5', text: 'text-primary', glow: 'shadow-[0_0_15px_-3px_rgba(var(--primary-rgb),0.3)]' }
+    };
+
+    const activeColor = colorStyles[color] || colorStyles.primary;
+
     return (
         <motion.div
             layout
@@ -199,12 +214,15 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
             className={`
-                group relative mb-3 rounded-2xl border transition-all duration-300
+                group relative mb-3 rounded-xl transition-all duration-300
                 ${task.isCompleted
-                    ? 'bg-transparent border-white/5 opacity-60'
-                    : 'bg-white/5 border-white/10 hover:border-primary/30 hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
+                    ? 'bg-transparent border border-white/5 opacity-50'
+                    : variant === 'project'
+                        // Use strict template string for classes 
+                        ? `bg-black/40 backdrop-blur-xl border-l-4 ${activeColor.border} border-y border-r border-white/5 hover:border-r-white/10 ${activeColor.bg}`
+                        : 'bg-white/5 border border-white/10 hover:border-primary/30 hover:shadow-[0_4px_20px_rgba(0,0,0,0.2)]'
                 }
-                ${isExpanded ? 'bg-white/10 border-primary/20 shadow-lg' : ''}
+                ${isExpanded ? `bg-white/5 shadow-lg ${variant === 'project' ? '' : 'border-primary/20'}` : ''}
             `}
         >
             <div className="flex items-center gap-4 p-4 pr-5">
@@ -216,6 +234,7 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
                         updateTaskFn({ isCompleted: checked });
                     }}
                     priority={task.priority}
+                    className={variant === 'project' ? activeColor.text : ''}
                 />
 
                 {/* ── TITLE ── */}

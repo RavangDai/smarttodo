@@ -7,13 +7,20 @@ import { PrimaryButton } from './ui/Buttons';
 import GlassCard from './ui/GlassCard';
 import PriorityIcon from './ui/PriorityIcon';
 
-const SmartTaskInput = ({ onAddTask, getLocalDateString, tasks = [], projects = [] }) => {
+const SmartTaskInput = ({ onAddTask, getLocalDateString, tasks = [], projects = [], preSelectedProject = null }) => {
     const [inputValue, setInputValue] = useState('');
     const [priority, setPriority] = useState('medium');
     const [selectedDate, setSelectedDate] = useState(null); // Date object
-    const [selectedProject, setSelectedProject] = useState(null);
+    const [selectedProject, setSelectedProject] = useState(preSelectedProject);
     const [isExpanded, setIsExpanded] = useState(false);
     const [showProjectMenu, setShowProjectMenu] = useState(false);
+
+    // Update selectedProject if preSelectedProject changes
+    useEffect(() => {
+        if (preSelectedProject) {
+            setSelectedProject(preSelectedProject);
+        }
+    }, [preSelectedProject]);
 
     // Parsed data to show as "chips" or live feedback
     const [parsedData, setParsedData] = useState(null);
@@ -84,7 +91,9 @@ const SmartTaskInput = ({ onAddTask, getLocalDateString, tasks = [], projects = 
         setInputValue('');
         setPriority('medium');
         setSelectedDate(null);
-        setSelectedProject(null);
+        if (!preSelectedProject) {
+            setSelectedProject(null);
+        }
         setParsedData(null);
         setIsExpanded(false);
     };
@@ -129,7 +138,7 @@ const SmartTaskInput = ({ onAddTask, getLocalDateString, tasks = [], projects = 
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onFocus={() => setIsExpanded(true)}
-                        placeholder="Add a new task... (e.g., 'Meeting tomorrow at 2pm')"
+                        placeholder={preSelectedProject ? `Add task to ${preSelectedProject.name}...` : "Add a new task... (e.g., 'Meeting tomorrow at 2pm')"}
                         icon={Plus}
                         className="w-full !bg-transparent !border-none !shadow-none text-lg placeholder:text-white/20"
                         autoFocus={false}
@@ -225,58 +234,60 @@ const SmartTaskInput = ({ onAddTask, getLocalDateString, tasks = [], projects = 
                                         />
                                     </div>
 
-                                    {/* Project Selector */}
-                                    <div className="relative">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowProjectMenu(!showProjectMenu)}
-                                            className={`
+                                    {/* Project Selector - Hide if preSelectedProject is set */}
+                                    {!preSelectedProject && (
+                                        <div className="relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowProjectMenu(!showProjectMenu)}
+                                                className={`
                                                 flex items-center gap-2 px-3 py-2 rounded-lg transition-all border
                                                 ${selectedProject
-                                                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
-                                                    : 'text-secondary hover:text-white hover:bg-white/10 border-transparent hover:border-white/10'
-                                                }
+                                                        ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
+                                                        : 'text-secondary hover:text-white hover:bg-white/10 border-transparent hover:border-white/10'
+                                                    }
                                             `}
-                                        >
-                                            <Folder size={16} />
-                                            <span className="text-sm font-medium max-w-[100px] truncate">
-                                                {selectedProject ? selectedProject.name : 'Inbox'}
-                                            </span>
-                                            <ChevronDown size={12} className={`transition-transform ${showProjectMenu ? 'rotate-180' : ''}`} />
-                                        </button>
+                                            >
+                                                <Folder size={16} />
+                                                <span className="text-sm font-medium max-w-[100px] truncate">
+                                                    {selectedProject ? selectedProject.name : 'Inbox'}
+                                                </span>
+                                                <ChevronDown size={12} className={`transition-transform ${showProjectMenu ? 'rotate-180' : ''}`} />
+                                            </button>
 
-                                        <AnimatePresence>
-                                            {showProjectMenu && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                    className="absolute top-full left-0 mt-2 w-48 bg-black/90 border border-white/10 rounded-xl shadow-xl backdrop-blur-xl z-50 overflow-hidden"
-                                                >
-                                                    <div className="p-1">
-                                                        <button
-                                                            onClick={() => { setSelectedProject(null); setShowProjectMenu(false); }}
-                                                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left"
-                                                        >
-                                                            <Folder size={14} /> Inbox
-                                                            {!selectedProject && <Check size={14} className="ml-auto text-primary" />}
-                                                        </button>
-                                                        {projects.map(proj => (
+                                            <AnimatePresence>
+                                                {showProjectMenu && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                        className="absolute top-full left-0 mt-2 w-48 bg-black/90 border border-white/10 rounded-xl shadow-xl backdrop-blur-xl z-50 overflow-hidden"
+                                                    >
+                                                        <div className="p-1">
                                                             <button
-                                                                key={proj._id}
-                                                                onClick={() => { setSelectedProject(proj); setShowProjectMenu(false); }}
+                                                                onClick={() => { setSelectedProject(null); setShowProjectMenu(false); }}
                                                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left"
                                                             >
-                                                                <span className="w-2 h-2 rounded-full bg-blue-500" />
-                                                                {proj.name}
-                                                                {selectedProject?._id === proj._id && <Check size={14} className="ml-auto text-primary" />}
+                                                                <Folder size={14} /> Inbox
+                                                                {!selectedProject && <Check size={14} className="ml-auto text-primary" />}
                                                             </button>
-                                                        ))}
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
+                                                            {projects.map(proj => (
+                                                                <button
+                                                                    key={proj._id}
+                                                                    onClick={() => { setSelectedProject(proj); setShowProjectMenu(false); }}
+                                                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-secondary hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left"
+                                                                >
+                                                                    <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                                                    {proj.name}
+                                                                    {selectedProject?._id === proj._id && <Check size={14} className="ml-auto text-primary" />}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Right: NLP Analysis Feedback */}
