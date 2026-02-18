@@ -9,7 +9,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY.trim());
 const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 // POST /api/ai/breakdown/:taskId
-router.post('/breakdown/:taskId', async (req, res) => {
+router.post('/breakdown/:taskId', auth, async (req, res) => {
     // Set headers for SSE/Streaming
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.setHeader('Transfer-Encoding', 'chunked');

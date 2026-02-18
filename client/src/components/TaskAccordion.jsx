@@ -90,44 +90,34 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
         setIsAiLoading(true);
         setAiStreaming(true);
         try {
-            // Using the streaming endpoint structure from ai.js
-            const response = await fetch(`/api/ai/breakdown/${task._id}`, {
-                method: 'POST',
-                headers: headers || {}
+            // Use axios so baseURL is applied in production
+            const response = await axios.post(`/api/ai/breakdown/${task._id}`, {}, {
+                headers: headers || {},
+                responseType: 'text'
             });
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
+            const text = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+            const lines = text.split('\n');
 
             let accumulatedSubtasks = [...subtasks];
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const dataStr = line.replace('data: ', '').trim();
+                    if (dataStr === '{"done": true}') continue;
+                    try {
+                        const newSubtaskData = JSON.parse(dataStr);
+                        if (newSubtaskData.error) throw new Error(newSubtaskData.error);
 
-                const chunk = decoder.decode(value);
-                const lines = chunk.split('\n');
-
-                for (const line of lines) {
-                    if (line.startsWith('data: ')) {
-                        const dataStr = line.replace('data: ', '').trim();
-                        if (dataStr === '{"done": true}') continue;
-                        try {
-                            const newSubtaskData = JSON.parse(dataStr);
-                            if (newSubtaskData.error) throw new Error(newSubtaskData.error);
-
-                            // Add strictly unique
-                            if (!accumulatedSubtasks.find(s => s.title === newSubtaskData.title)) {
-                                accumulatedSubtasks.push({
-                                    title: newSubtaskData.title,
-                                    isCompleted: false
-                                });
-                                // Update state incrementally for "streaming" effect
-                                setSubtasks([...accumulatedSubtasks]);
-                            }
-                        } catch (e) {
-                            // ignore json errors
+                        if (!accumulatedSubtasks.find(s => s.title === newSubtaskData.title)) {
+                            accumulatedSubtasks.push({
+                                title: newSubtaskData.title,
+                                isCompleted: false
+                            });
+                            setSubtasks([...accumulatedSubtasks]);
                         }
+                    } catch (e) {
+                        // ignore json parse errors
                     }
                 }
             }

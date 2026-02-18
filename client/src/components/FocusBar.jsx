@@ -1,12 +1,22 @@
-import React from 'react';
-import { Bell, CloudSun, Crosshair, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Crosshair, Sparkles, Play, Pause, RotateCcw } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import WeatherWidget from './ui/WeatherWidget';
+import NotificationPanel from './ui/NotificationPanel';
 
-const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus }) => {
-    const [aiSuggestion, setAiSuggestion] = React.useState('');
-    const [typewriterText, setTypewriterText] = React.useState('');
+const POMODORO_DURATION = 25 * 60; // 25 minutes in seconds
 
-    React.useEffect(() => {
-        // Simple AI Logic: Find first high priority task or just first task
+const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onUpdateTask, headers }) => {
+    const [aiSuggestion, setAiSuggestion] = useState('');
+    const [typewriterText, setTypewriterText] = useState('');
+
+    // Pomodoro state
+    const [pomodoroActive, setPomodoroActive] = useState(false);
+    const [pomodoroTime, setPomodoroTime] = useState(POMODORO_DURATION);
+    const [pomodoroPaused, setPomodoroPaused] = useState(false);
+
+    useEffect(() => {
         const urgentTask = tasks.find(t => t.priority === 'high' && !t.isCompleted);
         const nextTask = tasks.find(t => !t.isCompleted);
 
@@ -24,23 +34,71 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus }) =
     }, [tasks]);
 
     // Typewriter effect
-    React.useEffect(() => {
+    useEffect(() => {
         if (!aiSuggestion) return;
-
-        // Reset
         let i = 0;
         const speed = 40;
         setTypewriterText('');
-
         const interval = setInterval(() => {
             setTypewriterText(aiSuggestion.slice(0, i + 1));
             i++;
             if (i >= aiSuggestion.length) clearInterval(interval);
         }, speed);
-
         return () => clearInterval(interval);
     }, [aiSuggestion]);
 
+    // ── POMODORO TIMER ──
+    useEffect(() => {
+        if (!pomodoroActive || pomodoroPaused) return;
+
+        const interval = setInterval(() => {
+            setPomodoroTime(prev => {
+                if (prev <= 1) {
+                    // Timer complete!
+                    clearInterval(interval);
+                    setPomodoroActive(false);
+                    setPomodoroPaused(false);
+                    setPomodoroTime(POMODORO_DURATION);
+                    // Exit focus mode
+                    if (isFocusMode) onToggleFocus();
+                    // Celebration
+                    confetti({ particleCount: 100, spread: 80, origin: { y: 0.3 }, colors: ['#FF6B35', '#4ade80', '#60a5fa', '#a78bfa'] });
+                    return POMODORO_DURATION;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [pomodoroActive, pomodoroPaused, isFocusMode, onToggleFocus]);
+
+    const startPomodoro = () => {
+        setPomodoroActive(true);
+        setPomodoroPaused(false);
+        setPomodoroTime(POMODORO_DURATION);
+        if (!isFocusMode) onToggleFocus(); // Auto-enter focus mode
+    };
+
+    const togglePomodoroPause = () => {
+        setPomodoroPaused(prev => !prev);
+    };
+
+    const cancelPomodoro = () => {
+        setPomodoroActive(false);
+        setPomodoroPaused(false);
+        setPomodoroTime(POMODORO_DURATION);
+        if (isFocusMode) onToggleFocus(); // Exit focus mode
+    };
+
+    const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    };
+
+    const pomodoroProgress = pomodoroActive ? ((POMODORO_DURATION - pomodoroTime) / POMODORO_DURATION) * 100 : 0;
+
+    // ── HELPERS ──
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour < 12) return 'Good morning';
@@ -48,20 +106,62 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus }) =
         return 'Good evening';
     };
 
+    const getDisplayName = () => {
+        if (user?.name) return user.name;
+        if (user?.email) {
+            const local = user.email.split('@')[0];
+            const name = local.split(/[._-]/)[0];
+            return name.charAt(0).toUpperCase() + name.slice(1);
+        }
+        return 'there';
+    };
+
+    const getInitial = () => {
+        const name = getDisplayName();
+        return name ? name[0].toUpperCase() : '?';
+    };
+
+    // ── ANIMATION VARIANTS ──
+    const toolbarVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.2 } }
+    };
+
+    const itemVariant = {
+        hidden: { opacity: 0, y: -8, scale: 0.9 },
+        visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 400, damping: 20 } }
+    };
+
+    // SVG circle math for progress ring
+    const RING_SIZE = 36;
+    const RING_STROKE = 3;
+    const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+    const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
     return (
         <div className="w-full flex items-center justify-between px-6 py-4 bg-background/50 backdrop-blur-md border-b border-white/5 z-20">
             <div className="flex items-center gap-6">
-                <div>
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                >
                     <h2 className="text-xl font-display font-semibold text-white tracking-tight">
-                        {getGreeting()}, <span className="text-primary">{user?.name || 'Bibek'}</span>.
+                        {getGreeting()}, <span className="text-primary">{getDisplayName()}</span>.
                     </h2>
                     <p className="text-secondary text-xs mt-0.5">
                         You have <span className="text-white font-medium">{taskCount} pending tasks</span> today.
                     </p>
-                </div>
+                </motion.div>
 
                 {/* AI Suggestion Pill */}
-                <div className="hidden md:flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9, x: -10 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                    whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(168, 85, 247, 0.15)' }}
+                    className="hidden md:flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 cursor-default"
+                >
                     <Sparkles size={14} className="text-purple-400 animate-pulse" />
                     <span className="text-xs font-medium text-purple-200/90 tracking-wide uppercase">AI Suggests</span>
                     <div className="h-4 w-px bg-purple-500/20 mx-1" />
@@ -69,42 +169,132 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus }) =
                         {typewriterText}
                         <span className="animate-pulse ml-0.5 opacity-70">|</span>
                     </span>
-                </div>
+                </motion.div>
             </div>
 
-            <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-secondary text-sm bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                    <CloudSun size={16} />
-                    <span>72°F</span>
-                </div>
+            <motion.div
+                className="flex items-center gap-4"
+                variants={toolbarVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                {/* ── WEATHER WIDGET ── */}
+                <motion.div variants={itemVariant}>
+                    <WeatherWidget tasks={tasks} />
+                </motion.div>
 
-                <div className="h-6 w-px bg-white/10 mx-2" />
+                <motion.div variants={itemVariant} className="h-6 w-px bg-white/10 mx-1" />
 
-                <button
-                    onClick={onToggleFocus}
-                    className={`
-                        p-2 rounded-xl transition-all duration-300
-                        ${isFocusMode
-                            ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,107,53,0.4)]'
-                            : 'bg-white/5 text-secondary hover:text-white hover:bg-white/10'
-                        }
-                    `}
-                    title={isFocusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
+                {/* ── POMODORO / FOCUS BUTTON ── */}
+                <motion.div variants={itemVariant} className="relative">
+                    <AnimatePresence mode="wait">
+                        {pomodoroActive ? (
+                            /* Active Timer Display */
+                            <motion.div
+                                key="timer"
+                                initial={{ scale: 0.5, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.5, opacity: 0 }}
+                                className="flex items-center gap-2"
+                            >
+                                {/* Circular Progress Ring */}
+                                <div className="relative cursor-pointer" onClick={togglePomodoroPause} title={pomodoroPaused ? "Resume" : "Pause"}>
+                                    <svg width={RING_SIZE} height={RING_SIZE} className="transform -rotate-90">
+                                        {/* Background track */}
+                                        <circle
+                                            cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS}
+                                            fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={RING_STROKE}
+                                        />
+                                        {/* Progress arc */}
+                                        <motion.circle
+                                            cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS}
+                                            fill="none"
+                                            stroke={pomodoroPaused ? '#f59e0b' : '#FF6B35'}
+                                            strokeWidth={RING_STROKE}
+                                            strokeLinecap="round"
+                                            strokeDasharray={RING_CIRCUMFERENCE}
+                                            strokeDashoffset={RING_CIRCUMFERENCE - (pomodoroProgress / 100) * RING_CIRCUMFERENCE}
+                                            style={{ filter: `drop-shadow(0 0 4px ${pomodoroPaused ? 'rgba(245,158,11,0.5)' : 'rgba(255,107,53,0.5)'})` }}
+                                        />
+                                    </svg>
+                                    {/* Center icon */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        {pomodoroPaused
+                                            ? <Play size={12} className="text-amber-400 ml-0.5" />
+                                            : <Pause size={12} className="text-primary" />
+                                        }
+                                    </div>
+                                </div>
+
+                                {/* Timer Text */}
+                                <motion.span
+                                    key={pomodoroTime}
+                                    initial={{ y: -2, opacity: 0.7 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    className={`text-sm font-mono font-bold tracking-wider ${pomodoroPaused ? 'text-amber-400 animate-pulse' : 'text-primary'}`}
+                                >
+                                    {formatTime(pomodoroTime)}
+                                </motion.span>
+
+                                {/* Cancel Button */}
+                                <motion.button
+                                    whileHover={{ scale: 1.15, rotate: -90 }}
+                                    whileTap={{ scale: 0.85 }}
+                                    onClick={cancelPomodoro}
+                                    className="p-1 rounded-lg hover:bg-red-500/10 text-secondary hover:text-red-400 transition-colors"
+                                    title="Cancel Timer"
+                                >
+                                    <RotateCcw size={14} />
+                                </motion.button>
+                            </motion.div>
+                        ) : (
+                            /* Start Timer Button */
+                            <motion.button
+                                key="start"
+                                initial={{ scale: 0.5, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.5, opacity: 0 }}
+                                whileHover={{ scale: 1.15, rotate: 15, boxShadow: '0 0 15px rgba(255,107,53,0.3)' }}
+                                whileTap={{ scale: 0.88 }}
+                                transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+                                onClick={startPomodoro}
+                                className={`
+                                    p-2 rounded-xl transition-all duration-300
+                                    ${isFocusMode
+                                        ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,107,53,0.4)]'
+                                        : 'bg-white/5 text-secondary hover:text-white hover:bg-white/10'
+                                    }
+                                `}
+                                title="Start 25min Pomodoro"
+                            >
+                                <Crosshair size={18} />
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+
+                {/* ── NOTIFICATION BELL ── */}
+                <motion.div variants={itemVariant}>
+                    <NotificationPanel
+                        tasks={tasks}
+                        onUpdateTask={onUpdateTask}
+                        headers={headers}
+                    />
+                </motion.div>
+
+                {/* ── AVATAR ── */}
+                <motion.div
+                    variants={itemVariant}
+                    whileHover={{ scale: 1.12, boxShadow: '0 0 20px rgba(255,107,53,0.4)' }}
+                    whileTap={{ scale: 0.92 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+                    className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-orange-400 p-0.5 ml-2 cursor-pointer"
                 >
-                    <Crosshair size={18} className={isFocusMode ? 'animate-spin-slow' : ''} />
-                </button>
-
-                <button className="p-2 rounded-xl bg-white/5 text-secondary hover:text-white hover:bg-white/10 transition-colors relative">
-                    <Bell size={18} />
-                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-black shadow-sm" />
-                </button>
-
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-orange-400 p-0.5 ml-2 cursor-pointer hover:scale-105 transition-transform">
                     <div className="w-full h-full rounded-full bg-black/40 flex items-center justify-center text-white font-bold text-sm backdrop-blur-sm">
-                        {user?.name ? user.name[0].toUpperCase() : 'B'}
+                        {getInitial()}
                     </div>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
         </div>
     );
 };

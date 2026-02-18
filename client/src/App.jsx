@@ -32,6 +32,7 @@ function App() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [projects, setProjects] = useState([]);
+  const [user, setUser] = useState(null);
 
   // URL State
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,8 +96,10 @@ function App() {
       localStorage.setItem('token', token);
       fetchTasks();
       fetchProjects();
+      fetchUser();
     } else {
       localStorage.removeItem('token');
+      setUser(null);
     }
   }, [token]);
 
@@ -149,6 +152,12 @@ function App() {
     axios.get('/api/projects', getHeaders())
       .then(res => setProjects(res.data))
       .catch(err => console.error(err));
+  };
+
+  const fetchUser = () => {
+    axios.get('/api/users/me', getHeaders())
+      .then(res => setUser(res.data))
+      .catch(err => console.error('Failed to fetch user:', err));
   };
 
   // ─── AUTH ───
@@ -339,10 +348,13 @@ function App() {
           {/* ── FOCUS BAR ── */}
           <div className="z-20 w-full glass-panel border-b border-white/5 sticky top-0">
             <FocusBar
+              user={user}
               taskCount={pendingCount}
               tasks={tasks}
               isFocusMode={isFocusMode}
               onToggleFocus={() => setIsFocusMode(!isFocusMode)}
+              onUpdateTask={updateTask}
+              headers={getHeaders().headers}
             />
           </div>
 
