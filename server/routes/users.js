@@ -17,6 +17,23 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+// PUT /api/users/profile - Update user profile
+router.put('/profile', auth, async (req, res) => {
+  const { name } = req.body;
+  try {
+    let user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+
+    if (name) user.name = name;
+
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: 'Server Error' });
+  }
+});
+
 // Register User
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Calendar, Edit2, Trash2, ChevronDown, ChevronUp, Plus, Sparkles, X, Check, FileText } from 'lucide-react';
 import axios from 'axios';
+import { useSettings } from '../context/SettingsContext';
 import Checkbox from './ui/Checkbox';
 import PriorityIcon from './ui/PriorityIcon';
 import confetti from 'canvas-confetti';
@@ -195,6 +196,7 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
         primary: { border: 'border-primary', bg: 'hover:bg-primary/5', text: 'text-primary', glow: 'shadow-[0_0_15px_-3px_rgba(var(--primary-rgb),0.3)]' }
     };
 
+    const { settings } = useSettings();
     const activeColor = colorStyles[color] || colorStyles.primary;
 
     return (
@@ -204,7 +206,7 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
             className={`
-                group relative mb-4 rounded-xl transition-all duration-300
+                group relative ${settings.compactView ? 'mb-2 rounded-lg' : 'mb-4 rounded-xl'} transition-all duration-300
                 ${task.isCompleted
                     ? 'bg-transparent border border-white/5 opacity-50'
                     : variant === 'project'
@@ -215,7 +217,7 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
                 ${isExpanded ? `bg-white/5 shadow-lg ${variant === 'project' ? '' : 'border-primary/20'}` : ''}
             `}
         >
-            <div className="flex items-center gap-4 p-4 pr-5">
+            <div className={`flex items-center gap-4 ${settings.compactView ? 'p-2 pr-4' : 'p-4 pr-5'}`}>
                 {/* ── CHECKBOX ── */}
                 <Checkbox
                     checked={task.isCompleted}

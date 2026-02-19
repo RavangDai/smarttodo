@@ -22,7 +22,10 @@ import NeoInput from './components/ui/NeoInput';
 import Login from './components/Login'; // Restored Login Component
 import EmptyState from './components/EmptyState';
 
-function App() {
+// Context
+import { SettingsProvider } from './context/SettingsContext';
+
+function AppContent() {
   // ─── STATE ───
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [tasks, setTasks] = useState([]);
@@ -495,9 +498,19 @@ function App() {
         <Settings
           onClose={() => setShowSettings(false)}
           onLogout={() => setToken(null)}
+          user={user}
+          onUpdateUser={fetchUser}
         />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <SettingsProvider>
+      <AppContent />
+    </SettingsProvider>
   );
 }
 

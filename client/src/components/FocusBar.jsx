@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crosshair, Sparkles, Play, Pause, RotateCcw } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useSettings } from '../context/SettingsContext';
 import WeatherWidget from './ui/WeatherWidget';
 import NotificationPanel from './ui/NotificationPanel';
-import FlowMeter from './ui/FlowMeter';
 
 const POMODORO_DURATION = 25 * 60; // 25 minutes in seconds
 
@@ -148,6 +148,8 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
     const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
     const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
+    const { settings } = useSettings();
+
     return (
         <div className="w-full flex items-center justify-between px-6 py-4 bg-background/50 backdrop-blur-md border-b border-white/5 z-20">
             <div className="flex items-center gap-6">
@@ -164,32 +166,24 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
                     </p>
                 </motion.div>
 
-                {/* Flow Meter - Signature Moment */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
-                    className="hidden lg:block"
-                >
-                    <FlowMeter tasks={tasks} />
-                </motion.div>
-
                 {/* AI Suggestion Pill - Smoother entrance, slower pulse */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95, x: -8 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{ delay: 0.4, duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
-                    whileHover={{ scale: 1.01, boxShadow: '0 0 20px rgba(168, 85, 247, 0.1)' }}
-                    className="hidden md:flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/5 to-indigo-500/5 border border-purple-500/15 cursor-default"
-                >
-                    <Sparkles size={14} className="text-purple-400 opacity-80" />
-                    <span className="text-xs font-medium text-purple-200/80 tracking-wide uppercase">AI Suggests</span>
-                    <div className="h-4 w-px bg-purple-500/10 mx-1" />
-                    <span className="text-sm text-purple-100 font-medium min-w-[200px]">
-                        {typewriterText}
-                        <span className="animate-pulse ml-0.5 opacity-50">|</span>
-                    </span>
-                </motion.div>
+                {settings.aiSuggestions && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, x: -8 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        transition={{ delay: 0.4, duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
+                        whileHover={{ scale: 1.01, boxShadow: '0 0 20px rgba(168, 85, 247, 0.1)' }}
+                        className="hidden md:flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/5 to-indigo-500/5 border border-purple-500/15 cursor-default"
+                    >
+                        <Sparkles size={14} className="text-purple-400 opacity-80" />
+                        <span className="text-xs font-medium text-purple-200/80 tracking-wide uppercase">AI Suggests</span>
+                        <div className="h-4 w-px bg-purple-500/10 mx-1" />
+                        <span className="text-sm text-purple-100 font-medium min-w-[200px]">
+                            {typewriterText}
+                            <span className="animate-pulse ml-0.5 opacity-50">|</span>
+                        </span>
+                    </motion.div>
+                )}
             </div>
 
             <motion.div
