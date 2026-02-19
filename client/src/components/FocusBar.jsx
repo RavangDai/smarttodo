@@ -4,6 +4,7 @@ import { Crosshair, Sparkles, Play, Pause, RotateCcw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import WeatherWidget from './ui/WeatherWidget';
 import NotificationPanel from './ui/NotificationPanel';
+import FlowMeter from './ui/FlowMeter';
 
 const POMODORO_DURATION = 25 * 60; // 25 minutes in seconds
 
@@ -121,15 +122,24 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
         return name ? name[0].toUpperCase() : '?';
     };
 
-    // ── ANIMATION VARIANTS ──
+    // ── ANIMATION VARIANTS (Premium Ease) ──
     const toolbarVariants = {
         hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.2 } }
+        visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
     };
 
     const itemVariant = {
-        hidden: { opacity: 0, y: -8, scale: 0.9 },
-        visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 400, damping: 20 } }
+        hidden: { opacity: 0, y: -5, scale: 0.96 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: {
+                type: 'tween',
+                ease: [0.2, 0.8, 0.2, 1],
+                duration: 0.6
+            }
+        }
     };
 
     // SVG circle math for progress ring
@@ -142,9 +152,9 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
         <div className="w-full flex items-center justify-between px-6 py-4 bg-background/50 backdrop-blur-md border-b border-white/5 z-20">
             <div className="flex items-center gap-6">
                 <motion.div
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -15 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                    transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
                 >
                     <h2 className="text-xl font-display font-semibold text-white tracking-tight">
                         {getGreeting()}, <span className="text-primary">{getDisplayName()}</span>.
@@ -154,20 +164,30 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
                     </p>
                 </motion.div>
 
-                {/* AI Suggestion Pill */}
+                {/* Flow Meter - Signature Moment */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9, x: -10 }}
-                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{ delay: 0.3, duration: 0.4 }}
-                    whileHover={{ scale: 1.02, boxShadow: '0 0 20px rgba(168, 85, 247, 0.15)' }}
-                    className="hidden md:flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 cursor-default"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                    className="hidden lg:block"
                 >
-                    <Sparkles size={14} className="text-purple-400 animate-pulse" />
-                    <span className="text-xs font-medium text-purple-200/90 tracking-wide uppercase">AI Suggests</span>
-                    <div className="h-4 w-px bg-purple-500/20 mx-1" />
+                    <FlowMeter tasks={tasks} />
+                </motion.div>
+
+                {/* AI Suggestion Pill - Smoother entrance, slower pulse */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, x: -8 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ delay: 0.4, duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }}
+                    whileHover={{ scale: 1.01, boxShadow: '0 0 20px rgba(168, 85, 247, 0.1)' }}
+                    className="hidden md:flex items-center gap-3 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/5 to-indigo-500/5 border border-purple-500/15 cursor-default"
+                >
+                    <Sparkles size={14} className="text-purple-400 opacity-80" />
+                    <span className="text-xs font-medium text-purple-200/80 tracking-wide uppercase">AI Suggests</span>
+                    <div className="h-4 w-px bg-purple-500/10 mx-1" />
                     <span className="text-sm text-purple-100 font-medium min-w-[200px]">
                         {typewriterText}
-                        <span className="animate-pulse ml-0.5 opacity-70">|</span>
+                        <span className="animate-pulse ml-0.5 opacity-50">|</span>
                     </span>
                 </motion.div>
             </div>
@@ -183,7 +203,7 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
                     <WeatherWidget tasks={tasks} />
                 </motion.div>
 
-                <motion.div variants={itemVariant} className="h-6 w-px bg-white/10 mx-1" />
+                <motion.div variants={itemVariant} className="h-6 w-px bg-white/5 mx-1" />
 
                 {/* ── POMODORO / FOCUS BUTTON ── */}
                 <motion.div variants={itemVariant} className="relative">
@@ -192,9 +212,10 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
                             /* Active Timer Display */
                             <motion.div
                                 key="timer"
-                                initial={{ scale: 0.5, opacity: 0 }}
+                                initial={{ scale: 0.9, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.5, opacity: 0 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
                                 className="flex items-center gap-2"
                             >
                                 {/* Circular Progress Ring */}
@@ -203,7 +224,7 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
                                         {/* Background track */}
                                         <circle
                                             cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS}
-                                            fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={RING_STROKE}
+                                            fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={RING_STROKE}
                                         />
                                         {/* Progress arc */}
                                         <motion.circle
@@ -214,7 +235,7 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
                                             strokeLinecap="round"
                                             strokeDasharray={RING_CIRCUMFERENCE}
                                             strokeDashoffset={RING_CIRCUMFERENCE - (pomodoroProgress / 100) * RING_CIRCUMFERENCE}
-                                            style={{ filter: `drop-shadow(0 0 4px ${pomodoroPaused ? 'rgba(245,158,11,0.5)' : 'rgba(255,107,53,0.5)'})` }}
+                                            style={{ filter: `drop-shadow(0 0 4px ${pomodoroPaused ? 'rgba(245,158,11,0.3)' : 'rgba(255,107,53,0.3)'})` }}
                                         />
                                     </svg>
                                     {/* Center icon */}
@@ -229,7 +250,7 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
                                 {/* Timer Text */}
                                 <motion.span
                                     key={pomodoroTime}
-                                    initial={{ y: -2, opacity: 0.7 }}
+                                    initial={{ y: -2, opacity: 0.5 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     className={`text-sm font-mono font-bold tracking-wider ${pomodoroPaused ? 'text-amber-400 animate-pulse' : 'text-primary'}`}
                                 >
@@ -238,8 +259,8 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
 
                                 {/* Cancel Button */}
                                 <motion.button
-                                    whileHover={{ scale: 1.15, rotate: -90 }}
-                                    whileTap={{ scale: 0.85 }}
+                                    whileHover={{ scale: 1.1, rotate: -90 }}
+                                    whileTap={{ scale: 0.9 }}
                                     onClick={cancelPomodoro}
                                     className="p-1 rounded-lg hover:bg-red-500/10 text-secondary hover:text-red-400 transition-colors"
                                     title="Cancel Timer"
@@ -251,17 +272,17 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
                             /* Start Timer Button */
                             <motion.button
                                 key="start"
-                                initial={{ scale: 0.5, opacity: 0 }}
+                                initial={{ scale: 0.9, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.5, opacity: 0 }}
-                                whileHover={{ scale: 1.15, rotate: 15, boxShadow: '0 0 15px rgba(255,107,53,0.3)' }}
-                                whileTap={{ scale: 0.88 }}
-                                transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(255,107,53,0.2)' }}
+                                whileTap={{ scale: 0.95 }}
+                                transition={{ type: 'tween', ease: 'easeOut', duration: 0.2 }}
                                 onClick={startPomodoro}
                                 className={`
                                     p-2 rounded-xl transition-all duration-300
                                     ${isFocusMode
-                                        ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,107,53,0.4)]'
+                                        ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,107,53,0.3)]'
                                         : 'bg-white/5 text-secondary hover:text-white hover:bg-white/10'
                                     }
                                 `}
@@ -285,9 +306,9 @@ const FocusBar = ({ user, taskCount, tasks = [], isFocusMode, onToggleFocus, onU
                 {/* ── AVATAR ── */}
                 <motion.div
                     variants={itemVariant}
-                    whileHover={{ scale: 1.12, boxShadow: '0 0 20px rgba(255,107,53,0.4)' }}
-                    whileTap={{ scale: 0.92 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+                    whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(255,107,53,0.2)' }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
                     className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-orange-400 p-0.5 ml-2 cursor-pointer"
                 >
                     <div className="w-full h-full rounded-full bg-black/40 flex items-center justify-center text-white font-bold text-sm backdrop-blur-sm">

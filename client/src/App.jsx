@@ -20,6 +20,7 @@ import InteractiveAvatar from './components/InteractiveAvatar';
 import { PrimaryButton } from './components/ui/Buttons';
 import NeoInput from './components/ui/NeoInput';
 import Login from './components/Login'; // Restored Login Component
+import EmptyState from './components/EmptyState';
 
 function App() {
   // ─── STATE ───
@@ -370,7 +371,7 @@ function App() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
                     className="h-full"
                   >
                     <ProjectsView
@@ -391,7 +392,7 @@ function App() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
                     className="h-full"
                   >
                     {/* INPUT AREA */}
@@ -419,8 +420,7 @@ function App() {
                       ))}
                     </div>
 
-                    {/* TASKS */}
-                    <div className="px-6 pb-12 md:max-w-3xl mx-auto space-y-3 min-h-[50vh]">
+                    <div className="px-6 pb-12 md:max-w-3xl mx-auto space-y-4 min-h-[50vh]">
                       {isLoading ? (
                         <div className="space-y-4">
                           {[1, 2, 3].map(i => (
@@ -428,11 +428,7 @@ function App() {
                           ))}
                         </div>
                       ) : filteredTasks.length === 0 ? (
-                        <div className="text-center py-20 text-secondary">
-                          <div className="text-4xl mb-4 opacity-50">📋</div>
-                          <p>No tasks found.</p>
-                          <p className="text-xs mt-2 text-secondary/50">Type above to add new tasks.</p>
-                        </div>
+                        <EmptyState type={searchQuery ? 'search' : 'tasks'} searchQuery={searchQuery} />
                       ) : (
                         <AnimatePresence>
                           {filteredTasks.map((task, i) => (

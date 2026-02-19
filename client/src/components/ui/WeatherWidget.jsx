@@ -2,32 +2,65 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CloudSun, Cloud, CloudRain, CloudSnow, Sun, CloudLightning, Wind, Droplets, Eye, X, AlertTriangle } from 'lucide-react';
 
-const WEATHER_API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+// Maps WMO Weather interpretation codes (WW)
+// https://open-meteo.com/en/docs
+const getWeatherConditionFromCode = (code) => {
+    // 0: Clear sky
+    if (code === 0) return 'Sunny';
 
-// Mock data fallback
-const MOCK_WEATHER = {
-    current: { temp: 72, feels_like: 70, humidity: 45, wind_speed: 8, condition: 'Partly Cloudy', icon: 'partly_cloudy' },
-    forecast: [
-        { day: 'Tue', temp_high: 74, temp_low: 58, condition: 'sunny', icon: 'sunny' },
-        { day: 'Wed', temp_high: 68, temp_low: 52, condition: 'cloudy', icon: 'cloudy' },
-        { day: 'Thu', temp_high: 65, temp_low: 50, condition: 'rain', icon: 'rain' },
-        { day: 'Fri', temp_high: 70, temp_low: 55, condition: 'partly_cloudy', icon: 'partly_cloudy' },
-        { day: 'Sat', temp_high: 75, temp_low: 60, condition: 'sunny', icon: 'sunny' },
-    ]
+    // 1, 2, 3: Mainly clear, partly cloudy, and overcast
+    if (code >= 1 && code <= 3) return 'Partly Cloudy';
+
+    // 45, 48: Fog and depositing rime fog
+    if (code === 45 || code === 48) return 'Cloudy';
+
+    // 51, 53, 55: Drizzle: Light, moderate, and dense intensity
+    // 56, 57: Freezing Drizzle: Light and dense intensity
+    if (code >= 51 && code <= 57) return 'Drizzle';
+
+    // 61, 63, 65: Rain: Slight, moderate and heavy intensity
+    // 66, 67: Freezing Rain: Light and heavy intensity
+    // 80, 81, 82: Rain showers: Slight, moderate, and violent
+    if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return 'Rain';
+
+    // 71, 73, 75: Snow fall: Slight, moderate, and heavy intensity
+    // 77: Snow grains
+    // 85, 86: Snow showers slight and heavy
+    if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return 'Snow';
+
+    // 95: Thunderstorm: Slight or moderate
+    // 96, 99: Thunderstorm with slight and heavy hail
+    if (code >= 95 && code <= 99) return 'Thunderstorm';
+
+    return 'Cloudy'; // Default
+};
+
+const mapConditionToIcon = (condition) => {
+    const c = (condition || '').toLowerCase();
+    if (c.includes('thunder') || c.includes('lightning')) return 'thunderstorm';
+    if (c.includes('snow')) return 'snow';
+    if (c.includes('rain') || c.includes('drizzle')) return 'rain';
+    if (c.includes('cloud') || c.includes('overcast') || c.includes('fog')) return 'cloudy';
+    if (c.includes('partly') || c.includes('few')) return 'partly_cloudy';
+    if (c.includes('sun') || c.includes('clear')) return 'sunny';
+    return 'partly_cloudy';
+};
+
+const getWeatherIcon = (condition, size = 20) => {
+    const iconType = mapConditionToIcon(condition);
+
+    switch (iconType) {
+        case 'thunderstorm': return <CloudLightning size={size} className="text-yellow-400" />;
+        case 'snow': return <CloudSnow size={size} className="text-blue-200" />;
+        case 'rain': return <CloudRain size={size} className="text-blue-400" />;
+        case 'cloudy': return <Cloud size={size} className="text-gray-400" />;
+        case 'partly_cloudy': return <CloudSun size={size} className="text-amber-400" />;
+        case 'sunny': return <Sun size={size} className="text-yellow-400" />;
+        default: return <CloudSun size={size} className="text-amber-400" />;
+    }
 };
 
 const OUTDOOR_KEYWORDS = ['hiking', 'outdoor', 'park', 'run', 'walk', 'jog', 'bike', 'cycling', 'garden', 'picnic', 'meeting outside', 'soccer', 'football', 'tennis', 'swim', 'beach', 'camp'];
-
-const getWeatherIcon = (condition, size = 20) => {
-    const c = (condition || '').toLowerCase();
-    if (c.includes('thunder') || c.includes('lightning')) return <CloudLightning size={size} className="text-yellow-400" />;
-    if (c.includes('snow')) return <CloudSnow size={size} className="text-blue-200" />;
-    if (c.includes('rain') || c.includes('drizzle')) return <CloudRain size={size} className="text-blue-400" />;
-    if (c.includes('cloud') || c.includes('overcast')) return <Cloud size={size} className="text-gray-400" />;
-    if (c.includes('partly') || c.includes('few')) return <CloudSun size={size} className="text-amber-400" />;
-    if (c.includes('sun') || c.includes('clear')) return <Sun size={size} className="text-yellow-400" />;
-    return <CloudSun size={size} className="text-amber-400" />;
-};
 
 const WeatherWidget = ({ tasks = [] }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -51,11 +84,6 @@ const WeatherWidget = ({ tasks = [] }) => {
     // Fetch weather
     useEffect(() => {
         const fetchWeather = async () => {
-            if (!WEATHER_API_KEY) {
-                setWeather(MOCK_WEATHER);
-                return;
-            }
-
             setLoading(true);
             try {
                 // Try geolocation
@@ -66,45 +94,54 @@ const WeatherWidget = ({ tasks = [] }) => {
                 const lat = pos?.coords?.latitude || 30.27; // Austin TX fallback
                 const lon = pos?.coords?.longitude || -97.74;
 
-                const [currentRes, forecastRes] = await Promise.all([
-                    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=imperial&appid=${WEATHER_API_KEY}`),
-                    fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=imperial&appid=${WEATHER_API_KEY}`)
-                ]);
+                // Open-Meteo API URL
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`;
 
-                const currentData = await currentRes.json();
-                const forecastData = await forecastRes.json();
+                const res = await fetch(url);
+                const data = await res.json();
 
-                // Process forecast: get one entry per day (noon)
+                if (!data || !data.current || !data.daily) {
+                    throw new Error('Invalid weather data');
+                }
+
+                // Process current weather
+                const currentCondition = getWeatherConditionFromCode(data.current.weather_code);
+
+                // Process forecast
                 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                const dailyMap = {};
-                forecastData.list?.forEach(item => {
-                    const date = new Date(item.dt * 1000);
-                    const dayKey = date.toDateString();
-                    if (!dailyMap[dayKey] || date.getHours() >= 12) {
-                        dailyMap[dayKey] = {
-                            day: days[date.getDay()],
-                            temp_high: Math.round(item.main.temp_max),
-                            temp_low: Math.round(item.main.temp_min),
-                            condition: item.weather[0].main,
-                            icon: item.weather[0].main
-                        };
-                    }
+                const processedForecast = data.daily.time.slice(0, 5).map((time, index) => {
+                    const date = new Date(time + 'T12:00:00'); // Ensure noon to avoid timezone shift issues on day name
+                    const condition = getWeatherConditionFromCode(data.daily.weather_code[index]);
+
+                    return {
+                        day: days[date.getDay()],
+                        temp_high: Math.round(data.daily.temperature_2m_max[index]),
+                        temp_low: Math.round(data.daily.temperature_2m_min[index]),
+                        condition: condition,
+                        icon: mapConditionToIcon(condition)
+                    };
                 });
 
                 setWeather({
                     current: {
-                        temp: Math.round(currentData.main.temp),
-                        feels_like: Math.round(currentData.main.feels_like),
-                        humidity: currentData.main.humidity,
-                        wind_speed: Math.round(currentData.wind.speed),
-                        condition: currentData.weather[0].main,
-                        icon: currentData.weather[0].main
+                        temp: Math.round(data.current.temperature_2m),
+                        feels_like: Math.round(data.current.apparent_temperature),
+                        humidity: data.current.relative_humidity_2m,
+                        wind_speed: Math.round(data.current.wind_speed_10m),
+                        condition: currentCondition,
+                        icon: mapConditionToIcon(currentCondition) // Not strictly used by consumers but good for consistency
                     },
-                    forecast: Object.values(dailyMap).slice(0, 5)
+                    forecast: processedForecast
                 });
             } catch (err) {
-                console.error('Weather fetch failed, using mock:', err);
-                setWeather(MOCK_WEATHER);
+                console.error('Weather fetch failed:', err);
+                // Fallback mock data could be set here if desired, 
+                // but we will leave it null or maintain previous state to show error/loading state if we had one.
+                // For now, let's set a safe fallback to avoid UI break
+                setWeather({
+                    current: { temp: '--', feels_like: '--', humidity: '--', wind_speed: '--', condition: 'Unavailable' },
+                    forecast: []
+                });
             } finally {
                 setLoading(false);
             }
@@ -124,7 +161,9 @@ const WeatherWidget = ({ tasks = [] }) => {
         return () => document.removeEventListener('mousedown', handleClick);
     }, [isOpen]);
 
-    const current = weather?.current || MOCK_WEATHER.current;
+    if (!weather) return null; // Or a loading spinner
+
+    const current = weather.current;
 
     return (
         <div className="relative" ref={panelRef}>
@@ -141,10 +180,11 @@ const WeatherWidget = ({ tasks = [] }) => {
                         : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10'
                     }
                     ${showWeatherAlert ? 'border-amber-500/40' : ''}
+                    ${loading ? 'opacity-50 cursor-wait' : ''}
                 `}
             >
                 {getWeatherIcon(current.condition, 16)}
-                <span>{current.temp}°F</span>
+                <span>{current.temp !== '--' ? `${current.temp}°F` : '--'}</span>
 
                 {/* Weather alert indicator */}
                 {showWeatherAlert && (
@@ -185,7 +225,7 @@ const WeatherWidget = ({ tasks = [] }) => {
                                 <div className="flex items-center gap-3">
                                     {getWeatherIcon(current.condition, 36)}
                                     <div>
-                                        <div className="text-3xl font-bold text-white">{current.temp}°F</div>
+                                        <div className="text-3xl font-bold text-white">{current.temp !== '--' ? `${current.temp}°F` : '--'}</div>
                                         <div className="text-xs text-secondary">{current.condition}</div>
                                     </div>
                                 </div>
@@ -193,15 +233,15 @@ const WeatherWidget = ({ tasks = [] }) => {
                                 <div className="flex flex-col gap-1.5 text-xs text-secondary">
                                     <div className="flex items-center gap-1.5">
                                         <Droplets size={12} className="text-blue-400" />
-                                        <span>{current.humidity}%</span>
+                                        <span>{current.humidity !== '--' ? `${current.humidity}%` : '--'}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <Wind size={12} className="text-cyan-400" />
-                                        <span>{current.wind_speed} mph</span>
+                                        <span>{current.wind_speed !== '--' ? `${current.wind_speed} mph` : '--'}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <Eye size={12} className="text-purple-400" />
-                                        <span>Feels {current.feels_like}°</span>
+                                        <span>Feels {current.feels_like !== '--' ? `${current.feels_like}°` : '--'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -211,9 +251,9 @@ const WeatherWidget = ({ tasks = [] }) => {
                         <div className="p-4 pt-3">
                             <span className="text-[10px] uppercase tracking-wider text-secondary font-medium">5-Day Forecast</span>
                             <div className="flex items-center justify-between mt-2.5 gap-1">
-                                {(weather?.forecast || MOCK_WEATHER.forecast).map((day, i) => (
+                                {weather.forecast.map((day, i) => (
                                     <motion.div
-                                        key={day.day}
+                                        key={day.day + i} // added index to key just in case of duplicates
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.06 }}
@@ -227,6 +267,9 @@ const WeatherWidget = ({ tasks = [] }) => {
                                         </div>
                                     </motion.div>
                                 ))}
+                                {weather.forecast.length === 0 && (
+                                    <div className="text-xs text-secondary py-4 text-center w-full">Forecast unavailable</div>
+                                )}
                             </div>
                         </div>
 
@@ -250,12 +293,9 @@ const WeatherWidget = ({ tasks = [] }) => {
                             </motion.div>
                         )}
 
-                        {/* Footer */}
-                        {!WEATHER_API_KEY && (
-                            <div className="px-4 pb-3">
-                                <p className="text-[10px] text-secondary/50 text-center">Demo data • Add VITE_WEATHER_API_KEY for live weather</p>
-                            </div>
-                        )}
+                        <div className="px-4 pb-3">
+                            <p className="text-[10px] text-secondary/30 text-center">Powered by Open-Meteo</p>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

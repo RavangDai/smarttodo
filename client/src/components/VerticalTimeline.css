@@ -1,5 +1,17 @@
 /* VerticalTimeline.css - Cyber Industrial Theme */
 
+@keyframes ambientPulse {
+
+    0%,
+    100% {
+        background: linear-gradient(180deg, rgba(15, 15, 15, 0.95), rgba(5, 5, 5, 0.98));
+    }
+
+    50% {
+        background: linear-gradient(180deg, rgba(20, 20, 20, 0.95), rgba(10, 10, 10, 0.98));
+    }
+}
+
 .vertical-timeline {
     padding: 0;
     height: 100%;
@@ -8,6 +20,9 @@
     background: linear-gradient(180deg, rgba(15, 15, 15, 0.95) 0%, rgba(5, 5, 5, 0.98) 100%);
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+    animation: ambientPulse 15s ease-in-out infinite;
+    /* Slower, more premium pulse */
+    position: relative;
 }
 
 /* Header */
@@ -19,8 +34,9 @@
     background: rgba(255, 255, 255, 0.02);
     position: sticky;
     top: 0;
-    z-index: 10;
-    backdrop-filter: blur(10px);
+    z-index: 30;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 .header-left {
@@ -43,6 +59,38 @@
     font-size: 14px;
     color: #fff;
     font-weight: 600;
+}
+
+/* Cinematic Beam - Refined Glow */
+.cinematic-beam {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 107, 53, 0.4) 20%,
+            #FF6B35 50%,
+            rgba(255, 107, 53, 0.4) 80%,
+            transparent 100%);
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.4);
+    /* Softer shadow */
+    z-index: 20;
+    pointer-events: none;
+    transition: top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* Smooth updates */
+}
+
+.cinematic-beam::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -1px;
+    width: 100%;
+    height: 4px;
+    background: inherit;
+    filter: blur(4px);
+    opacity: 0.4;
 }
 
 /* Timeline Content & Slots */
@@ -71,7 +119,7 @@
     min-height: 90px;
     display: flex;
     padding-right: 20px;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .timeline-slot:hover {
@@ -79,8 +127,11 @@
 }
 
 .timeline-slot.drag-over {
-    background: rgba(255, 107, 53, 0.05);
-    /* Orange tint */
+    background: rgba(255, 107, 53, 0.08) !important;
+    box-shadow: inset 0 0 20px rgba(255, 107, 53, 0.1);
+    border-top: 1px solid rgba(255, 107, 53, 0.3);
+    border-bottom: 1px solid rgba(255, 107, 53, 0.3);
+    z-index: 10;
 }
 
 /* Time Label */
@@ -95,8 +146,6 @@
     color: var(--color-secondary, #888);
     position: relative;
 }
-
-/* Current Time Indicator logic could go here if implemented in JS to mark specific slot */
 
 /* Slot Content Area */
 .slot-content {
@@ -126,22 +175,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* Premium ease */
     cursor: grab;
     backdrop-filter: blur(5px);
 }
 
 .timeline-card:hover {
-    transform: translateX(4px);
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateX(2px) translateY(-1px);
+    /* Subtle lift */
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     border-left-color: #FF9F1C;
-    /* Lighter orange */
 }
 
 .timeline-card:active {
     cursor: grabbing;
-    transform: scale(0.98);
+    transform: scale(0.99);
 }
 
 .timeline-card.completed {
@@ -149,6 +199,29 @@
     opacity: 0.6;
     text-decoration: line-through;
     background: rgba(16, 185, 129, 0.05);
+}
+
+/* Overdue State */
+.timeline-card.overdue {
+    border-left-color: #EF4444 !important;
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.02)) !important;
+    /* Softer gradient */
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.1) !important;
+    border-width: 1px 1px 1px 2px;
+    border-color: rgba(239, 68, 68, 0.2);
+
+    /* Override past slot dimming */
+    filter: none !important;
+    opacity: 1 !important;
+}
+
+.timeline-card.overdue .timeline-task-title {
+    color: #F87171;
+    text-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+}
+
+.timeline-card.overdue:hover {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2) !important;
 }
 
 .timeline-task-title {
@@ -174,16 +247,20 @@
     font-family: 'Space Mono', monospace;
     font-style: italic;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.3s ease;
     border: 1px dashed rgba(255, 255, 255, 0.1);
     border-radius: 6px;
 }
 
 .timeline-slot.drag-over .empty-slot-placeholder {
     opacity: 1;
-    background: rgba(255, 107, 53, 0.05);
+    background: rgba(255, 107, 53, 0.04);
     border-color: var(--color-primary, #FF6B35);
     color: var(--color-primary, #FF6B35);
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    padding-left: 20px;
+    box-shadow: 0 0 15px rgba(255, 107, 53, 0.05);
 }
 
 /* Past Slots */
@@ -191,7 +268,8 @@
     opacity: 0.5;
 }
 
-.timeline-slot.past .timeline-card {
-    opacity: 0.8;
+.timeline-slot.past .timeline-card:not(.overdue) {
+    opacity: 0.7;
     filter: grayscale(0.2);
+    transition: all 0.3s ease;
 }

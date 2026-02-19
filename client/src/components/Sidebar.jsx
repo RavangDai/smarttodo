@@ -25,7 +25,7 @@ const Sidebar = ({ activeView, onNavigate, onLogout, onOpenSettings }) => {
             className={`
                 h-screen sticky top-0 left-0
                 bg-black/40 backdrop-blur-xl border-r border-white/5
-                transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]
+                transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]
                 flex flex-col
                 ${isCollapsed ? 'w-20' : 'w-64'}
                 relative z-50

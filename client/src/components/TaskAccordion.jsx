@@ -204,7 +204,7 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
             className={`
-                group relative mb-3 rounded-xl transition-all duration-300
+                group relative mb-4 rounded-xl transition-all duration-300
                 ${task.isCompleted
                     ? 'bg-transparent border border-white/5 opacity-50'
                     : variant === 'project'
@@ -255,6 +255,11 @@ const TaskAccordion = ({ task, onUpdate, onDelete, isExpanded, onToggle, headers
                                         {formatDate(task.dueDate)}
                                         {task.dueDate && task.dueTime && <span>•</span>}
                                         {task.dueTime}
+                                        {isOverdue && (
+                                            <span className="ml-2 bg-red-500/20 text-red-300 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                                                Overdue
+                                            </span>
+                                        )}
                                     </span>
                                 )}
                                 {subtasks.length > 0 && (
