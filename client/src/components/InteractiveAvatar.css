@@ -16,8 +16,6 @@
     position: relative;
     transform-style: preserve-3d;
     /* Essential for 3D head rotation */
-    transition: transform 0.1s cubic-bezier(0.2, 0, 0.2, 1);
-    /* Smooth transform updates */
     animation: boxyHover 6s ease-in-out infinite;
 }
 
@@ -37,33 +35,73 @@
 .robot-head {
     width: 160px;
     height: 110px;
-    background: #1a1a1a;
-    border: 2px solid #333;
+    background: linear-gradient(135deg, #1c1c1c 0%, #0a0a0a 100%);
+    border: 1px solid rgba(255, 165, 0, 0.9);
+    /* Bright, sharp outer filament */
     border-radius: 20px;
     position: relative;
     z-index: 10;
     box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.5),
-        inset 0 2px 5px rgba(255, 255, 255, 0.05);
+        0 20px 40px -10px rgba(0, 0, 0, 1),
+        /* Very dark, sharp drop shadow for separation */
+        0 0 12px rgba(255, 107, 53, 0.8),
+        /* Tight, intense outer bloom */
+        0 0 35px rgba(255, 107, 53, 0.4),
+        /* Wide outer atmospheric glow */
+        inset 0 0 15px rgba(255, 107, 53, 0.5),
+        /* Inner bloom (light bleeding into casing) */
+        inset 0 2px 3px rgba(255, 255, 255, 0.15);
+    /* Top metallic highlight for casing thickness */
     display: flex;
     justify-content: center;
     align-items: center;
     transform-style: preserve-3d;
 }
 
-/* Eyes Container */
+/* Add a subtle internal bezel/housing detail inside the head before the screen */
+.robot-head::after {
+    content: '';
+    position: absolute;
+    width: 146px;
+    height: 96px;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+/* Eyes Container (Screen) */
 .robot-face-screen {
     width: 140px;
     height: 90px;
-    background: #000;
+    background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
     border-radius: 14px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 20px;
-    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9);
+    /* Glass screen feel */
+    box-shadow:
+        inset 0 0 20px rgba(0, 0, 0, 1),
+        inset 0 2px 10px rgba(255, 255, 255, 0.03);
     overflow: hidden;
-    /* Keep eyes inside screen */
+    position: relative;
+}
+
+/* Subtle screen glare/reflection */
+.robot-face-screen::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(to bottom right,
+            rgba(255, 255, 255, 0.03) 0%,
+            rgba(255, 255, 255, 0) 40%,
+            rgba(0, 0, 0, 0) 100%);
+    pointer-events: none;
+    transform: rotate(30deg);
 }
 
 /* Glowing Eyes */
@@ -74,7 +112,7 @@
     background: linear-gradient(135deg, #FF6B35 0%, #FF9F1C 100%);
     border-radius: 4px;
     box-shadow: 0 0 15px rgba(255, 107, 53, 0.6);
-    transition: transform 0.05s linear, height 0.1s ease;
+    transition: height 0.1s ease;
     /* Ultra fast for tracking */
 }
 
@@ -84,19 +122,31 @@
 .robot-body {
     width: 100px;
     height: 60px;
-    background: #151515;
-    border: 2px solid #333;
-    border-radius: 0 0 16px 16px;
+    background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+    border: 1px solid rgba(255, 165, 0, 0.6);
+    /* Slightly darker filament than head */
+    border-top: none;
+    /* Connects smoothly */
+    border-radius: 0 0 24px 24px;
     position: absolute;
     top: 105px;
-    /* connects to head */
     left: 50%;
     transform: translateX(-50%);
-    /* Center horizontally */
     z-index: 5;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-shadow:
+        0 20px 30px -5px rgba(0, 0, 0, 0.9),
+        /* Body separation shadow */
+        0 5px 15px rgba(255, 107, 53, 0.5),
+        /* Tight bloom */
+        0 10px 40px rgba(255, 107, 53, 0.2),
+        /* Wide ambient bloom */
+        inset 0 -2px 10px rgba(255, 107, 53, 0.3),
+        /* Bottom inner bloom */
+        inset 0 -1px 2px rgba(255, 255, 255, 0.1);
+    /* Bottom lip highlight */
 }
 
 .robot-chest-logo {
@@ -117,13 +167,22 @@
 
 /* Arms */
 .robot-arm {
-    width: 20px;
-    height: 50px;
-    background: #222;
-    border: 1px solid #444;
-    border-radius: 6px;
+    width: 16px;
+    height: 45px;
+    background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
+    border: 1px solid rgba(255, 165, 0, 0.5);
+    /* Dimmer filament for arms */
+    border-radius: 8px;
     top: 115px;
-    /* transition handled in JS/inline styles for smoothness */
+    box-shadow:
+        0 5px 10px rgba(0, 0, 0, 0.8),
+        /* Separate from body */
+        0 0 8px rgba(255, 107, 53, 0.4),
+        /* Arm bloom */
+        inset 0 0 5px rgba(255, 107, 53, 0.2),
+        /* Arm inner bleed */
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    /* Cylinder reflection */
 }
 
 .robot-arm.left {

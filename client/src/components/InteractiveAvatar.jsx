@@ -2,26 +2,53 @@ import { useState, useEffect, useRef } from 'react';
 import './InteractiveAvatar.css';
 
 const InteractiveAvatar = ({ mode = 'idle' }) => {
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-    const [eyePos, setEyePos] = useState({ x: 0, y: 0 });
-    const [headRot, setHeadRot] = useState({ x: 0, y: 0 });
     const [isBlinking, setIsBlinking] = useState(false);
 
-    // Refs for smoothing
+    // Refs for state to avoid re-renders
+    const mousePosRef = useRef({ x: 0, y: 0 });
     const requestRef = useRef();
+
+    // Position tracking
     const targetEyePos = useRef({ x: 0, y: 0 });
     const currentEyePos = useRef({ x: 0, y: 0 });
     const targetHeadRot = useRef({ x: 0, y: 0 });
     const currentHeadRot = useRef({ x: 0, y: 0 });
 
+    // DOM Refs
+    const containerRef = useRef(null);
+    const headRef = useRef(null);
+    const eyeLeftRef = useRef(null);
+    const eyeRightRef = useRef(null);
+    const armLeftRef = useRef(null);
+    const armRightRef = useRef(null);
+
     // Track Mouse
     useEffect(() => {
         const handleMouseMove = (e) => {
-            // Normalize mouse position (-1 to 1) based on window center
-            const x = (e.clientX - window.innerWidth / 2) / (window.innerWidth / 2);
-            const y = (e.clientY - window.innerHeight / 2) / (window.innerHeight / 2);
-            setMousePos({ x, y });
+            if (!containerRef.current) return;
+
+            const rect = containerRef.current.getBoundingClientRect();
+            const avatarCenterX = rect.left + rect.width / 2;
+            const avatarCenterY = rect.top + rect.height / 2;
+
+            const dx = e.clientX - avatarCenterX;
+            const dy = e.clientY - avatarCenterY;
+
+            // Increase sensitivity slightly by dividing by a smaller value than full window
+            // Make the movement feel more lively
+            const maxDistX = Math.min(window.innerWidth / 2, 800);
+            const maxDistY = Math.min(window.innerHeight / 2, 600);
+
+            let x = dx / maxDistX;
+            let y = dy / maxDistY;
+
+            // Soft clamp to keep it feeling natural without a hard stop
+            x = Math.max(-1.5, Math.min(1.5, x));
+            y = Math.max(-1.5, Math.min(1.5, y));
+
+            mousePosRef.current = { x, y };
         };
+
         window.addEventListener('mousemove', handleMouseMove);
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
@@ -31,55 +58,74 @@ const InteractiveAvatar = ({ mode = 'idle' }) => {
         const animate = () => {
             // Determine Target Positions based on Mode
             if (mode === 'email') {
-                // Look down at input
                 targetEyePos.current = { x: 0, y: 12 };
                 targetHeadRot.current = { x: 15, y: 0 };
             } else if (mode === 'password') {
-                // Look away / Squint (Handled via CSS class, but reset position)
                 targetEyePos.current = { x: 0, y: 0 };
                 targetHeadRot.current = { x: -5, y: 0 };
             } else {
-                // Idle: Follow Mouse
-                // Restrict eye movement range
-                targetEyePos.current = { x: mousePos.x * 12, y: mousePos.y * 8 };
-                // Restrict head rotation
-                targetHeadRot.current = { x: mousePos.y * 10, y: mousePos.x * 15 };
+                // More dynamic range mapping
+                targetEyePos.current = {
+                    x: mousePosRef.current.x * 14,
+                    y: mousePosRef.current.y * 10
+                };
+                targetHeadRot.current = {
+                    x: mousePosRef.current.y * 12,
+                    y: mousePosRef.current.x * 20
+                };
             }
 
             // Smooth Interpolation (Lerp)
-            currentEyePos.current.x += (targetEyePos.current.x - currentEyePos.current.x) * 0.1;
-            currentEyePos.current.y += (targetEyePos.current.y - currentEyePos.current.y) * 0.1;
+            // Faster lerp for eyes (they dart quickly)
+            currentEyePos.current.x += (targetEyePos.current.x - currentEyePos.current.x) * 0.25;
+            currentEyePos.current.y += (targetEyePos.current.y - currentEyePos.current.y) * 0.25;
 
-            currentHeadRot.current.x += (targetHeadRot.current.x - currentHeadRot.current.x) * 0.05;
-            currentHeadRot.current.y += (targetHeadRot.current.y - currentHeadRot.current.y) * 0.05;
+            // Slower lerp for head (it has mass)
+            currentHeadRot.current.x += (targetHeadRot.current.x - currentHeadRot.current.x) * 0.1;
+            currentHeadRot.current.y += (targetHeadRot.current.y - currentHeadRot.current.y) * 0.1;
 
-            setEyePos({ ...currentEyePos.current });
-            setHeadRot({ ...currentHeadRot.current });
+            // Apply direct DOM updates
+            if (headRef.current) {
+                headRef.current.style.transform = `rotateX(${-currentHeadRot.current.x}deg) rotateY(${currentHeadRot.current.y}deg)`;
+            }
+            if (eyeLeftRef.current) {
+                eyeLeftRef.current.style.transform = `translate(${currentEyePos.current.x}px, ${currentEyePos.current.y}px)`;
+            }
+            if (eyeRightRef.current) {
+                eyeRightRef.current.style.transform = `translate(${currentEyePos.current.x}px, ${currentEyePos.current.y}px)`;
+            }
+            if (armLeftRef.current) {
+                armLeftRef.current.style.transform = `translateY(${currentHeadRot.current.y * 0.5}px) rotate(${10 + currentHeadRot.current.y * 0.2}deg)`;
+            }
+            if (armRightRef.current) {
+                armRightRef.current.style.transform = `translateY(${-currentHeadRot.current.y * 0.5}px) rotate(${-10 + currentHeadRot.current.y * 0.2}deg)`;
+            }
 
             requestRef.current = requestAnimationFrame(animate);
         };
 
         requestRef.current = requestAnimationFrame(animate);
         return () => cancelAnimationFrame(requestRef.current);
-    }, [mode, mousePos]);
+    }, [mode]);
 
     // Random Blinking
     useEffect(() => {
         const blinkInterval = setInterval(() => {
-            if (mode !== 'password') { // Don't blink if eyes are closed/squinting for privacy
+            if (mode !== 'password') {
                 setIsBlinking(true);
                 setTimeout(() => setIsBlinking(false), 150);
             }
-        }, 4000 + Math.random() * 2000); // 4-6 seconds random
+        }, 4000 + Math.random() * 2000);
         return () => clearInterval(blinkInterval);
     }, [mode]);
 
     return (
-        <div className="interactive-avatar perspective-[1000px]">
+        <div ref={containerRef} className="interactive-avatar perspective-[1000px]">
             <div
+                ref={headRef}
                 className="robot-root"
                 style={{
-                    transform: `rotateX(${-headRot.x}deg) rotateY(${headRot.y}deg)` // Invert X for natural feel
+                    transform: `rotateX(0deg) rotateY(0deg)` // Initial state
                 }}
             >
                 {/* Head */}
@@ -96,12 +142,12 @@ const InteractiveAvatar = ({ mode = 'idle' }) => {
                             // Normal Eyes
                             <>
                                 <div
+                                    ref={eyeLeftRef}
                                     className={`robot-eye left ${isBlinking ? 'scale-y-[0.1]' : ''}`}
-                                    style={{ transform: `translate(${eyePos.x}px, ${eyePos.y}px)` }}
                                 ></div>
                                 <div
+                                    ref={eyeRightRef}
                                     className={`robot-eye right ${isBlinking ? 'scale-y-[0.1]' : ''}`}
-                                    style={{ transform: `translate(${eyePos.x}px, ${eyePos.y}px)` }}
                                 ></div>
                             </>
                         )}
@@ -110,12 +156,12 @@ const InteractiveAvatar = ({ mode = 'idle' }) => {
 
                 {/* Arms with slight parallax or sway */}
                 <div
-                    className="robot-arm left absolute transition-transform duration-300"
-                    style={{ transform: `translateY(${headRot.y * 0.5}px) rotate(${10 + headRot.y * 0.2}deg)` }}
+                    ref={armLeftRef}
+                    className="robot-arm left absolute"
                 ></div>
                 <div
-                    className="robot-arm right absolute transition-transform duration-300"
-                    style={{ transform: `translateY(${-headRot.y * 0.5}px) rotate(${-10 + headRot.y * 0.2}deg)` }}
+                    ref={armRightRef}
+                    className="robot-arm right absolute"
                 ></div>
 
                 {/* Body */}
