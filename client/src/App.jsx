@@ -20,6 +20,7 @@ import InteractiveAvatar from './components/InteractiveAvatar';
 import { PrimaryButton } from './components/ui/Buttons';
 import NeoInput from './components/ui/NeoInput';
 import Login from './components/Login'; // Restored Login Component
+import Pricing from './components/Pricing'; // Added Pricing Component
 import EmptyState from './components/EmptyState';
 
 // Context
@@ -37,6 +38,10 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [user, setUser] = useState(null);
+
+  // ─── PUBLIC VIEW STATE ───
+  const [publicView, setPublicView] = useState('login'); // 'login' or 'pricing'
+
 
   // URL State
   const [searchParams, setSearchParams] = useSearchParams();
@@ -323,10 +328,15 @@ function AppContent() {
   // ─── AUTH VIEW ───
   // ─── AUTH VIEW ───
   if (!token) {
+    if (publicView === 'pricing') {
+      return <Pricing onBack={() => setPublicView('login')} />;
+    }
+
     return (
       <Login
         onLogin={(e, p) => handleAuth({ preventDefault: () => { }, target: { value: '' } }, e, p)}
         onRegister={(e, p) => handleAuth({ preventDefault: () => { }, target: { value: '' } }, e, p, true)}
+        onNavigatePricing={() => setPublicView('pricing')}
       // Note: The original handleAuth was designed for a form event. 
       // We need to adapt it or the Login component to pass data correctly.
       // Let's refactor handleAuth slightly or wrap it here.

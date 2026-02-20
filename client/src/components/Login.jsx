@@ -4,7 +4,7 @@ import InteractiveAvatar from './InteractiveAvatar';
 import LoginBackground3D from './LoginBackground3D';
 import './Login.css';
 
-const Login = ({ onLogin, onRegister, error, isLoading }) => {
+const Login = ({ onLogin, onRegister, onNavigatePricing, error, isLoading }) => {
     const [isRegistering, setIsRegistering] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -158,6 +158,17 @@ const Login = ({ onLogin, onRegister, error, isLoading }) => {
                                 className="cyber-link uppercase tracking-wider"
                             >
                                 {isRegistering ? 'Log In' : 'Create Account'}
+                            </button>
+                        </div>
+
+                        <div className="mt-4 flex justify-center text-sm font-mono border-t border-white/10 pt-4">
+                            <button
+                                type="button"
+                                onClick={onNavigatePricing}
+                                className="cyber-link uppercase tracking-wider text-xs"
+                                style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                            >
+                                View Subscription Plans
                             </button>
                         </div>
                     </div>
