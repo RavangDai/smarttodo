@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import InteractiveAvatar from './InteractiveAvatar';
 import LoginBackground3D from './LoginBackground3D';
@@ -9,6 +10,11 @@ const Login = ({ onLogin, onRegister, onNavigatePricing, error, isLoading }) => 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+
+    // Server wake-up state
+    const [serverReady, setServerReady] = useState(false);
+    const [serverStatus, setServerStatus] = useState('connecting');
+    const pendingSubmitRef = useRef(null);
 
     // Interaction State
     const [avatarMode, setAvatarMode] = useState('idle'); // 'idle', 'email', 'password'
@@ -49,8 +55,71 @@ const Login = ({ onLogin, onRegister, onNavigatePricing, error, isLoading }) => 
         }
     }, [avatarMode]);
 
+    // ─── SERVER PRE-WARM & KEEP-ALIVE ───
+    useEffect(() => {
+        let retries = 0;
+        const maxRetries = 10;
+        let retryTimeout;
+        let alive = true;
+
+        const pingServer = async () => {
+            try {
+                setServerStatus('connecting');
+                await axios.get('/ping');
+                if (alive) {
+                    setServerReady(true);
+                    setServerStatus('online');
+                }
+            } catch {
+                if (alive && retries < maxRetries) {
+                    retries++;
+                    setServerStatus('retrying');
+                    retryTimeout = setTimeout(pingServer, 3000);
+                } else if (alive) {
+                    setServerStatus('failed');
+                }
+            }
+        };
+
+        pingServer();
+
+        // Keep-alive: ping every 4 minutes to prevent Render from sleeping
+        const keepAlive = setInterval(() => {
+            axios.get('/ping').catch(() => { });
+        }, 4 * 60 * 1000);
+
+        return () => {
+            alive = false;
+            clearTimeout(retryTimeout);
+            clearInterval(keepAlive);
+        };
+    }, []);
+
+    // Auto-submit when server becomes ready and a submit was pending
+    useEffect(() => {
+        if (serverReady && pendingSubmitRef.current) {
+            const { submitEmail, submitPassword, submitIsRegistering } = pendingSubmitRef.current;
+            pendingSubmitRef.current = null;
+            if (submitIsRegistering) {
+                onRegister(submitEmail, submitPassword);
+            } else {
+                onLogin(submitEmail, submitPassword);
+            }
+        }
+    }, [serverReady]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (!serverReady) {
+            // Queue the submit and wait for server to be ready
+            pendingSubmitRef.current = {
+                submitEmail: email,
+                submitPassword: password,
+                submitIsRegistering: isRegistering,
+            };
+            setServerStatus('waking');
+            return;
+        }
         if (isRegistering) {
             onRegister(email, password);
         } else {
@@ -62,6 +131,18 @@ const Login = ({ onLogin, onRegister, onNavigatePricing, error, isLoading }) => 
         <div className="cyber-login-container">
             <div className="cyber-grid-bg" />
             <LoginBackground3D />
+
+            {/* Server wake-up overlay */}
+            {(serverStatus === 'waking' || (pendingSubmitRef.current && !serverReady)) && (
+                <div className="server-wake-overlay">
+                    <div className="wake-content">
+                        <div className="wake-spinner" />
+                        <p className="wake-status-text">Waking up the server&hellip;</p>
+                        <p className="wake-sub-text">Free-tier servers sleep after inactivity. This takes 15–30 s.</p>
+                    </div>
+                </div>
+            )}
+
 
             <div className="cyber-split">
                 {/* LEFT PANEL */}
@@ -94,9 +175,15 @@ const Login = ({ onLogin, onRegister, onNavigatePricing, error, isLoading }) => 
                     <div className="corner-bracket" />
 
                     <div className="cyber-form-container">
-                        <h2 className="cyber-heading">
-                            {isRegistering ? 'Initialize' : 'Welcome back'}
-                        </h2>
+                        <div className="cyber-heading-row">
+                            <h2 className="cyber-heading">
+                                {isRegistering ? 'Initialize' : 'Welcome back'}
+                            </h2>
+                            <span className={`server-status-badge ${serverStatus}`}>
+                                <span className="status-dot" />
+                                {serverStatus === 'online' ? 'Server Online' : serverStatus === 'connecting' || serverStatus === 'retrying' ? 'Connecting…' : serverStatus === 'waking' ? 'Waking…' : 'Offline'}
+                            </span>
+                        </div>
                         <p className="cyber-subheading">
                             {isRegistering ? 'Begin system sequence.' : 'Sign in to continue to your tasks.'}
                         </p>

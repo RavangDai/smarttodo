@@ -20,6 +20,11 @@ app.get('/', (req, res) => {
   res.send('API is running successfully!');
 });
 
+// --- HEALTH CHECK (used to pre-warm Render free-tier cold starts) ---
+app.get('/ping', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // --- ROUTES ---
 // Using separate route files for cleaner structure
 app.use('/api/users', require('./routes/users'));
